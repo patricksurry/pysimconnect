@@ -15,11 +15,12 @@ and `SimConnect.h` is a copy of the C header file that ships with the SDK
 The `genscdefs.py` script creates `scdefs.py` which contains
 a python translation of all the SDK function declarations, data structures
 and enumerated constants.  This translation is quite fragile,
+assuming the header is formatted in a specific way, and is
 based on first generating `SimConnect_cpp.h` from the raw header
-using the C pre-processor and a blank `float.h` include,
-but presumable the header doesn't change very often.
+using the C pre-processor along with an empty `float.h` include.
+This approach makes it easy to tweak the rules for mapping from C++
+to Python, as long as header format doesn't change significantly.
 
-The main interface is `SimConnect.py` which wraps the raw
+The main interface is defined in `SimConnect.py` which wraps the raw
 definitions from `scdefs.py`, providing access to both the low-level
 SDK functions as well as some pythonic sugar.
-
