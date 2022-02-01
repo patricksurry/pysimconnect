@@ -11,6 +11,28 @@ def nopfx(s: str, pfx='SIMCONNECT_') -> str:
     return s.replace(pfx, '')
 
 
+def _ctyp(typ):
+    ctyp = nopfx(typ).strip()
+    if ctyp.startswith('const'):
+        ctyp = ctyp[5:].strip()
+    if ctyp.startswith('BOOL'):
+        ctyp = 'bool' + ctyp[4:]
+    m = re.match(r'([a-z]+(?:\s+\*)?)(.*)', ctyp)
+    if m:
+        t, suffix = m.groups()
+        ctyp = 'c_' + re.sub(r'\s+', '_', t.replace('*', 'p')) + suffix
+    stars = 0
+    while True:
+        ctyp = ctyp.strip()
+        if ctyp[-1] != '*':
+            break
+        stars += 1
+        ctyp = ctyp[:-1]
+    for _ in range(stars):
+        ctyp = f"POINTER({ctyp})"
+    return ctyp
+
+
 # typedef DWORD SIMCONNECT_WAYPOINT_FLAGS;
 def maybeTypedef(line, lines, output) -> bool:
     # special case for DispatchProc
@@ -41,9 +63,7 @@ def maybeConst(line, lines, output, indent='') -> bool:
     typ, var, val, suffix = m.groups()
     var = nopfx(var)
     val = nopfx(val)
-    if typ in ('DWORD'):
-        val = f"{typ}({val})"
-    line = f"{var}: {typ} = {val} {suffix}"
+    line = f"{var} = {_ctyp(typ)}({val}) {suffix}"
     output.append(indent + line)
     return True
 
@@ -77,28 +97,6 @@ def maybeEnum(line, lines, output) -> bool:
         output.append(line)
     output.append('')
     return True
-
-
-def _ctyp(typ):
-    ctyp = nopfx(typ).strip()
-    if ctyp.startswith('const'):
-        ctyp = ctyp[5:].strip()
-    if ctyp.startswith('BOOL'):
-        ctyp = 'bool' + ctyp[4:]
-    m = re.match(r'([a-z]+(?:\s+\*)?)(.*)', ctyp)
-    if m:
-        t, suffix = m.groups()
-        ctyp = 'c_' + re.sub(r'\s+', '_', t.replace('*', 'p')) + suffix
-    stars = 0
-    while True:
-        ctyp = ctyp.strip()
-        if ctyp[-1] != '*':
-            break
-        stars += 1
-        ctyp = ctyp[:-1]
-    for _ in range(stars):
-        ctyp = f"POINTER({ctyp})"
-    return ctyp
 
 
 # unsigned long Flags; // ...
@@ -140,7 +138,7 @@ def maybeStruct(line, lines, output) -> bool:
         elif maybeField(line, lines, fields):
             continue
         else:
-            output.append(line)
+            output.append(line.strip())
 
     output.append(indent + '_fields_ = [')
     for line in fields:

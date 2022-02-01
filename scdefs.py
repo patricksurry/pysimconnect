@@ -52,45 +52,45 @@ OBJECT_ID = DWORD
 # Constants
 # ----------------------------------------------------------------------------
 
-UNUSED: DWORD = DWORD(0xFFFFFFFF)   # special value to indicate unused event, ID
-OBJECT_ID_USER: DWORD = DWORD(0)   # proxy value for User vehicle ObjectID
+UNUSED = DWORD(0xFFFFFFFF)   # special value to indicate unused event, ID
+OBJECT_ID_USER = DWORD(0)   # proxy value for User vehicle ObjectID
 
-CAMERA_IGNORE_FIELD: float = FLT_MAX   # Used to tell the Camera API to NOT modify the value in this part of the argument.
+CAMERA_IGNORE_FIELD = c_float(FLT_MAX)   # Used to tell the Camera API to NOT modify the value in this part of the argument.
 
-CLIENTDATA_MAX_SIZE: DWORD = DWORD(8192)   # maximum value for SimConnect_CreateClientData dwSize parameter
+CLIENTDATA_MAX_SIZE = DWORD(8192)   # maximum value for SimConnect_CreateClientData dwSize parameter
 
 
 # Notification Group priority values
-GROUP_PRIORITY_HIGHEST: DWORD = DWORD(1)   # highest priority
-GROUP_PRIORITY_HIGHEST_MASKABLE: DWORD = DWORD(10000000)   # highest priority that allows events to be masked
-GROUP_PRIORITY_STANDARD: DWORD = DWORD(1900000000)   # standard priority
-GROUP_PRIORITY_DEFAULT: DWORD = DWORD(2000000000)   # default priority
-GROUP_PRIORITY_LOWEST: DWORD = DWORD(4000000000)   # priorities lower than this will be ignored
+GROUP_PRIORITY_HIGHEST = DWORD(1)   # highest priority
+GROUP_PRIORITY_HIGHEST_MASKABLE = DWORD(10000000)   # highest priority that allows events to be masked
+GROUP_PRIORITY_STANDARD = DWORD(1900000000)   # standard priority
+GROUP_PRIORITY_DEFAULT = DWORD(2000000000)   # default priority
+GROUP_PRIORITY_LOWEST = DWORD(4000000000)   # priorities lower than this will be ignored
 
 # Weather observations Metar strings
-MAX_METAR_LENGTH: DWORD = DWORD(2000)
+MAX_METAR_LENGTH = DWORD(2000)
 
 # Maximum thermal size is 100 km.
-MAX_THERMAL_SIZE: float = 100000
-MAX_THERMAL_RATE: float = 1000
+MAX_THERMAL_SIZE = c_float(100000)
+MAX_THERMAL_RATE = c_float(1000)
 
 # SIMCONNECT_DATA_INITPOSITION.Airspeed
-INITPOSITION_AIRSPEED_CRUISE: DWORD = DWORD(-1)   # aircraft's cruise airspeed
-INITPOSITION_AIRSPEED_KEEP: DWORD = DWORD(-2)   # keep current airspeed
+INITPOSITION_AIRSPEED_CRUISE = DWORD(-1)   # aircraft's cruise airspeed
+INITPOSITION_AIRSPEED_KEEP = DWORD(-2)   # keep current airspeed
 
 # AddToClientDataDefinition dwSizeOrType parameter type values
-CLIENTDATATYPE_INT8: DWORD = DWORD(-1)   # 8-bit integer number
-CLIENTDATATYPE_INT16: DWORD = DWORD(-2)   # 16-bit integer number
-CLIENTDATATYPE_INT32: DWORD = DWORD(-3)   # 32-bit integer number
-CLIENTDATATYPE_INT64: DWORD = DWORD(-4)   # 64-bit integer number
-CLIENTDATATYPE_FLOAT32: DWORD = DWORD(-5)   # 32-bit floating-point number (float)
-CLIENTDATATYPE_FLOAT64: DWORD = DWORD(-6)   # 64-bit floating-point number (double)
+CLIENTDATATYPE_INT8 = DWORD(-1)   # 8-bit integer number
+CLIENTDATATYPE_INT16 = DWORD(-2)   # 16-bit integer number
+CLIENTDATATYPE_INT32 = DWORD(-3)   # 32-bit integer number
+CLIENTDATATYPE_INT64 = DWORD(-4)   # 64-bit integer number
+CLIENTDATATYPE_FLOAT32 = DWORD(-5)   # 32-bit floating-point number (float)
+CLIENTDATATYPE_FLOAT64 = DWORD(-6)   # 64-bit floating-point number (double)
 
 # AddToClientDataDefinition dwOffset parameter special values
-CLIENTDATAOFFSET_AUTO: DWORD = DWORD(-1)   # automatically compute offset of the ClientData variable
+CLIENTDATAOFFSET_AUTO = DWORD(-1)   # automatically compute offset of the ClientData variable
 
 # Open ConfigIndex parameter special value
-OPEN_CONFIGINDEX_LOCAL: DWORD = DWORD(-1)   # ignore SimConnect.cfg settings, and force local connection
+OPEN_CONFIGINDEX_LOCAL = DWORD(-1)   # ignore SimConnect.cfg settings, and force local connection
 
 # ----------------------------------------------------------------------------
 # Enum definitions
@@ -297,61 +297,61 @@ FACILITY_LIST_TYPE_COUNT = ENUM_T(0x04)   # invalid
 
 
 VOR_FLAGS = DWORD   # flags for SIMCONNECT_RECV_ID_VOR_LIST
-RECV_ID_VOR_LIST_HAS_NAV_SIGNAL: DWORD = DWORD(0x00000001)   # Has Nav signal
-RECV_ID_VOR_LIST_HAS_LOCALIZER: DWORD = DWORD(0x00000002)   # Has localizer
-RECV_ID_VOR_LIST_HAS_GLIDE_SLOPE: DWORD = DWORD(0x00000004)   # Has Nav signal
-RECV_ID_VOR_LIST_HAS_DME: DWORD = DWORD(0x00000008)   # Station has DME
+RECV_ID_VOR_LIST_HAS_NAV_SIGNAL = DWORD(0x00000001)   # Has Nav signal
+RECV_ID_VOR_LIST_HAS_LOCALIZER = DWORD(0x00000002)   # Has localizer
+RECV_ID_VOR_LIST_HAS_GLIDE_SLOPE = DWORD(0x00000004)   # Has Nav signal
+RECV_ID_VOR_LIST_HAS_DME = DWORD(0x00000008)   # Station has DME
 
 
 
 # bits for the Waypoint Flags field: may be combined
 WAYPOINT_FLAGS = DWORD
-WAYPOINT_NONE: DWORD = DWORD(0x00)
-WAYPOINT_SPEED_REQUESTED: DWORD = DWORD(0x04)   # requested speed at waypoint is valid
-WAYPOINT_THROTTLE_REQUESTED: DWORD = DWORD(0x08)   # request a specific throttle percentage
-WAYPOINT_COMPUTE_VERTICAL_SPEED: DWORD = DWORD(0x10)   # compute vertical to speed to reach waypoint altitude when crossing the waypoint
-WAYPOINT_ALTITUDE_IS_AGL: DWORD = DWORD(0x20)   # AltitudeIsAGL
-WAYPOINT_ON_GROUND: DWORD = DWORD(0x00100000)   # place this waypoint on the ground
-WAYPOINT_REVERSE: DWORD = DWORD(0x00200000)   # Back up to this waypoint. Only valid on first waypoint
-WAYPOINT_WRAP_TO_FIRST: DWORD = DWORD(0x00400000)   # Wrap around back to first waypoint. Only valid on last waypoint.
+WAYPOINT_NONE = DWORD(0x00)
+WAYPOINT_SPEED_REQUESTED = DWORD(0x04)   # requested speed at waypoint is valid
+WAYPOINT_THROTTLE_REQUESTED = DWORD(0x08)   # request a specific throttle percentage
+WAYPOINT_COMPUTE_VERTICAL_SPEED = DWORD(0x10)   # compute vertical to speed to reach waypoint altitude when crossing the waypoint
+WAYPOINT_ALTITUDE_IS_AGL = DWORD(0x20)   # AltitudeIsAGL
+WAYPOINT_ON_GROUND = DWORD(0x00100000)   # place this waypoint on the ground
+WAYPOINT_REVERSE = DWORD(0x00200000)   # Back up to this waypoint. Only valid on first waypoint
+WAYPOINT_WRAP_TO_FIRST = DWORD(0x00400000)   # Wrap around back to first waypoint. Only valid on last waypoint.
 
 EVENT_FLAG = DWORD
-EVENT_FLAG_DEFAULT: DWORD = DWORD(0x00000000)
-EVENT_FLAG_FAST_REPEAT_TIMER: DWORD = DWORD(0x00000001)   # set event repeat timer to simulate fast repeat
-EVENT_FLAG_SLOW_REPEAT_TIMER: DWORD = DWORD(0x00000002)   # set event repeat timer to simulate slow repeat
-EVENT_FLAG_GROUPID_IS_PRIORITY: DWORD = DWORD(0x00000010)   # interpret GroupID parameter as priority value
+EVENT_FLAG_DEFAULT = DWORD(0x00000000)
+EVENT_FLAG_FAST_REPEAT_TIMER = DWORD(0x00000001)   # set event repeat timer to simulate fast repeat
+EVENT_FLAG_SLOW_REPEAT_TIMER = DWORD(0x00000002)   # set event repeat timer to simulate slow repeat
+EVENT_FLAG_GROUPID_IS_PRIORITY = DWORD(0x00000010)   # interpret GroupID parameter as priority value
 
 DATA_REQUEST_FLAG = DWORD
-DATA_REQUEST_FLAG_DEFAULT: DWORD = DWORD(0x00000000)
-DATA_REQUEST_FLAG_CHANGED: DWORD = DWORD(0x00000001)   # send requested data when value(s) change
-DATA_REQUEST_FLAG_TAGGED: DWORD = DWORD(0x00000002)   # send requested data in tagged format
+DATA_REQUEST_FLAG_DEFAULT = DWORD(0x00000000)
+DATA_REQUEST_FLAG_CHANGED = DWORD(0x00000001)   # send requested data when value(s) change
+DATA_REQUEST_FLAG_TAGGED = DWORD(0x00000002)   # send requested data in tagged format
 
 DATA_SET_FLAG = DWORD
-DATA_SET_FLAG_DEFAULT: DWORD = DWORD(0x00000000)
-DATA_SET_FLAG_TAGGED: DWORD = DWORD(0x00000001)   # data is in tagged format
+DATA_SET_FLAG_DEFAULT = DWORD(0x00000000)
+DATA_SET_FLAG_TAGGED = DWORD(0x00000001)   # data is in tagged format
 
 CREATE_CLIENT_DATA_FLAG = DWORD
-CREATE_CLIENT_DATA_FLAG_DEFAULT: DWORD = DWORD(0x00000000)
-CREATE_CLIENT_DATA_FLAG_READ_ONLY: DWORD = DWORD(0x00000001)   # permit only ClientData creator to write into ClientData
+CREATE_CLIENT_DATA_FLAG_DEFAULT = DWORD(0x00000000)
+CREATE_CLIENT_DATA_FLAG_READ_ONLY = DWORD(0x00000001)   # permit only ClientData creator to write into ClientData
 
 
 CLIENT_DATA_REQUEST_FLAG = DWORD
-CLIENT_DATA_REQUEST_FLAG_DEFAULT: DWORD = DWORD(0x00000000)
-CLIENT_DATA_REQUEST_FLAG_CHANGED: DWORD = DWORD(0x00000001)   # send requested ClientData when value(s) change
-CLIENT_DATA_REQUEST_FLAG_TAGGED: DWORD = DWORD(0x00000002)   # send requested ClientData in tagged format
+CLIENT_DATA_REQUEST_FLAG_DEFAULT = DWORD(0x00000000)
+CLIENT_DATA_REQUEST_FLAG_CHANGED = DWORD(0x00000001)   # send requested ClientData when value(s) change
+CLIENT_DATA_REQUEST_FLAG_TAGGED = DWORD(0x00000002)   # send requested ClientData in tagged format
 
 CLIENT_DATA_SET_FLAG = DWORD
-CLIENT_DATA_SET_FLAG_DEFAULT: DWORD = DWORD(0x00000000)
-CLIENT_DATA_SET_FLAG_TAGGED: DWORD = DWORD(0x00000001)   # data is in tagged format
+CLIENT_DATA_SET_FLAG_DEFAULT = DWORD(0x00000000)
+CLIENT_DATA_SET_FLAG_TAGGED = DWORD(0x00000001)   # data is in tagged format
 
 
 VIEW_SYSTEM_EVENT_DATA = DWORD   # dwData contains these flags for the "View" System Event
-VIEW_SYSTEM_EVENT_DATA_COCKPIT_2D: DWORD = DWORD(0x00000001)   # 2D Panels in cockpit view
-VIEW_SYSTEM_EVENT_DATA_COCKPIT_VIRTUAL: DWORD = DWORD(0x00000002)   # Virtual (3D) panels in cockpit view
-VIEW_SYSTEM_EVENT_DATA_ORTHOGONAL: DWORD = DWORD(0x00000004)   # Orthogonal (Map) view
+VIEW_SYSTEM_EVENT_DATA_COCKPIT_2D = DWORD(0x00000001)   # 2D Panels in cockpit view
+VIEW_SYSTEM_EVENT_DATA_COCKPIT_VIRTUAL = DWORD(0x00000002)   # Virtual (3D) panels in cockpit view
+VIEW_SYSTEM_EVENT_DATA_ORTHOGONAL = DWORD(0x00000004)   # Orthogonal (Map) view
 
 SOUND_SYSTEM_EVENT_DATA = DWORD   # dwData contains these flags for the "Sound" System Event
-SOUND_SYSTEM_EVENT_DATA_MASTER: DWORD = DWORD(0x00000001)   # Sound Master
+SOUND_SYSTEM_EVENT_DATA_MASTER = DWORD(0x00000001)   # Sound Master
 # 357 "SimConnect.h"
 # ----------------------------------------------------------------------------
 # User-defined enums
@@ -382,8 +382,8 @@ class RECV(Struct1):
 
 
 class RECV_EXCEPTION(RECV):
-    UNKNOWN_SENDID: DWORD = DWORD(0)
-    UNKNOWN_INDEX: DWORD = DWORD(0xFFFFFFFF)
+    UNKNOWN_SENDID = DWORD(0)
+    UNKNOWN_INDEX = DWORD(0xFFFFFFFF)
     _fields_ = [
         ("dwException", DWORD),   # see SIMCONNECT_EXCEPTION
         ("dwSendID", DWORD),   # see SimConnect_GetLastSentPacketID
@@ -413,7 +413,7 @@ class RECV_QUIT(RECV):
 
 
 class RECV_EVENT(RECV):
-    UNKNOWN_GROUP: DWORD = DWORD(0xFFFFFFFF)
+    UNKNOWN_GROUP = DWORD(0xFFFFFFFF)
     _fields_ = [
         ("uGroupID", DWORD),
         ("uEventID", DWORD),
@@ -442,19 +442,19 @@ class RECV_EVENT_FRAME(RECV_EVENT):
 
 
 class RECV_EVENT_MULTIPLAYER_SERVER_STARTED(RECV_EVENT):
-  # No event specific data, for now
+# No event specific data, for now
     _fields_ = [
     ]
 
 
 class RECV_EVENT_MULTIPLAYER_CLIENT_STARTED(RECV_EVENT):
-  # No event specific data, for now
+# No event specific data, for now
     _fields_ = [
     ]
 
 
 class RECV_EVENT_MULTIPLAYER_SESSION_ENDED(RECV_EVENT):
-  # No event specific data, for now
+# No event specific data, for now
     _fields_ = [
     ]
 
@@ -518,8 +518,8 @@ class RECV_WEATHER_OBSERVATION(RECV):
     ]
 
 
-CLOUD_STATE_ARRAY_WIDTH: int = 64
-CLOUD_STATE_ARRAY_SIZE: int = CLOUD_STATE_ARRAY_WIDTH*CLOUD_STATE_ARRAY_WIDTH
+CLOUD_STATE_ARRAY_WIDTH = c_int(64)
+CLOUD_STATE_ARRAY_SIZE = c_int(CLOUD_STATE_ARRAY_WIDTH*CLOUD_STATE_ARRAY_WIDTH)
 
 class RECV_CLOUD_STATE(RECV):
     _fields_ = [
@@ -561,7 +561,7 @@ class RECV_CUSTOM_ACTION(RECV_EVENT):
 
 
 class RECV_EVENT_WEATHER_MODE(RECV_EVENT):
-  # No event specific data - the new weather mode is in the base structure dwData member.
+# No event specific data - the new weather mode is in the base structure dwData member.
     _fields_ = [
     ]
 
