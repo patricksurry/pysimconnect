@@ -1316,11 +1316,3 @@ def _decls(dll):
     ]
     _['RequestFacilitiesList'] = f
     return _
-
-
-#TODO test
-
-from ctypes import windll
-dll = windll.LoadLibrary('SimConnect.dll')
-decls = _decls(dll)
-
