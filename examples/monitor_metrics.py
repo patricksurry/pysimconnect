@@ -3,7 +3,7 @@ from SimConnect import (
     PERIOD_SECOND, DATA_REQUEST_FLAG_CHANGED, DATA_REQUEST_FLAG_TAGGED,
     DATATYPE_FLOAT64, RECV_SIMOBJECT_DATA, RECV_EXCEPTION, RECV_P
 )
-from ctypes import byref, cast, POINTER, pointer, c_float
+from ctypes import byref, cast, POINTER, pointer, c_float, c_int
 from ctypes.wintypes import DWORD
 from time import sleep
 
@@ -47,7 +47,11 @@ with SimConnect(name='MonitorMetrics') as sc:
             print(f"Received SIMOBJECT_DATA with {recv.dwDefineCount} data elements, flags {recv.dwFlags}")
             if recv.dwRequestID == req_id:
                 print(f"Matched request 0x{req_id:X}")
-                data = cast(pointer(recv.dwData), POINTER(c_float))
+                print(recv.dwData, type(recv.dwData))
+
+                data = cast(pRecv, POINTER(c_int))
+                for i in range(3+7+len(simvars)*3):
+                    print(i, data[i])
                 #TODO tagged?
-                for i, (metric, unit) in enumerate(simvars):
-                    print(f"{metric}: {data[i].value}")
+                #for i, (metric, unit) in enumerate(simvars):
+                #    print(f"{metric}: {data[7+i]}")
