@@ -8,7 +8,7 @@ from time import sleep
 # and simply retrieve the response to the implicit SimConnect.Open()
 # which is a RECV_OPEN struct containing various version numbers
 with SimConnect(name='ShowVersion') as sc:
-    sleep(0.1)
+    sleep(0.5)
     pRecv = RECV_P()
     nSize = DWORD()
     sc.GetNextDispatch(byref(pRecv), byref(nSize))
@@ -17,4 +17,4 @@ with SimConnect(name='ShowVersion') as sc:
     appBuild = f"build {ro.dwApplicationBuildMajor}.{ro.dwApplicationBuildMinor}"
     scVer = f"v{ro.dwSimConnectVersionMajor}.{ro.dwSimConnectVersionMinor}"
     scBuild = f"build {ro.dwSimConnectBuildMajor}.{ro.dwSimConnectBuildMinor}"
-    print(f"{ro.__name__} App: {ro.szApplicationName} {appVer} {appBuild} SimConnect: {scVer} {scBuild}")
+    print(f"{ro.__class__.__name__} App: {ro.szApplicationName} {appVer} {appBuild} SimConnect: {scVer} {scBuild}")

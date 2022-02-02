@@ -63,20 +63,23 @@ def maybeConst(line, lines, output, indent='') -> bool:
     typ, var, val, suffix = m.groups()
     var = nopfx(var)
     val = nopfx(val)
-    line = f"{var} = {typ}({val}) {suffix}"
+    if typ not in ['float', 'DWORD']:
+        val = f"{typ}({val})"
+    line = f"{var} = {val} {suffix}"
     output.append(indent + line)
     return True
 
 
 # enum SIMCONNECT_RECV_ID {
 def maybeEnum(line, lines, output) -> bool:
+    """convert enums into python int consts, with a type alias to DWORD"""
     m = re.match(r'\s*enum\s+(\w+)\s*{(.*)', line)
     if not m:
         return False
 
     enum, suffix = m.groups()
     enum = nopfx(enum)
-    line = f"{enum} = ENUM_T"
+    line = f"{enum} = DWORD"  # type alias for function decls
     eidx = -1
     output.append(line)
 
@@ -93,7 +96,7 @@ def maybeEnum(line, lines, output) -> bool:
                 eidx += 1
             else:
                 eidx = eval(val)
-            line = f"{var} = ENUM_T(0x{eidx:02X}) {suffix}"
+            line = f"{var} = 0x{eidx:02X} {suffix}"
         output.append(line)
     output.append('')
     return True
@@ -232,7 +235,6 @@ from ctypes.wintypes import BYTE, WORD, DWORD, HANDLE, LPCSTR, HWND
 
 
 c_float_p = POINTER(c_float)
-ENUM_T = DWORD
 FLT_MAX = 3.402823466e+38
 MAX_PATH = 260
 

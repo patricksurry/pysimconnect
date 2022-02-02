@@ -29,8 +29,8 @@ class SimConnect:
             return f(self.hsc, *args)
         return _callable
 
-    def _get_recv(self, pRecv: pointer[scdefs.RECV]) -> scdefs.RECV:
-        recv_id = pRecv.contents.dwID.value
+    def _get_recv(self, pRecv) -> scdefs.RECV:   #TODO type annotation : pointer[scdefs.RECV] per https://github.com/python/mypy/issues/7540
+        recv_id = pRecv.contents.dwID
         if recv_id in _recv_map:
             pRecv = cast(pRecv, POINTER(_recv_map[recv_id]))
         return pRecv.contents
@@ -52,7 +52,7 @@ def all_subclasses(cls):
 # for example a response with recv.dwID = RECV_ID_OPEN
 # indicates the full response is a RECV_OPEN structure
 _recv_map: Dict[str, type] = {
-    getattr(scdefs, kls.__name__.replace('RECV_', 'RECV_ID')).value:
+    getattr(scdefs, kls.__name__.replace('RECV_', 'RECV_ID_'), None):
     kls
     for kls in all_subclasses(scdefs.RECV)
 }
