@@ -63,7 +63,7 @@ def maybeConst(line, lines, output, indent='') -> bool:
     typ, var, val, suffix = m.groups()
     var = nopfx(var)
     val = nopfx(val)
-    line = f"{var} = {_ctyp(typ)}({val}) {suffix}"
+    line = f"{var} = {typ}({val}) {suffix}"
     output.append(indent + line)
     return True
 
@@ -231,10 +231,10 @@ from ctypes import (
 from ctypes.wintypes import BYTE, WORD, DWORD, HANDLE, LPCSTR, HWND
 
 
+c_float_p = POINTER(c_float)
 ENUM_T = DWORD
 FLT_MAX = 3.402823466e+38
 MAX_PATH = 260
-c_float_p = POINTER(c_float)
 
 
 class GUID(Structure):

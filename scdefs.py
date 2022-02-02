@@ -9,10 +9,10 @@ from ctypes import (
 from ctypes.wintypes import BYTE, WORD, DWORD, HANDLE, LPCSTR, HWND
 
 
+c_float_p = POINTER(c_float)
 ENUM_T = DWORD
 FLT_MAX = 3.402823466e+38
 MAX_PATH = 260
-c_float_p = POINTER(c_float)
 
 
 class GUID(Structure):
@@ -55,7 +55,7 @@ OBJECT_ID = DWORD
 UNUSED = DWORD(0xFFFFFFFF)   # special value to indicate unused event, ID
 OBJECT_ID_USER = DWORD(0)   # proxy value for User vehicle ObjectID
 
-CAMERA_IGNORE_FIELD = c_float(FLT_MAX)   # Used to tell the Camera API to NOT modify the value in this part of the argument.
+CAMERA_IGNORE_FIELD = float(FLT_MAX)   # Used to tell the Camera API to NOT modify the value in this part of the argument.
 
 CLIENTDATA_MAX_SIZE = DWORD(8192)   # maximum value for SimConnect_CreateClientData dwSize parameter
 
@@ -71,8 +71,8 @@ GROUP_PRIORITY_LOWEST = DWORD(4000000000)   # priorities lower than this will be
 MAX_METAR_LENGTH = DWORD(2000)
 
 # Maximum thermal size is 100 km.
-MAX_THERMAL_SIZE = c_float(100000)
-MAX_THERMAL_RATE = c_float(1000)
+MAX_THERMAL_SIZE = float(100000)
+MAX_THERMAL_RATE = float(1000)
 
 # SIMCONNECT_DATA_INITPOSITION.Airspeed
 INITPOSITION_AIRSPEED_CRUISE = DWORD(-1)   # aircraft's cruise airspeed
@@ -518,8 +518,8 @@ class RECV_WEATHER_OBSERVATION(RECV):
     ]
 
 
-CLOUD_STATE_ARRAY_WIDTH = c_int(64)
-CLOUD_STATE_ARRAY_SIZE = c_int(64*64)
+CLOUD_STATE_ARRAY_WIDTH = int(64)
+CLOUD_STATE_ARRAY_SIZE = int(CLOUD_STATE_ARRAY_WIDTH*CLOUD_STATE_ARRAY_WIDTH)
 
 class RECV_CLOUD_STATE(RECV):
     _fields_ = [
@@ -712,7 +712,7 @@ def _decls(dll):
     f.argtypes = [
         HANDLE,  # HANDLE hSimConnect
         CLIENT_EVENT_ID,  # SIMCONNECT_CLIENT_EVENT_ID EventID
-        c_char_p,  # const char * EventName default {dflt.strip()}
+        c_char_p,  # const char * EventName = ""
     ]
     _['MapClientEventToSimEvent'] = f
     f = dll.SimConnect_TransmitClientEvent
@@ -740,7 +740,7 @@ def _decls(dll):
         HANDLE,  # HANDLE hSimConnect
         NOTIFICATION_GROUP_ID,  # SIMCONNECT_NOTIFICATION_GROUP_ID GroupID
         CLIENT_EVENT_ID,  # SIMCONNECT_CLIENT_EVENT_ID EventID
-        c_bool,  # BOOL bMaskable default {dflt.strip()}
+        c_bool,  # BOOL bMaskable = FALSE
     ]
     _['AddClientEventToNotificationGroup'] = f
     f = dll.SimConnect_RemoveClientEvent
@@ -771,8 +771,8 @@ def _decls(dll):
     f.argtypes = [
         HANDLE,  # HANDLE hSimConnect
         NOTIFICATION_GROUP_ID,  # SIMCONNECT_NOTIFICATION_GROUP_ID GroupID
-        DWORD,  # DWORD dwReserved default {dflt.strip()}
-        DWORD,  # DWORD Flags default {dflt.strip()}
+        DWORD,  # DWORD dwReserved = 0
+        DWORD,  # DWORD Flags = 0
     ]
     _['RequestNotificationGroup'] = f
     f = dll.SimConnect_AddToDataDefinition
@@ -782,9 +782,9 @@ def _decls(dll):
         DATA_DEFINITION_ID,  # SIMCONNECT_DATA_DEFINITION_ID DefineID
         c_char_p,  # const char * DatumName
         c_char_p,  # const char * UnitsName
-        DATATYPE,  # SIMCONNECT_DATATYPE DatumType default {dflt.strip()}
-        c_float,  # float fEpsilon default {dflt.strip()}
-        DWORD,  # DWORD DatumID default {dflt.strip()}
+        DATATYPE,  # SIMCONNECT_DATATYPE DatumType = SIMCONNECT_DATATYPE_FLOAT64
+        c_float,  # float fEpsilon = 0
+        DWORD,  # DWORD DatumID = SIMCONNECT_UNUSED
     ]
     _['AddToDataDefinition'] = f
     f = dll.SimConnect_ClearDataDefinition
@@ -802,10 +802,10 @@ def _decls(dll):
         DATA_DEFINITION_ID,  # SIMCONNECT_DATA_DEFINITION_ID DefineID
         OBJECT_ID,  # SIMCONNECT_OBJECT_ID ObjectID
         PERIOD,  # SIMCONNECT_PERIOD Period
-        DATA_REQUEST_FLAG,  # SIMCONNECT_DATA_REQUEST_FLAG Flags default {dflt.strip()}
-        DWORD,  # DWORD origin default {dflt.strip()}
-        DWORD,  # DWORD interval default {dflt.strip()}
-        DWORD,  # DWORD limit default {dflt.strip()}
+        DATA_REQUEST_FLAG,  # SIMCONNECT_DATA_REQUEST_FLAG Flags = 0
+        DWORD,  # DWORD origin = 0
+        DWORD,  # DWORD interval = 0
+        DWORD,  # DWORD limit = 0
     ]
     _['RequestDataOnSimObject'] = f
     f = dll.SimConnect_RequestDataOnSimObjectType
@@ -837,8 +837,8 @@ def _decls(dll):
         INPUT_GROUP_ID,  # SIMCONNECT_INPUT_GROUP_ID GroupID
         c_char_p,  # const char * szInputDefinition
         CLIENT_EVENT_ID,  # SIMCONNECT_CLIENT_EVENT_ID DownEventID
-        DWORD,  # DWORD DownValue default {dflt.strip()}
-        CLIENT_EVENT_ID,  # SIMCONNECT_CLIENT_EVENT_ID UpEventID default {dflt.strip()}
+        DWORD,  # DWORD DownValue = 0
+        CLIENT_EVENT_ID,  # SIMCONNECT_CLIENT_EVENT_ID UpEventID = (SIMCONNECT_CLIENT_EVENT_ID
     ]
     _['MapInputEventToClientEvent'] = f
     f = dll.SimConnect_SetInputGroupPriority
@@ -877,9 +877,9 @@ def _decls(dll):
     f.argtypes = [
         HANDLE,  # HANDLE hSimConnect
         CLIENT_EVENT_ID,  # SIMCONNECT_CLIENT_EVENT_ID EventID
-        c_char_p,  # const char * szKeyChoice1 default {dflt.strip()}
-        c_char_p,  # const char * szKeyChoice2 default {dflt.strip()}
-        c_char_p,  # const char * szKeyChoice3 default {dflt.strip()}
+        c_char_p,  # const char * szKeyChoice1 = ""
+        c_char_p,  # const char * szKeyChoice2 = ""
+        c_char_p,  # const char * szKeyChoice3 = ""
     ]
     _['RequestReservedKey'] = f
     f = dll.SimConnect_SubscribeToSystemEvent
@@ -997,7 +997,7 @@ def _decls(dll):
         c_float,  # float maxLat
         c_float,  # float maxLon
         c_float,  # float maxAlt
-        DWORD,  # DWORD dwFlags default {dflt.strip()}
+        DWORD,  # DWORD dwFlags = 0
     ]
     _['WeatherRequestCloudState'] = f
     f = dll.SimConnect_WeatherCreateThermal
@@ -1010,14 +1010,14 @@ def _decls(dll):
         c_float,  # float alt
         c_float,  # float radius
         c_float,  # float height
-        c_float,  # float coreRate default {dflt.strip()}
-        c_float,  # float coreTurbulence default {dflt.strip()}
-        c_float,  # float sinkRate default {dflt.strip()}
-        c_float,  # float sinkTurbulence default {dflt.strip()}
-        c_float,  # float coreSize default {dflt.strip()}
-        c_float,  # float coreTransitionSize default {dflt.strip()}
-        c_float,  # float sinkLayerSize default {dflt.strip()}
-        c_float,  # float sinkTransitionSize default {dflt.strip()}
+        c_float,  # float coreRate = 3.0f
+        c_float,  # float coreTurbulence = 0.05f
+        c_float,  # float sinkRate = 3.0f
+        c_float,  # float sinkTurbulence = 0.2f
+        c_float,  # float coreSize = 0.4f
+        c_float,  # float coreTransitionSize = 0.1f
+        c_float,  # float sinkLayerSize = 0.4f
+        c_float,  # float sinkTransitionSize = 0.1f
     ]
     _['WeatherCreateThermal'] = f
     f = dll.SimConnect_WeatherRemoveThermal
@@ -1264,8 +1264,8 @@ def _decls(dll):
         CLIENT_DATA_DEFINITION_ID,  # SIMCONNECT_CLIENT_DATA_DEFINITION_ID DefineID
         DWORD,  # DWORD dwOffset
         DWORD,  # DWORD dwSizeOrType
-        c_float,  # float fEpsilon default {dflt.strip()}
-        DWORD,  # DWORD DatumID default {dflt.strip()}
+        c_float,  # float fEpsilon = 0
+        DWORD,  # DWORD DatumID = SIMCONNECT_UNUSED
     ]
     _['AddToClientDataDefinition'] = f
     f = dll.SimConnect_ClearClientDataDefinition
@@ -1282,11 +1282,11 @@ def _decls(dll):
         CLIENT_DATA_ID,  # SIMCONNECT_CLIENT_DATA_ID ClientDataID
         DATA_REQUEST_ID,  # SIMCONNECT_DATA_REQUEST_ID RequestID
         CLIENT_DATA_DEFINITION_ID,  # SIMCONNECT_CLIENT_DATA_DEFINITION_ID DefineID
-        CLIENT_DATA_PERIOD,  # SIMCONNECT_CLIENT_DATA_PERIOD Period default {dflt.strip()}
-        CLIENT_DATA_REQUEST_FLAG,  # SIMCONNECT_CLIENT_DATA_REQUEST_FLAG Flags default {dflt.strip()}
-        DWORD,  # DWORD origin default {dflt.strip()}
-        DWORD,  # DWORD interval default {dflt.strip()}
-        DWORD,  # DWORD limit default {dflt.strip()}
+        CLIENT_DATA_PERIOD,  # SIMCONNECT_CLIENT_DATA_PERIOD Period = SIMCONNECT_CLIENT_DATA_PERIOD_ONCE
+        CLIENT_DATA_REQUEST_FLAG,  # SIMCONNECT_CLIENT_DATA_REQUEST_FLAG Flags = 0
+        DWORD,  # DWORD origin = 0
+        DWORD,  # DWORD interval = 0
+        DWORD,  # DWORD limit = 0
     ]
     _['RequestClientData'] = f
     f = dll.SimConnect_SetClientData
