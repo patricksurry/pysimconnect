@@ -4,7 +4,7 @@ from ctypes.wintypes import DWORD
 from time import sleep
 
 
-# Use SimConnedt object as context manager
+# Use SimConnect object as context manager
 # and simply retrieve the response to the implicit SimConnect.Open()
 # which is a RECV_OPEN struct containing various version numbers
 with SimConnect(name='ShowVersion') as sc:
