@@ -26,6 +26,7 @@ class SimConnect:
     def _dispatch(self, f):
         """Dispatch to a registered method, using our open handle"""
         def _callable(*args):
+            args = [arg.encode('utf-8') if isinstance(arg, str) else arg for arg in args]
             return f(self.hsc, *args)
         return _callable
 

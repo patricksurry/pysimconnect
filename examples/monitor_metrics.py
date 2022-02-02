@@ -9,7 +9,7 @@ from time import sleep
 
 
 with SimConnect(name='MonitorMetrics') as sc:
-    request_id = 0x1234
+    def_id = 0x1234
     simvars = [
         ("Kohlsman setting hg", "inHg"),
         ("Indicated Altitude", "feet"),
@@ -17,11 +17,12 @@ with SimConnect(name='MonitorMetrics') as sc:
         ("Plane Longitude", "degrees"),
     ]
     for i, (simvar, unit) in enumerate(simvars):
-        sc.AddToDataDefinition(request_id, simvar.encode('utf-8'), unit.encode('utf-8'), DATATYPE_FLOAT64, 0, i)
+        sc.AddToDataDefinition(def_id, simvar, unit, DATATYPE_FLOAT64, 0, i)
 
+    req_id = 0xfeed
     sc.RequestDataOnSimObject(
-        request_id,
-        GROUP_PRIORITY_STANDARD,
+        req_id,  # request identifier for response packets
+        def_id,  # the data definition group
         OBJECT_ID_USER,
         PERIOD_SECOND,
         DATA_REQUEST_FLAG_CHANGED | DATA_REQUEST_FLAG_TAGGED,
@@ -43,9 +44,10 @@ with SimConnect(name='MonitorMetrics') as sc:
         if isinstance(recv, RECV_EXCEPTION):
             print(f"Got exception {recv.dwException}, sendID {recv.dwSendID}, index {recv.dwIndex}")
         elif isinstance(recv, RECV_SIMOBJECT_DATA):
-            print("Received SIMOBJECT_DATA")
-            if recv.dwRequestID == request_id:
-                print(f"Matched 0x{request_id:X}")
+            print(f"Received SIMOBJECT_DATA with {recv.dwDefineCount} data elements, flags {recv.dwFlags}")
+            if recv.dwRequestID == req_id:
+                print(f"Matched request 0x{req_id:X}")
                 data = cast(pointer(recv.dwData), POINTER(c_float))
+                #TODO tagged?
                 for i, (metric, unit) in enumerate(simvars):
                     print(f"{metric}: {data[i].value}")
