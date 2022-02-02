@@ -47,11 +47,4 @@ with SimConnect(name='MonitorMetrics') as sc:
             print(f"Received SIMOBJECT_DATA with {recv.dwDefineCount} data elements, flags {recv.dwFlags}")
             if recv.dwRequestID == req_id:
                 print(f"Matched request 0x{req_id:X}")
-                print(recv.dwData, type(recv.dwData))
-
-                data = cast(pRecv, POINTER(c_int))
-                for i in range(3+7+len(simvars)*3):
-                    print(i, data[i])
-                #TODO tagged?
-                #for i, (metric, unit) in enumerate(simvars):
-                #    print(f"{metric}: {data[7+i]}")
+                print(sc._get_simdata(recv))

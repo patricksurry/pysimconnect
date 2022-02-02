@@ -1,9 +1,8 @@
-from typing import Dict
-from ctypes import cast, byref, windll, POINTER, pointer
-from ctypes.wintypes import HANDLE, LPCSTR, DWORD
-from scdefs import *
+from typing import Dict, List, Union, Any
+from ctypes import cast, byref, windll, POINTER, c_float, c_double, c_longlong, Structure
+from ctypes.wintypes import HANDLE, DWORD
 import scdefs
-from time import sleep
+from scdefs import *   # just for ease of downstream import
 
 
 RECV_P = POINTER(scdefs.RECV)
@@ -36,6 +35,27 @@ class SimConnect:
             pRecv = cast(pRecv, POINTER(_recv_map[recv_id]))
         return pRecv.contents
 
+    def _get_simdata(
+            self,
+            recv: scdefs.RECV_SIMOBJECT_DATA,
+            tagged=False,
+            dtyp=scdefs.DATATYPE_FLOAT64,
+            ) -> Union[List[Any], Dict[int, Any]]:
+
+        ctyp = _dtyps[dtyp]
+        # dwData is a placeholder for where the data values start
+        # so get a void* to that location and cast appropriately
+        p = byref(recv, scdefs.RECV_SIMOBJECT_DATA.dwData.offset)
+        items = recv.dwDefineCount
+        if tagged:
+            class Datum(Structure):
+                _fields_ = [("idx", DWORD), ("value", ctyp)]
+            ds = cast(p, Datum * items)
+            return {d.idx: d.value for d in ds}
+        else:
+            ds = cast(p, ctyp * items)
+            return [v for v in ds]
+
     def __getattr__(self, k):
         if k in self._decls:
             return self._dispatch(self._decls[k])
@@ -56,4 +76,11 @@ _recv_map: Dict[str, type] = {
     getattr(scdefs, kls.__name__.replace('RECV_', 'RECV_ID_'), None):
     kls
     for kls in all_subclasses(scdefs.RECV)
+}
+
+_dtyps = {
+    scdefs.DATATYPE_INT32: DWORD,   # 32-bit integer number
+    scdefs.DATATYPE_INT64: c_longlong,   # 64-bit integer number
+    scdefs.DATATYPE_FLOAT32: c_float,   # 32-bit floating-point number (float)
+    scdefs.DATATYPE_FLOAT64: c_double,   # 64-bit floating-point number (double)
 }
