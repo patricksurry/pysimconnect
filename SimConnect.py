@@ -38,7 +38,6 @@ class SimConnect:
     def _get_simdata(
             self,
             recv: scdefs.RECV_SIMOBJECT_DATA,
-            tagged=False,
             dtyp=scdefs.DATATYPE_FLOAT64,
             ) -> Union[List[Any], Dict[int, Any]]:
 
@@ -47,14 +46,14 @@ class SimConnect:
         # so get a void* to that location and cast appropriately
         p = byref(recv, scdefs.RECV_SIMOBJECT_DATA.dwData.offset)
         items = recv.dwDefineCount
-        if tagged:
-            class Datum(Structure):
+        if recv.dwFlags & scdefs.DATA_REQUEST_FLAG_TAGGED:
+            class Datum(scdefs.Struct1):
                 _fields_ = [("idx", DWORD), ("value", ctyp)]
-            ds = cast(p, Datum * items)
-            return {d.idx: d.value for d in ds}
+            ds = cast(p, POINTER(Datum))
+            return {ds[i].idx: ds[i].value for i in range(items)}
         else:
-            ds = cast(p, ctyp * items)
-            return [v for v in ds]
+            ds = cast(p, POINTER(ctyp))
+            return [ds[i] for i in range(items)]
 
     def __getattr__(self, k):
         if k in self._decls:
