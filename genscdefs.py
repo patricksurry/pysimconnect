@@ -166,7 +166,7 @@ def maybeDecl(line, lines, decls) -> bool:
         m = re.match(r'(.*?)\s+(\w+)(?:\s*=\s*(.*))?$', arg.strip())
         assert m, f"Unrecognized arg {arg}"
         typ, var, dflt = m.groups()
-        dflt = "default {dflt.strip()}" if dflt else ""
+        dflt = f"= {dflt.strip()}" if dflt else ""
         decls.append(f"{indent}{_ctyp(typ)},  # {typ} {var} {dflt}")
     decls += [
         "]",

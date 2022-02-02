@@ -12,8 +12,7 @@ class SimConnect:
 
     def _dispatch(self, f):
         def _callable(*args):
-            result = f(byref(self.sc), *args)
-            return result.value
+            return f(byref(self.sc), *args)
         return _callable
 
     def __getattr__(self, k):
@@ -23,6 +22,7 @@ class SimConnect:
         raise AttributeError
 
 
-sc = SimConnect()
-client_name = 'MetricMonitor'
-print(sc.Open(LPCSTR(client_name.encode('utf-8')), None, 0, 0, 0))
+if False:
+    sc = SimCaonnect()
+    client_name = 'MetricMonitor'
+    print(sc.Open(client_name.encode('utf-8'), None, 0, 0, 0))
