@@ -5,10 +5,10 @@ from simconnect import SimConnect
 with SimConnect(name='MonitorMetrics') as sc:
     #TODO infer units from json file
     simvars = [
-        ("Kohlsman setting hg", "inHg"),
-        ("Indicated Altitude", "feet"),
-        ("Plane Latitude", "degrees"),
-        ("Plane Longitude", "degrees"),
+        dict(name="Kohlsman setting hg", unit="inHg"),
+        dict(name="Indicated Altitude", unit="feet"),
+        dict(name="Plane Latitude", unit="degrees"),
+        dict(name="Plane Longitude", unit="degrees"),
     ]
     ds = sc.subscribeSimObjects(simvars)
     print(ds.get_units())
@@ -16,7 +16,7 @@ with SimConnect(name='MonitorMetrics') as sc:
     latest = 0
     while True:
         # fetch next RECV object within timeout_seconds, or None
-        recv = sc.receiveNext(timeout_seconds=0.5)
+        recv = sc.receiveNext(timeout_seconds=1)
         # subscription will validate recv matches subscription
         metrics = ds.update(recv)
         n = len(metrics.changedsince(latest))

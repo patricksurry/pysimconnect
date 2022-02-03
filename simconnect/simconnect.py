@@ -13,6 +13,7 @@ from scdefs import (
     OBJECT_ID_USER, PERIOD_SECOND,
 )
 from scdefs import *   # just for ease of downstream import
+import scdefs
 from changedict import ChangeDict
 
 
@@ -21,15 +22,16 @@ RECV_P = POINTER(RECV)
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 
-_vars = json.load(open('scvars.json'))
-
+_dir = os.path.dirname(__file__)
+_vars = json.load(open(os.path.join(_dir, 'scvars.json')))
+_dll_path = os.path.join(_dir, 'SimConnect.dll')
 
 class SimConnect:
     SIMVARS = _vars['VARIABLES']
     EVENTS = _vars['EVENTS']
     UNITS = _vars['UNITS']
 
-    def __init__(self, name='pySimConnect', dll_path='SimConnect.dll'):
+    def __init__(self, name='pySimConnect', dll_path=_dll_path):
         try:
             dll = windll.LoadLibrary(dll_path)
         except Exception:
@@ -128,7 +130,7 @@ class SimConnect:
             PERIOD_SECOND,
             DATA_REQUEST_FLAG_CHANGED | DATA_REQUEST_FLAG_TAGGED,
             0,  # number of periods before starting events
-            period,  # number of periods between events, e.g. with PERIOD_SIM_FRAME
+            interval, #number of periods between events, e.g. with PERIOD_SIM_FRAME
             0,  # number of repeats, 0 is forever
         )
         return ds
@@ -144,7 +146,7 @@ class DataSubscription:
             name = d['name']
             unit = d.get('unit', None)      #TODO or lookup
             dtyp = d.get('type', DATATYPE_FLOAT64)
-            epsilon = d.get('epsilon', 1e-6)
+            epsilon = d.get('epsilon', 1e-4)
             self.defs[i] = dict(name=name, unit=unit, dtyp=dtyp)
             sc.AddToDataDefinition(self.def_id, name, unit, dtyp, epsilon, i)
 
@@ -163,7 +165,7 @@ class DataSubscription:
 
         items = recv.dwDefineCount
         while items > 0:
-            idx = cast(byref(recv, offset), POINTER(DWORD))[0].value
+            idx = cast(byref(recv, offset), POINTER(DWORD))[0]
             offset += sizeof(DWORD)
             d = self.defs[idx]
             ctyp = _dtyps[d['dtyp']]
