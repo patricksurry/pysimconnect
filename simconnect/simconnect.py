@@ -4,6 +4,7 @@ from ctypes.wintypes import HANDLE, DWORD
 import itertools
 import logging
 import os
+import json
 from time import time, sleep
 from scdefs import (
     _decls, Struct1, RECV, RECV_EXCEPTION, RECV_SIMOBJECT_DATA,
@@ -20,7 +21,14 @@ RECV_P = POINTER(RECV)
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 
+_vars = json.load(open('scvars.json'))
+
+
 class SimConnect:
+    SIMVARS = _vars['VARIABLES']
+    EVENTS = _vars['EVENTS']
+    UNITS = _vars['UNITS']
+
     def __init__(self, name='pySimConnect', dll_path='SimConnect.dll'):
         try:
             dll = windll.LoadLibrary(dll_path)
@@ -188,3 +196,5 @@ _dtyps = {
     DATATYPE_FLOAT32: c_float,   # 32-bit floating-point number (float)
     DATATYPE_FLOAT64: c_double,   # 64-bit floating-point number (double)
 }
+
+

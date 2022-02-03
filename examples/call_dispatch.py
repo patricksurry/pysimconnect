@@ -1,4 +1,4 @@
-from SimConnect import SimConnect, DispatchProc
+from simconnect import SimConnect, DispatchProc
 from time import sleep
 
 

@@ -1,4 +1,4 @@
-from SimConnect import SimConnect, RECV_P
+from simconnect import SimConnect, RECV_P
 from ctypes import byref
 from ctypes.wintypes import DWORD
 from time import sleep

@@ -2,21 +2,50 @@
 #
 # Run via:
 #
-#       scrapy runspider scrapevars.py --nolog  -o -:json | jq '. | sort_by(.url)' > scvars.json
+#       scrapy runspider build/scrapevars.py --nolog -O simconnect/scvars.json
 #
 import scrapy
+import scrapy.exporters
 import unicodedata
+import json
 
 
 base_url = 'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm'
 
 
 def normtext(s):
-    return unicodedata.normalize('NFKC', s)
+    return unicodedata.normalize('NFKC', s) if s else ''
+
+
+class PostProcessExporter(scrapy.exporters.BaseItemExporter):
+    def __init__(self, file, **kwargs):
+        super().__init__(dont_fail=True, **kwargs)
+        self.file = file
+        self.items = []
+
+    def start_exporting(self):
+        pass
+
+    def export_item(self, item):
+        self.items.append(item)
+
+    def finish_exporting(self):
+        output = dict()
+        for item in sorted(self.items, key=lambda d: (d['page'], d['index'])):
+            typ = item['type']
+            del item['type']
+            del item['index']
+            output.setdefault(typ, []).append(item)
+        s = json.dumps(output, indent=4).encode('utf-8')
+        self.file.write(s)
 
 
 class SimConnectSpider(scrapy.Spider):
     name = "SimConnectSDK"
+
+    custom_settings = {
+        'FEED_EXPORTERS': {'json': PostProcessExporter}
+    }
 
     def start_requests(self):
         yield scrapy.Request(base_url, callback=self.find_vars)
@@ -46,7 +75,7 @@ class SimConnectSpider(scrapy.Spider):
             vs = [
                 tds[0].xpath('code/text()').get()
             ] + [
-                alltext(td) for td in tds[1:ncol-1 if simvar else ncol]
+                alltext(td) for td in tds[1:(ncol-1 if simvar else ncol)]
             ]
             if simvar:
                 if ncol < 5:
@@ -59,18 +88,19 @@ class SimConnectSpider(scrapy.Spider):
         for req in self.find_vars(response):
             yield req
 
-        sections = [
-            {
-                'section': normtext(div.xpath('h4/text()').get()),
-                'vars': list(filter(
-                    None,
-                    (parse_row(row) for row in div.xpath('table/tbody/tr'))
-                ))
-            }
-            for div in response.xpath('//table/..')
-        ]
-        yield [] if not sections else {
+        page = normtext(response.xpath('//h2/text()').get()).strip()
+        context = {
             'url': response.url,
-            'page': normtext(response.xpath('//h2/text()').get()),
-            'sections': sections
+            'page': page,
+            'type': page.split()[-1].replace('IDs', 'EVENTS')
         }
+        i = 0
+        for tbl in response.xpath('//table'):
+            section = tbl.xpath('preceding-sibling::h4[1]') or tbl.xpath('preceding-sibling::h3[1]')
+            context['section'] = normtext(section.xpath('text()').get())
+            for row in tbl.xpath('tbody/tr'):
+                d = parse_row(row)
+                if d:
+                    d.update(context, index=i)
+                    i += 1
+                    yield d

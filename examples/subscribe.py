@@ -1,4 +1,4 @@
-from SimConnect import SimConnect
+from simconnect import SimConnect
 
 """Simple example of subscribing to a set of metrics"""
 
