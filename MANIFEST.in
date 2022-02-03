@@ -1,0 +1,3 @@
+include scripts/*
+include simconnect/scvars.json
+include simconnect/SimConnect.dll

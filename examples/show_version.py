@@ -4,11 +4,13 @@ from ctypes.wintypes import DWORD
 from time import sleep
 
 
-# Use SimConnect object as context manager
-# and simply retrieve the response to the implicit SimConnect.Open()
-# which is a RECV_OPEN struct containing various version numbers
+"""
+Use a SimConnect object as a context manager
+and retrieve the response to the implicit SimConnect.Open()
+which is a RECV_OPEN struct containing various version numbers.
+"""
 with SimConnect(name='ShowVersion') as sc:
-    sleep(0.5)
+    sleep(0.5)  # make sure the response is waiting for us
     pRecv = RECV_P()
     nSize = DWORD()
     sc.GetNextDispatch(byref(pRecv), byref(nSize))

@@ -6,15 +6,14 @@ import logging
 import os
 import json
 from time import time, sleep
-from scdefs import (
+from .scdefs import (
     _decls, Struct1, RECV, RECV_EXCEPTION, RECV_SIMOBJECT_DATA,
     DATATYPE_INT32, DATATYPE_INT64, DATATYPE_FLOAT32, DATATYPE_FLOAT64,
     DATA_REQUEST_FLAG_CHANGED, DATA_REQUEST_FLAG_TAGGED,
     OBJECT_ID_USER, PERIOD_SECOND,
 )
-from scdefs import *   # just for ease of downstream import
-import scdefs
-from changedict import ChangeDict
+from . import scdefs
+from .changedict import ChangeDict
 
 
 RECV_P = POINTER(RECV)
@@ -25,6 +24,7 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 _dir = os.path.dirname(__file__)
 _vars = json.load(open(os.path.join(_dir, 'scvars.json')))
 _dll_path = os.path.join(_dir, 'SimConnect.dll')
+
 
 class SimConnect:
     SIMVARS = _vars['VARIABLES']
