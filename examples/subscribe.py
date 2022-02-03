@@ -1,10 +1,9 @@
-from SimConnect import SimConnect, RECV_P, RECV_EXCEPTION, RECV_SIMOBJECT_DATA
-from ctypes import byref
-from ctypes.wintypes import DWORD
-from time import sleep
+from SimConnect import SimConnect
 
+"""Simple example of subscribing to a set of metrics"""
 
 with SimConnect(name='MonitorMetrics') as sc:
+    #TODO infer units from json file
     simvars = [
         ("Kohlsman setting hg", "inHg"),
         ("Indicated Altitude", "feet"),
@@ -14,22 +13,14 @@ with SimConnect(name='MonitorMetrics') as sc:
     ds = sc.subscribeSimObjects(simvars)
     print(ds.get_units())
 
-    pRecv = RECV_P()
-    nSize = DWORD()
     latest = 0
     while True:
-        try:
-            print('Trying...')
-            sc.GetNextDispatch(byref(pRecv), byref(nSize))
-        except OSError:
-            sleep(0.5)
-            continue
-        recv = sc._get_recv(pRecv)
-        print(f"got {recv.__class__.__name__}")
-        if isinstance(recv, RECV_EXCEPTION):
-            print(f"Got exception {recv.dwException}, sendID {recv.dwSendID}, index {recv.dwIndex}")
-        elif isinstance(recv, RECV_SIMOBJECT_DATA):
-            metrics = ds.update(recv)
-            print(f"Updated {len(metrics.changedsince(latest))} simvars")
-            latest = metrics.latest()
+        # fetch next RECV object within timeout_seconds, or None
+        recv = sc.receiveNext(timeout_seconds=0.5)
+        # subscription will validate recv matches subscription
+        metrics = ds.update(recv)
+        n = len(metrics.changedsince(latest))
+        print(f"Updated {n} simvars")
+        if n:
             print(metrics)
+        latest = metrics.latest()

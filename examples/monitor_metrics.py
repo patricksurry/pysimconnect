@@ -8,6 +8,12 @@ from ctypes.wintypes import DWORD
 from time import sleep
 
 
+"""
+Low level example showing the flow for watching a group of simulation variables.
+Compare subscribe.py for a more pythonic version
+"""
+
+
 with SimConnect(name='MonitorMetrics') as sc:
     def_id = 0x1234
     simvars = [
@@ -39,7 +45,7 @@ with SimConnect(name='MonitorMetrics') as sc:
         except OSError:
             sleep(0.5)
             continue
-        recv = sc._get_recv(pRecv)
+        recv = sc._cast_recv(pRecv)
         print(f"got {recv.__class__.__name__}")
         if isinstance(recv, RECV_EXCEPTION):
             print(f"Got exception {recv.dwException}, sendID {recv.dwSendID}, index {recv.dwIndex}")

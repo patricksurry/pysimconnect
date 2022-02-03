@@ -1,9 +1,12 @@
-from typing import Dict, List, Union, Any
+from typing import Dict, List, Union, Any, Optional
 from ctypes import cast, byref, sizeof, windll, POINTER, c_float, c_double, c_longlong
 from ctypes.wintypes import HANDLE, DWORD
 import itertools
+import logging
+import os
+from time import time, sleep
 from scdefs import (
-    _decls, Struct1, RECV, RECV_SIMOBJECT_DATA,
+    _decls, Struct1, RECV, RECV_EXCEPTION, RECV_SIMOBJECT_DATA,
     DATATYPE_INT32, DATATYPE_INT64, DATATYPE_FLOAT32, DATATYPE_FLOAT64,
     DATA_REQUEST_FLAG_CHANGED, DATA_REQUEST_FLAG_TAGGED,
     OBJECT_ID_USER, PERIOD_SECOND,
@@ -14,14 +17,24 @@ from changedict import ChangeDict
 
 RECV_P = POINTER(RECV)
 
+logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+
 
 class SimConnect:
     def __init__(self, name='pySimConnect', dll_path='SimConnect.dll'):
-        dll = windll.LoadLibrary(dll_path)
+        try:
+            dll = windll.LoadLibrary(dll_path)
+        except Exception:
+            logging.error(f"Failed to load SimConnect DLL from {dll_path}")
+            raise
         self._decls = _decls(dll)
         self.hsc = HANDLE()
         # All methods other than open pass the sc HANDLE as the first arg
-        self._decls['Open'](byref(self.hsc), name.encode('utf-8'), None, 0, 0, 0)
+        try:
+            self._decls['Open'](byref(self.hsc), name.encode('utf-8'), None, 0, 0, 0)
+        except OSError:
+            logging.error("Failed to open SimConnect, is Flight Simulator running?")
+            raise
         self._reqid_iter = itertools.count()
         self._defid_iter = itertools.count()
 
@@ -38,7 +51,7 @@ class SimConnect:
             return f(self.hsc, *args)
         return _callable
 
-    def _get_recv(self, pRecv) -> RECV:   #TODO type annotation : pointer[RECV] per https://github.com/python/mypy/issues/7540
+    def _cast_recv(self, pRecv) -> RECV:   #TODO type annotation : pointer[RECV] per https://github.com/python/mypy/issues/7540
         recv_id = pRecv.contents.dwID
         if recv_id in _recv_map:
             pRecv = cast(pRecv, POINTER(_recv_map[recv_id]))
@@ -69,6 +82,32 @@ class SimConnect:
             return self._dispatch(self._decls[k])
         # Default behaviour
         raise AttributeError
+
+    def receiveNext(self, timeout_seconds=None) -> Optional[RECV]:
+        pRecv = RECV_P()
+        nSize = DWORD()
+        t0 = time()
+        recv = None
+        while True:
+            logging.debug('sc.receiveNext: GetNextDispatch()')
+            try:
+                self.GetNextDispatch(byref(pRecv), byref(nSize))
+            except OSError:
+                logging.debug('sc.receiveNext: OSError')
+                if timeout_seconds and time() - t0 < timeout_seconds:
+                    sleep(0.1)
+                    continue
+                else:
+                    break
+
+            recv = self._cast_recv(pRecv)
+            logging.debug(f"sc.receiveNext: received {recv.__class__.__name__}")
+            if isinstance(recv, RECV_EXCEPTION):
+                logging.warning(
+                    f"sc.receiveNext: exception {recv.dwException}, sendID {recv.dwSendID}, index {recv.dwIndex}"
+                )
+            break
+        return recv
 
     def subscribeSimObjects(
             self, simvars: List[Dict], def_id=None,
@@ -104,7 +143,7 @@ class DataSubscription:
     def get_units(self) -> Dict[str, str]:
         return {d['name']: d['unit'] for d in self.defs.values()}
 
-    def update(self, recv: RECV):
+    def update(self, recv: Optional[RECV]):
         if not isinstance(recv, RECV_SIMOBJECT_DATA) or recv.dwRequestID != self.req_id:
             return self.metrics
 

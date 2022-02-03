@@ -12,7 +12,7 @@ with SimConnect(name='ShowVersion') as sc:
     pRecv = RECV_P()
     nSize = DWORD()
     sc.GetNextDispatch(byref(pRecv), byref(nSize))
-    ro = sc._get_recv(pRecv)
+    ro = sc._cast_recv(pRecv)
     appVer = f"v{ro.dwApplicationVersionMajor}.{ro.dwApplicationVersionMinor}"
     appBuild = f"build {ro.dwApplicationBuildMajor}.{ro.dwApplicationBuildMinor}"
     scVer = f"v{ro.dwSimConnectVersionMajor}.{ro.dwSimConnectVersionMinor}"
