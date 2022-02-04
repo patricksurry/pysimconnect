@@ -6,6 +6,7 @@ import logging
 import os
 import json
 from time import time, sleep
+from difflib import get_close_matches
 from .scdefs import (
     _decls, Struct1, RECV, RECV_EXCEPTION, RECV_SIMOBJECT_DATA,
     DATATYPE_INT32, DATATYPE_INT64, DATATYPE_FLOAT32, DATATYPE_FLOAT64,
@@ -30,12 +31,20 @@ def _varbase(s):
     return s.rsplit(':', 1).upper()
 
 
+def _closemsg(s, ss):
+    xs = get_close_matches(s, ss)
+    return f"perhaps one of {', '.join(xs)}?" if xs else "found nothing similar."
+
+
 class SimConnect:
     SIMVARS = {
         _varbase(d['name']): dict(d, indexed=':' in d['name'])
         for d in _vars['VARIABLES']
     }
-    EVENTS = {d['name'].upper(): d for d in _vars['EVENTS']}
+    EVENTS = {
+        d['name'].upper(): dict(d, client_id=i+1)
+        for (i, d) in enumerate(_vars['EVENTS'])
+    }
     UNITS = {k.strip(): d for d in _vars['UNITS'] for k in d['name'].split(',')}
 
     def __init__(self, name='pySimConnect', dll_path=_dll_path):
@@ -153,8 +162,16 @@ class DataSubscription:
             if isinstance(d, str):
                 d = dict(name=d)
             name = d['name']
+            base = _varbase(d['name'])
+            sv = sc.SIMVAR.get(base, {})
+            if not sv:
+                logging.warning("SimConnect: unrecognized simvar '{base}', {_closemsg(base, sc.SIMVARS)}")
+            elif sv['indexed'] and ':' not in name:
+                logging.warning("SimConnect: expected indexed simvar, e.g. {name}:3")
             # lookup default units if not provided
-            units = d.get('units') or sc.SIMVARS.get(name, {}).get('units') or ''
+            units = d.get('units') or sv.get('units') or ''
+            if units not in sc.UNITS:
+                logging.warning("SimConnect: unrecognized units '{units}', {_closemsg(units, sc.UNITS)}")
             dtyp = d.get('type', DATATYPE_FLOAT64)
             epsilon = d.get('epsilon', 1e-4)
             self.defs[i] = dict(name=name, units=units, dtyp=dtyp)

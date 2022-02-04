@@ -2,7 +2,7 @@
 #
 # Run via:
 #
-#       scrapy runspider build/scrapevars.py --nolog -O simconnect/scvars.json
+#       scrapy runspider scripts/scrapevars.py --nolog -O simconnect/scvars.json
 #
 import scrapy
 import scrapy.exporters
@@ -15,6 +15,10 @@ base_url = 'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simu
 
 def normtext(s):
     return unicodedata.normalize('NFKC', s) if s else ''
+
+
+def jointext(xs):
+    return ''.join(map(normtext, xs.getall())).strip()
 
 
 class PostProcessExporter(scrapy.exporters.BaseItemExporter):
@@ -58,7 +62,7 @@ class SimConnectSpider(scrapy.Spider):
     def parse(self, response):
         def alltext(elt):
             if elt:
-                return ''.join(map(normtext, elt.xpath('.//text()').getall())).strip()
+                return jointext(elt.xpath('.//text()'))
             else:
                 return None
 
@@ -73,7 +77,7 @@ class SimConnectSpider(scrapy.Spider):
             simvar = ncol >= 4
             labels = ['name', 'description', 'multiplayer', 'units', 'settable']
             vs = [
-                tds[0].xpath('code/text()').get()
+                jointext(tds[0].xpath('.//text()'))
             ] + [
                 alltext(td) for td in tds[1:(ncol-1 if simvar else ncol)]
             ]
