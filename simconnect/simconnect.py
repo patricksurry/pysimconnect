@@ -28,7 +28,7 @@ _dll_path = os.path.join(_dir, 'SimConnect.dll')
 
 
 def _varbase(s):
-    return s.rsplit(':', 1).upper()
+    return s.rsplit(':', 1)[0].upper()
 
 
 def _closemsg(s, ss):
@@ -163,15 +163,15 @@ class DataSubscription:
                 d = dict(name=d)
             name = d['name']
             base = _varbase(d['name'])
-            sv = sc.SIMVAR.get(base, {})
+            sv = sc.SIMVARS.get(base, {})
             if not sv:
-                logging.warning("SimConnect: unrecognized simvar '{base}', {_closemsg(base, sc.SIMVARS)}")
+                logging.warningf(f"SimConnect: unrecognized simvar '{base}', {_closemsg(base, sc.SIMVARS)}")
             elif sv['indexed'] and ':' not in name:
-                logging.warning("SimConnect: expected indexed simvar, e.g. {name}:3")
+                logging.warning(f"SimConnect: expected indexed simvar, e.g. {name}:3")
             # lookup default units if not provided
-            units = d.get('units') or sv.get('units') or ''
+            units = (d.get('units') or sv.get('units') or '').split(',')[-1].strip()
             if units not in sc.UNITS:
-                logging.warning("SimConnect: unrecognized units '{units}', {_closemsg(units, sc.UNITS)}")
+                logging.warning(f"SimConnect: unrecognized units '{units}', {_closemsg(units, sc.UNITS)}")
             dtyp = d.get('type', DATATYPE_FLOAT64)
             epsilon = d.get('epsilon', 1e-4)
             self.defs[i] = dict(name=name, units=units, dtyp=dtyp)

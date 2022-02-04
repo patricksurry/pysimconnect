@@ -9,8 +9,8 @@ with SimConnect(name='MonitorMetrics') as sc:
         # Provide a dictionary to specify optional attributes:
         # 'units' (per SDK), 'epsilon' (default 1e-4) and 'type' (default DATATYPE_FLOAT64)
         dict(name="Indicated Altitude", units="m", epsilon=0.1),
-        "Plane Latitude",
-        "Plane Longitude",
+        dict(name="Plane Latitude", units='degrees'),
+        dict(name="Plane Longitude", units='degrees'),
     ]
     ds = sc.subscribeSimObjects(simvars)
     print(ds.get_units())
