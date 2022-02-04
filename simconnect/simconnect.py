@@ -26,8 +26,15 @@ _vars = json.load(open(os.path.join(_dir, 'scvars.json')))
 _dll_path = os.path.join(_dir, 'SimConnect.dll')
 
 
+def _varbase(s):
+    return s.rsplit(':', 1).upper()
+
+
 class SimConnect:
-    SIMVARS = {d['name'].upper(): d for d in _vars['VARIABLES']}
+    SIMVARS = {
+        _varbase(d['name']): dict(d, indexed=':' in d['name'])
+        for d in _vars['VARIABLES']
+    }
     EVENTS = {d['name'].upper(): d for d in _vars['EVENTS']}
     UNITS = {k.strip(): d for d in _vars['UNITS'] for k in d['name'].split(',')}
 
