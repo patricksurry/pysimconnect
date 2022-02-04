@@ -113,7 +113,7 @@
             "section": ""
         },
         {
-            "name": null,
+            "name": "AUTOPILOT APPROACH ARM",
             "description": "Returns true when the autopilot is active on the approach, once it reaches the adequate condition (in most cases, once it reaches the second-last waypoint of the flightplan).",
             "units": "Bool",
             "settable": false,
@@ -2613,7 +2613,7 @@
             "section": "Breakers"
         },
         {
-            "name": null,
+            "name": "BREAKER LTS PWR\n          Deprecated! Do Not Use!",
             "description": "Bool",
             "multiplayer": "",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_Electrics_Variables.htm",
@@ -3324,7 +3324,7 @@
             "section": ""
         },
         {
-            "name": null,
+            "name": "GENERAL ENG FUEL PUMP SWITCH EX1:index",
             "description": "Equivalent to GENERAL ENG FUEL PUMP SWITCH but differentiates between ON and AUTO",
             "units": "Bool",
             "settable": false,
@@ -3697,7 +3697,7 @@
             "section": ""
         },
         {
-            "name": null,
+            "name": "RECIP ENG ALTERNATE AIR POSITION:index",
             "description": "Alternate air control the indexed engine (see note).",
             "units": "Position",
             "settable": true,
@@ -13431,7 +13431,7 @@
             "section": "G1000 (Multi-Function Display)"
         },
         {
-            "name": null,
+            "name": "G1000_MFD_SOFTKEY1\n            G1000_MFD_SOFTKEY2\n            G1000_MFD_SOFTKEY3\n            G1000_MFD_SOFTKEY4\n            G1000_MFD_SOFTKEY5\n            G1000_MFD_SOFTKEY6\n            G1000_MFD_SOFTKEY7\n            G1000_MFD_SOFTKEY8\n            G1000_MFD_SOFTKEY9\n            G1000_MFD_SOFTKEY10\n            G1000_MFD_SOFTKEY11\n            G1000_MFD_SOFTKEY12",
             "description": "Initiate the action for the icon displayed in the softkey position.",
             "multiplayer": "Shared Cockpit",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Autopilot_Flight_Assist_Events.htm",
@@ -13543,7 +13543,7 @@
             "section": "G1000 (Multi-Function Display)"
         },
         {
-            "name": "G1000_PFD_SOFTKEY1",
+            "name": "G1000_PFD_SOFTKEY1\n          G1000_PFD_SOFTKEY2\n          G1000_PFD_SOFTKEY3\n          G1000_PFD_SOFTKEY4\n          G1000_PFD_SOFTKEY5\n          G1000_PFD_SOFTKEY6\n          G1000_PFD_SOFTKEY7\n          G1000_PFD_SOFTKEY8\n          G1000_PFD_SOFTKEY9\n          G1000_PFD_SOFTKEY10\n          G1000_PFD_SOFTKEY11\n          G1000_PFD_SOFTKEY12",
             "description": "Initiate the action for the icon displayed in the softkey position.",
             "multiplayer": "Shared Cockpit",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Autopilot_Flight_Assist_Events.htm",
@@ -16391,7 +16391,7 @@
             "section": "Elevators"
         },
         {
-            "name": null,
+            "name": "ELEVATOR_DOWN",
             "description": "Increments elevator down\n          Unsupported",
             "multiplayer": "Shared Cockpit",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Flight_Control_Events.htm",
@@ -17543,7 +17543,7 @@
             "section": "EGT"
         },
         {
-            "name": null,
+            "name": "LOW_HEIGHT_WARNING_GAUGE_WILL_SET\n          or\n          LOW_HIGHT_WARNING_GAUGE_WILL_SET",
             "description": "",
             "multiplayer": "",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Misc_Events.htm",
@@ -17551,7 +17551,7 @@
             "section": "Aircraft Failures"
         },
         {
-            "name": null,
+            "name": "LOW_HEIGHT_WARNING_SET\n          or\n          LOW_HIGHT_WARNING_SET",
             "description": "",
             "multiplayer": "",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Misc_Events.htm",
@@ -23655,7 +23655,7 @@
             "section": "Length"
         },
         {
-            "name": "meter scaler 256",
+            "name": "meter scaler 256, meters scaler 256",
             "description": "This is the same as the meter (above) only scaled by 1/256, ie: VALUE / 256.",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variable_Units.htm",
             "page": "SIMULATION VARIABLE UNITS",
@@ -23963,14 +23963,14 @@
             "section": "Angles"
         },
         {
-            "name": "angl16",
+            "name": "angl16, degree angl16, degrees angl16",
             "description": "This represents a unit that is a radian cast as a 16bit integer using the following formula: round(VALUE) / 65536.0",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variable_Units.htm",
             "page": "SIMULATION VARIABLE UNITS",
             "section": "Angles"
         },
         {
-            "name": "angl32",
+            "name": "angl32, degree angl32, degrees angl32",
             "description": "This represents a unit that is a radian cast as a 32bit integer using the following formula: round(VALUE) / (65536.0 * 65536.0)",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variable_Units.htm",
             "page": "SIMULATION VARIABLE UNITS",
@@ -24040,7 +24040,7 @@
             "section": "Angular velocity"
         },
         {
-            "name": "degree per second ang16",
+            "name": "degree per second ang16, \n          degrees per second ang16",
             "description": "This is a unit of measurement that defines the number of degrees that something will rotate for every second of time that passes. The value is cast as a 16bit integer using the following formula: round(VALUE) / 65536.0",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variable_Units.htm",
             "page": "SIMULATION VARIABLE UNITS",
@@ -24068,7 +24068,7 @@
             "section": "Speed"
         },
         {
-            "name": "meter per second scaler 256",
+            "name": "meter per second scaler 256, meters per second scaler 256",
             "description": "This is the same as the meter per second (above) only scaled by 1/256, ie: VALUE / 256.",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variable_Units.htm",
             "page": "SIMULATION VARIABLE UNITS",
@@ -24117,7 +24117,7 @@
             "section": "Speed"
         },
         {
-            "name": "knot scaler 128",
+            "name": "knot scaler 128, knots scaler 128",
             "description": "This is the same as the knot (above) only scaled by 1/128, ie: VALUE / 128.",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variable_Units.htm",
             "page": "SIMULATION VARIABLE UNITS",
@@ -24257,7 +24257,7 @@
             "section": "Weight"
         },
         {
-            "name": "pound scaler 256",
+            "name": "pound scaler 256, pounds scaler 256",
             "description": "This is the same as the pound (above) only scaled by 1/256, ie: VALUE / 256.",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variable_Units.htm",
             "page": "SIMULATION VARIABLE UNITS",
@@ -24460,7 +24460,7 @@
             "section": "Pressure"
         },
         {
-            "name": "millibar scaler 16",
+            "name": "millibar scaler 16, millibars scaler 16",
             "description": "This unit is the same as the millibar (above), only scaled by a factor of 1/16, ie: VALUE / 16;",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variable_Units.htm",
             "page": "SIMULATION VARIABLE UNITS",
@@ -24747,7 +24747,7 @@
             "section": "Miscellaneous Units"
         },
         {
-            "name": "keyframe",
+            "name": "keyframe, keyframes",
             "description": "The input is for an animation keyframe and will be divided by 200.",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variable_Units.htm",
             "page": "SIMULATION VARIABLE UNITS",

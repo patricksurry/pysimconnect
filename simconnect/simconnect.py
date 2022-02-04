@@ -27,6 +27,7 @@ _dll_path = os.path.join(_dir, 'SimConnect.dll')
 
 
 class SimConnect:
+    #TODO deal with :index suffix here and in units lookup
     SIMVARS = {d['name'].upper(): d for d in _vars['VARIABLES']}
     EVENTS = {d['name'].upper(): d for d in _vars['EVENTS']}
     UNITS = {k.strip(): d for d in _vars['UNITS'] for k in d['name'].split(',')}
@@ -147,7 +148,8 @@ class DataSubscription:
                 d = dict(name=d)
             name = d['name']
             # lookup default units if not provided
-            units = d.get('units') or sc.SIMVARS.get(name, {}).get('units') or ''
+            units = d.get('units') or sc.SIMVARS.get(name.upper(), {}).get('units') or ''
+            print(name, name.upper(), units)
             dtyp = d.get('type', DATATYPE_FLOAT64)
             epsilon = d.get('epsilon', 1e-4)
             self.defs[i] = dict(name=name, units=units, dtyp=dtyp)
