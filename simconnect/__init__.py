@@ -1,1 +1,2 @@
-__all__ = ['simconnect', 'scdefs']
+from .scdefs import *
+from .simconnect import SimConnect, RECV_P

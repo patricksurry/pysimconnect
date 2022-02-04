@@ -3,12 +3,14 @@ from simconnect import SimConnect
 """Simple example of subscribing to a set of metrics"""
 
 with SimConnect(name='MonitorMetrics') as sc:
-    #TODO infer units from json file
     simvars = [
-        dict(name="Kohlsman setting hg", unit="inHg"),
-        dict(name="Indicated Altitude", unit="feet"),
-        dict(name="Plane Latitude", unit="degrees"),
-        dict(name="Plane Longitude", unit="degrees"),
+        # Simulation variable names are not case-sensitive
+        "Kohlsman setting hg",
+        # Provide a dictionary to specify optional attributes:
+        # 'units' (per SDK), 'epsilon' (default 1e-4) and 'type' (default DATATYPE_FLOAT64)
+        dict(name="Indicated Altitude", units="m", epsilon=0.1),
+        "Plane Latitude",
+        "Plane Longitude",
     ]
     ds = sc.subscribeSimObjects(simvars)
     print(ds.get_units())

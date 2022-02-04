@@ -27,9 +27,9 @@ _dll_path = os.path.join(_dir, 'SimConnect.dll')
 
 
 class SimConnect:
-    SIMVARS = _vars['VARIABLES']
-    EVENTS = _vars['EVENTS']
-    UNITS = _vars['UNITS']
+    SIMVARS = {d['name'].upper(): d for d in _vars['VARIABLES']}
+    EVENTS = {d['name'].upper(): d for d in _vars['EVENTS']}
+    UNITS = {k.strip(): d for d in _vars['UNITS'] for k in d['name'].split(',')}
 
     def __init__(self, name='pySimConnect', dll_path=_dll_path):
         try:
@@ -120,7 +120,7 @@ class SimConnect:
         return recv
 
     def subscribeSimObjects(
-            self, simvars: List[Dict], def_id=None,
+            self, simvars: List[Union[str, Dict]], def_id=None,
             req_id=None, period=PERIOD_SECOND, interval=1) -> 'DataSubscription':
         ds = DataSubscription(self, simvars, def_id, req_id)
         self.RequestDataOnSimObject(
@@ -130,28 +130,31 @@ class SimConnect:
             PERIOD_SECOND,
             DATA_REQUEST_FLAG_CHANGED | DATA_REQUEST_FLAG_TAGGED,
             0,  # number of periods before starting events
-            interval, #number of periods between events, e.g. with PERIOD_SIM_FRAME
+            interval,  # number of periods between events, e.g. with PERIOD_SIM_FRAME
             0,  # number of repeats, 0 is forever
         )
         return ds
 
 
 class DataSubscription:
-    def __init__(self, sc: SimConnect, simvars: List[Dict], def_id=None, req_id=None):
+    def __init__(self, sc: SimConnect, simvars: List[Union[str, Dict]], def_id=None, req_id=None):
         self.def_id = def_id or next(sc._defid_iter)
         self.req_id = req_id or next(sc._reqid_iter)
         self.defs = {}
         self.metrics = ChangeDict()
         for i, d in enumerate(simvars):
+            if isinstance(d, str):
+                d = dict(name=d)
             name = d['name']
-            unit = d.get('unit', None)      #TODO or lookup
+            # lookup default units if not provided
+            units = d.get('units') or sc.SIMVARS.get(name, {}).get('units') or ''
             dtyp = d.get('type', DATATYPE_FLOAT64)
             epsilon = d.get('epsilon', 1e-4)
-            self.defs[i] = dict(name=name, unit=unit, dtyp=dtyp)
-            sc.AddToDataDefinition(self.def_id, name, unit, dtyp, epsilon, i)
+            self.defs[i] = dict(name=name, units=units, dtyp=dtyp)
+            sc.AddToDataDefinition(self.def_id, name, units, dtyp, epsilon, i)
 
     def get_units(self) -> Dict[str, str]:
-        return {d['name']: d['unit'] for d in self.defs.values()}
+        return {d['name']: d['units'] for d in self.defs.values()}
 
     def update(self, recv: Optional[RECV]):
         if not isinstance(recv, RECV_SIMOBJECT_DATA) or recv.dwRequestID != self.req_id:
@@ -198,5 +201,3 @@ _dtyps = {
     DATATYPE_FLOAT32: c_float,   # 32-bit floating-point number (float)
     DATATYPE_FLOAT64: c_double,   # 64-bit floating-point number (double)
 }
-
-
