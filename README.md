@@ -80,4 +80,4 @@ Bump version in `setup.cfg` then following https://packaging.python.org/en/lates
 
     python3 -m build
 
-    python3 -m twine upload dist/*
+    python3 -m twine upload dist/*  # login with __token__ / pypi...
