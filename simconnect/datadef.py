@@ -133,7 +133,7 @@ class DataDefinition:
     def _pack_data(self, simdata: Dict[str, Any]) -> Struct1:
         if self._struct is None:
             class kls(Struct1):
-                _fields = [(d['name'], _dtyps[d['dtyp']]) for d in self.defs]
+                _fields_ = [(d['name'], _dtyps[d['dtyp']]) for d in self.defs]
             self._struct = kls
 
         return self._struct(**simdata)

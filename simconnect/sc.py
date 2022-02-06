@@ -163,7 +163,7 @@ class SimConnect:
         #TODO add generalized version set_simdata(self, SimVarsSpec, SimData)
         dd = DataDefinition.create(self, name, settable=True)
         data = dd._pack_data({name: value})
-        print(data)
+        logging.debug(f"setting {name} to {value} with {sizeof(data)} bytes")
         self.SetDataOnSimObject(
             dd.id,
             OBJECT_ID_USER,
