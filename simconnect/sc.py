@@ -82,7 +82,7 @@ class SimConnect:
 
     def _dispatcher(self, pRecv, nSize, pContext):
         """Dispatch to all our handlers whenever we get a RECV object"""
-        recv = Receiver.cast_recv(pRecv)
+        recv = ReceiverInstance.cast_recv(pRecv)
         logging.debug(f"receive: got {recv.__class__.__name__} with size {nSize} and context {pContext}")
         self._received = sum(r.receive(recv) for r in self._receivers)
         if not self._received:
@@ -163,7 +163,7 @@ class SimConnect:
         #TODO add generalized version set_simdata(self, SimVarsSpec, SimData)
         dd = DataDefinition.create(self, name, settable=True)
         data = dd._pack_data({name: value})
-
+        print(data)
         self.SetDataOnSimObject(
             dd.id,
             OBJECT_ID_USER,

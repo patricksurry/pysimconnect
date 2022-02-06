@@ -59,4 +59,7 @@ def receiveOpen(recv: RECV_OPEN) -> bool:
     return True
 
 
-_default_receivers = [receiveException, receiveOpen]
+_default_receivers = [
+    ReceiverInstance(RECV_EXCEPTION, receiveException), 
+    ReceiverInstance(RECV_OPEN, receiveOpen),
+]

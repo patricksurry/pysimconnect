@@ -56,7 +56,7 @@ class DataDefinition:
     _instances: Dict[str, 'DataDefinition'] = {}
 
     @classmethod
-    def create(kls, sc: SimConnect, simvars: SimVarsSpec, settable=False) -> 'DataDefinition':
+    def create(kls, sc: 'SimConnect', simvars: SimVarsSpec, settable=False) -> 'DataDefinition':
         """create or retrieve a data definition for the specified variables"""
         defs: List[Dict[str, Any]] = []
         if isinstance(simvars, (str, Dict)):
@@ -77,7 +77,7 @@ class DataDefinition:
             # lookup default units if not provided
             #TODO split in the simvar def
             units = (d.get('units') or sv.get('units') or '').split(',')[-1].strip()
-            if units not in sc.UNITS:
+            if units not in UNITS:
                 logging.warning(f"SimConnect: unrecognized units '{units}', {_closemsg(units, UNITS)}")
             dtyp = d.get('type', DATATYPE_FLOAT64)
             epsilon = d.get('epsilon', EPSILON_DEFAULT)
@@ -88,7 +88,7 @@ class DataDefinition:
             kls._instances[key] = kls(sc, len(kls._instances), defs)
         return kls._instances[key]
 
-    def __init__(self, sc: SimConnect, def_id: int, defs: List[Dict[str, Any]]):
+    def __init__(self, sc: 'SimConnect', def_id: int, defs: List[Dict[str, Any]]):
         self.id = def_id
         self.simdata: SimData = ChangeDict()
         self._struct: Optional[Type[Struct1]] = None
@@ -99,7 +99,7 @@ class DataDefinition:
     def get_units(self) -> Dict[str, str]:
         return {d['name']: d['units'] for d in self.defs}
 
-    def add_receiver(self, sc: SimConnect, req_id: int, callback: Optional[SimDataHandler] = None):
+    def add_receiver(self, sc: 'SimConnect', req_id: int, callback: Optional[SimDataHandler] = None):
         """Create a receiver for this DataDefinition, given req_id and optional callback"""
         def _receiver(recv: RECV_SIMOBJECT_DATA) -> bool:
             if recv.dwRequestID != req_id:
@@ -139,6 +139,18 @@ class DataDefinition:
         return self._struct(**simdata)
 
 
+def _map_event_id(sc: 'SimConnect', event: str) -> int:
+    s = event.upper()
+    if s not in EVENTS:
+        logging.warn(f"Unrecognized event {event}")
+    client_id = _event_ids.get(s)
+    if client_id is None:
+        client_id = len(_event_ids)
+        _event_ids[s] = client_id
+        sc.MapClientEventToSimEvent(client_id, s)
+    return client_id
+
+
 # Map scdefs type flags to ctypes
 _dtyps = {
     DATATYPE_INT32: DWORD,   # 32-bit integer number
@@ -155,15 +167,3 @@ SIMVARS = {
 }
 EVENTS = {d['name'].upper(): d for (i, d) in enumerate(_vars['EVENTS'])}
 UNITS = {k.strip(): d for d in _vars['UNITS'] for k in d['name'].split(',')}
-
-
-def _map_event_id(sc: SimConnect, event: str) -> int:
-    s = event.upper()
-    if s not in EVENTS:
-        logging.warn(f"Unrecognized event {event}")
-    client_id = _event_ids.get(s)
-    if client_id is None:
-        client_id = len(_event_ids)
-        _event_ids[s] = client_id
-        sc.MapClientEventToSimEvent(client_id, s)
-    return client_id
