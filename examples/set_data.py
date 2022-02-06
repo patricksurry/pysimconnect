@@ -1,9 +1,10 @@
-        err = self.dll.SetDataOnSimObject(
-            self.hSimConnect,
-            _Request.DATA_DEFINITION_ID.value,
-            SIMCONNECT_SIMOBJECT_TYPE.SIMCONNECT_SIMOBJECT_TYPE_USER,
-            0,
-            0,
-            sizeof(ctypes.c_double) * len(pyarr),
-            pObjData
-        )
+from simconnect import SimConnect
+from time import sleep
+
+
+"""Simple example of setting a simvar"""
+with SimConnect(name='GainAltitude') as sc:
+    altitude = sc.get_simdatum('Indicated Altitude')
+    for _ in range(10):
+        altitude += 100
+        sc.set_simdatum('Indicated Altitude', altitude)

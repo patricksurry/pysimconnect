@@ -1,9 +1,9 @@
 from simconnect import (
-    SimConnect, GROUP_PRIORITY_STANDARD, OBJECT_ID_USER,
+    SimConnect, ReceiverInstance, OBJECT_ID_USER,
     PERIOD_SECOND, DATA_REQUEST_FLAG_CHANGED, DATA_REQUEST_FLAG_TAGGED,
     DATATYPE_FLOAT64, RECV_SIMOBJECT_DATA, RECV_EXCEPTION, RECV_P
 )
-from ctypes import byref, cast, POINTER, pointer, c_float, c_int
+from ctypes import byref
 from ctypes.wintypes import DWORD
 from time import sleep
 
@@ -45,7 +45,7 @@ with SimConnect(name='MonitorMetrics') as sc:
         except OSError:
             sleep(0.5)
             continue
-        recv = sc._cast_recv(pRecv)
+        recv = ReceiverInstance.cast_recv(pRecv)
         print(f"got {recv.__class__.__name__}")
         if isinstance(recv, RECV_EXCEPTION):
             print(f"Got exception {recv.dwException}, sendID {recv.dwSendID}, index {recv.dwIndex}")

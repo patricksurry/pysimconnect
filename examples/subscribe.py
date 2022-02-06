@@ -12,17 +12,21 @@ with SimConnect(name='MonitorMetrics') as sc:
         dict(name="Plane Latitude", units='degrees'),
         dict(name="Plane Longitude", units='degrees'),
     ]
-    ds = sc.subscribeSimObjects(simvars)
-    print(ds.get_units())
+
+    print(f"One-off snaphsot of {sc.get_simdata(simvars[0])}")
+
+    # but subscribe is more efficient if we're repeating...
+    dd = sc.subscribe_simdata(simvars)
+    print(f"Subscribed to simvars with units {dd.get_units()}")
 
     latest = 0
     while True:
-        # fetch next RECV object within timeout_seconds, or None
-        recv = sc.receiveNext(timeout_seconds=1)
-        # subscription will validate recv matches subscription
-        metrics = ds.update(recv)
-        n = len(metrics.changedsince(latest))
-        print(f"Updated {n} simvars")
+        while sc.receive(timeout_seconds=0.1):
+            # clear queue of pending results, processed by receiver handlers
+            print('received result')
+            pass
+        n = len(dd.simdata.changedsince(latest))
         if n:
-            print(metrics)
-        latest = metrics.latest()
+            print(f"Updated {n} simvars")
+            print(dd.simdata)
+            latest = dd.simdata.latest()
