@@ -29,7 +29,7 @@ print("Inferred variable units", datadef.get_units())
 # track the most recent data update
 latest = datadef.simdata.latest()
 
-while True:
+for i in range(10):
     # bump altitude, which is a settable simulator variable
     sc.set_simdatum("Indicated Altitude", altitude + 100)
 
@@ -45,12 +45,12 @@ while True:
         pass
 
     # show data that's been changed since the last update
-    print("Updated data {simdata.changedsince(latest)")
+    print(f"Updated data {datadef.simdata.changedsince(latest)}")
 
     latest = datadef.simdata.latest()
 
     # fetch the current altitude
-    altitude = simdata['Indicated Altitude']
+    altitude = datadef.simdata['Indicated Altitude']
 
 # explicity close the SDK connection
 sc.Close()

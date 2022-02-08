@@ -160,7 +160,7 @@ class SimConnect:
 
     def set_simdatum(self, name, value):
         """Set a single simulator variable"""
-        self.set_simdata([dict(name=name. value=value)])
+        self.set_simdata([dict(name=name, value=value)])
 
     def set_simdata(self, simdata: List[Dict[str, Any]]):
         """

@@ -3,7 +3,7 @@ from simconnect import (
     PERIOD_SECOND, DATA_REQUEST_FLAG_CHANGED, DATA_REQUEST_FLAG_TAGGED,
     DATATYPE_FLOAT64, RECV_SIMOBJECT_DATA, RECV_EXCEPTION, RECV_P
 )
-from ctypes import byref, sizeof, cast, POINTER
+from ctypes import byref, sizeof, cast, POINTER, c_double
 from ctypes.wintypes import DWORD
 from time import sleep
 
@@ -58,8 +58,9 @@ with SimConnect(name='MonitorMetrics') as sc:
                 for _ in range(recv.dwDefineCount):
                     idx = cast(byref(recv, offset), POINTER(DWORD))[0]
                     offset += sizeof(DWORD)
-                    val = cast(byref(recv, offset), POINTER(DATATYPE_FLOAT64))[0]
-                    offset += sizeof(DATATYPE_FLOAT64)
+                    # DATATYPE_FLOAT64 => c_double
+                    val = cast(byref(recv, offset), POINTER(c_double))[0]
+                    offset += sizeof(c_double)
                     name = simvars[idx][0]
                     data[name] = val
-                    print(f"Received simvars {data}")
+                print(f"Received simvars {data}")

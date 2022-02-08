@@ -161,15 +161,11 @@ _dtyps = {
 # Track client-mapped event ids
 _event_ids: Dict[str, int] = {}
 _vars = json.load(open(os.path.join(os.path.dirname(__file__), 'scvars.json')))
-SIMVARS = {
-    _varbase(d['name']):
-    dict(
-        d,
-        indexed=':' in d['name'],
-        units=d['units'].split(',')[-1].strip(),
-        units_all=[s.strip() for s in d['units'].split(',')]
-    )
-    for d in _vars['VARIABLES']
-}
-EVENTS = {d['name'].upper(): d for (i, d) in enumerate(_vars['EVENTS'])}
+for d in _vars['VARIABLES']:
+    d['indexed'] = ':' in d['name']
+    d['units_all'] = [s.strip() for s in d['units'].split(',')] if 'units' in d else []
+    d['units'] = d['units_all'][-1] if d['units_all'] else None
+
+SIMVARS = { _varbase(d['name']): d for d in _vars['VARIABLES']}
+EVENTS = {d['name'].upper(): d for d in _vars['EVENTS']}
 UNITS = {k.strip().upper(): d for d in _vars['UNITS'] for k in d['name'].split(',')}
