@@ -53,5 +53,5 @@ with SimConnect(name='MonitorMetrics') as sc:
             print(f"Received SIMOBJECT_DATA with {recv.dwDefineCount} data elements, flags {recv.dwFlags}")
             if recv.dwRequestID == req_id:
                 print(f"Matched request 0x{req_id:X}")
-                #TODO broken
+                #TODO broken - include copy of struct decomp stuff as low-level example
                 print(sc._get_simdata(recv))

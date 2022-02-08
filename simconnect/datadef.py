@@ -20,7 +20,8 @@ EPSILON_DEFAULT = 1e-4
 
 SimData = Dict[str, Any]
 SimDataHandler = Callable[[SimData], None]
-SimVarsSpec = Union[Union[str, Dict], List[Union[str, Dict]]]
+SimVarSpec = Union[str, Dict]
+SimVarsSpec = Union[SimVarSpec, List[SimVarSpec]]
 """
 simvars can be specified as:
 - a single simvar as a string like "Indicated Altitude"

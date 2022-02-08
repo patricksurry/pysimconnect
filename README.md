@@ -1,34 +1,94 @@
+
+
 This is a wrapper for FlightSimulator 2020's
 [SimConnect SDK](https://docs.flightsimulator.com/html/index.htm?#t=Programming_Tools%2FSimConnect%2FSimConnect_SDK.htm),
 inspired by [Python-SimConnect](https://github.com/odwdinc/Python-SimConnect).
 
-It aims to provide more comprehensive stubs to access the raw SDK methods,
-as well as some pythonic wrappers to simplify some use cases,
-in particular watching a fixed set of metrics and generating SDK
-events to sync external controls with FS2020.
+It provides simple Pythonic methods to get simulator variables,
+subscribe to watch changes to one or more variables,
+set editable variables, and trigger simulator events.
+It also includes a complete mapping to the low-level SDK methods
+and all of the constants defined in `SimConnect.h`
 
 Quick start
 ---
 
-Making sure you're using python 3.6+, install the package:
+Making sure you're using python 3.6+ and install the package:
 
     pip install pysimconnect
 
 Start Microsoft flight simulator 2020, and begin a flight, perhaps with the AI pilot flying.
+Start python and try something like this:
 
-Download the `subscribe.py`
-[example from github](https://github.com/patricksurry/pysimconnect/tree/master/examples).
+    from time import sleep
+    from simconnect import SimConnect, PERIOD_VISUAL_FRAME
 
-Run it to start monitoring a few metrics from your flight:
+    # open a connection to the SDK
+    # or use as a context via `with SimConnect() as sc: ... `
+    sc = SimConnect()
 
-    python subscribe.py
+    # one-off blocking fetch of a single simulator variable,
+    # which will wait up to 1s (default) to receive the value
+    altitude = sc.get_simdatum("Indicated Altitude")
 
-You should see output like:
+    # subscribing to one or more variables is much more efficient,
+    # with the SDK sending updated values up to once per simulator frame.
+    # the variables are tracked in `datadef.simdata`
+    # which is a dictionary that tracks the last modified time
+    # of each variable.  changes can also trigger an optional callback function
+    datadef = sc.subscribe_simdata(
+        [
+            "Indicated Altitude",
+            dict(name="Kohlsman setting hg", units="hectopascal"),
+            "ELECTRICAL BATTERY BUS VOLTAGE"
+        ],
+        # request an update every ten rendered frames
+        period=PERIOD_VISUAL_FRAME,
+        interval=10,
+    )
+    print("Inferred variable units", datadef.get_units())
+
+    # track the most recent data update
+    latest = datadef.simdata.latest()
+
+    while True:
+        # bump altitude, which is a settable simulator variable
+        sc.set_simdatum("Indicated Altitude", altitude + 100)
+
+        # trigger an event that increments the barometer setting
+        # some events also take an optional data value
+        sc.send_event("KOHLSMAN_INC")
+
+        # wait a bit...
+        sleep(0.5)
+
+        # pump the SDK event queue to deal with any recent messages
+        while sc.receive():
+            pass
+
+        # show data that's been changed since the last update
+        print("Updated data {simdata.changedsince(latest)")
+
+        latest = datadef.simdata.latest()
+
+        # fetch the current altitude
+        altitude = simdata['Indicated Altitude']
+
+    # explicity close the SDK connection
+    sc.Close()
+
+This should show output like:
 
     TODO
-    ...
+
+Also take a look at the
+[examples from github](https://github.com/patricksurry/pysimconnect/tree/master/examples),
+which illustrate both low-level examples interacting directly with the SDK functions,
+and simplified python bindings.
 
 Check out g3 and g3py ...
+
+    TODO
 
 
 What's what?

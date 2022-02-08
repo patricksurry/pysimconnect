@@ -1,4 +1,4 @@
-from typing import List, Optional, Type, Any
+from typing import List, Dict, Optional, Type, Any
 from ctypes import byref, sizeof, cast, windll, POINTER, c_void_p
 from ctypes.wintypes import HANDLE
 import itertools
@@ -160,10 +160,21 @@ class SimConnect:
 
     def set_simdatum(self, name, value):
         """Set a single simulator variable"""
-        #TODO add generalized version set_simdata(self, SimVarsSpec, SimData)
-        dd = DataDefinition.create(self, name, settable=True)
-        data = dd._pack_data({name: value})
-        logging.debug(f"setting {name} to {value} with {sizeof(data)} bytes")
+        self.set_simdata([dict(name=name. value=value)])
+
+    def set_simdata(self, simdata: List[Dict[str, Any]]):
+        """
+        Set one or more simulator variables, based on a list
+        of dictionary of {name: , value: , [units: ], [type: ]}
+        """
+        dd = DataDefinition.create(self, simdata, settable=True)
+        values = {d['name']: d['value'] for d in simdata}
+        data = dd._pack_data(values)
+        logging.debug(f"setting simdata {simdata} with {sizeof(data)} bytes")
+        # TODO: some data types can be also be set as array,
+        # e.g. any number of waypoints can be given to an AI object using a single call to this function,
+        # and any number of marker state structures can also be combined into an array
+        # in that case number of items would be greater than 1
         self.SetDataOnSimObject(
             dd.id,
             OBJECT_ID_USER,
@@ -172,10 +183,6 @@ class SimConnect:
             sizeof(data),  # DWORD size of each item
             cast(byref(data), c_void_p),  # pointer to start of data
         )
-
-        # some data types can be also be set as array,
-        # e.g. any number of waypoints can be given to an AI object using a single call to this function,
-        # and any number of marker state structures can also be combined into an array.
 
     def send_event(self, event, data=0):
         """Send an event to FlightSim, see datadef.EVENTS"""
