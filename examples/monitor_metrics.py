@@ -3,7 +3,7 @@ from simconnect import (
     PERIOD_SECOND, DATA_REQUEST_FLAG_CHANGED, DATA_REQUEST_FLAG_TAGGED,
     DATATYPE_FLOAT64, RECV_SIMOBJECT_DATA, RECV_EXCEPTION, RECV_P
 )
-from ctypes import byref
+from ctypes import byref, sizeof, cast, POINTER
 from ctypes.wintypes import DWORD
 from time import sleep
 
@@ -12,8 +12,6 @@ from time import sleep
 Low level example showing the flow for watching a group of simulation variables.
 Compare subscribe.py for a more pythonic version
 """
-
-
 with SimConnect(name='MonitorMetrics') as sc:
     def_id = 0x1234
     simvars = [
@@ -53,5 +51,15 @@ with SimConnect(name='MonitorMetrics') as sc:
             print(f"Received SIMOBJECT_DATA with {recv.dwDefineCount} data elements, flags {recv.dwFlags}")
             if recv.dwRequestID == req_id:
                 print(f"Matched request 0x{req_id:X}")
-                #TODO broken - include copy of struct decomp stuff as low-level example
-                print(sc._get_simdata(recv))
+                data = {}
+                # see datadef.py add_receiver() for the general case
+                # dwData is a placeholder for start of actual data
+                offset = RECV_SIMOBJECT_DATA.dwData.offset
+                for _ in range(recv.dwDefineCount):
+                    idx = cast(byref(recv, offset), POINTER(DWORD))[0]
+                    offset += sizeof(DWORD)
+                    val = cast(byref(recv, offset), POINTER(DATATYPE_FLOAT64))[0]
+                    offset += sizeof(DATATYPE_FLOAT64)
+                    name = simvars[idx][0]
+                    data[name] = val
+                    print(f"Received simvars {data}")

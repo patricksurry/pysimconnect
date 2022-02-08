@@ -44,15 +44,6 @@ epsilon: the precision to detect changes (see SDK), defaulting to 0.0001
 """
 
 
-def _varbase(s):
-    return s.rsplit(':', 1)[0].upper()
-
-
-def _closemsg(s, ss):
-    xs = get_close_matches(s, ss)
-    return f"perhaps one of {', '.join(xs)}?" if xs else "found nothing similar."
-
-
 class DataDefinition:
     _instances: Dict[str, 'DataDefinition'] = {}
 
@@ -76,9 +67,8 @@ class DataDefinition:
                 if settable and not sv.get('settable'):
                     logging.warning(f"SimConnect: simvar {name} is not settable")
             # lookup default units if not provided
-            #TODO split in the simvar def
-            units = (d.get('units') or sv.get('units') or '').split(',')[-1].strip()
-            if units not in UNITS:
+            units = d.get('units') or sv.get('units') or ''
+            if units.upper() not in UNITS:
                 logging.warning(f"SimConnect: unrecognized units '{units}', {_closemsg(units, UNITS)}")
             dtyp = d.get('type', DATATYPE_FLOAT64)
             epsilon = d.get('epsilon', EPSILON_DEFAULT)
@@ -152,6 +142,15 @@ def _map_event_id(sc: 'SimConnect', event: str) -> int:
     return client_id
 
 
+def _varbase(s):
+    return s.rsplit(':', 1)[0].upper()
+
+
+def _closemsg(s, ss):
+    xs = get_close_matches(s, ss)
+    return f"perhaps one of {', '.join(xs)}?" if xs else "found nothing similar."
+
+
 # Map scdefs type flags to ctypes
 _dtyps = {
     DATATYPE_INT32: DWORD,   # 32-bit integer number
@@ -163,8 +162,14 @@ _dtyps = {
 _event_ids: Dict[str, int] = {}
 _vars = json.load(open(os.path.join(os.path.dirname(__file__), 'scvars.json')))
 SIMVARS = {
-    _varbase(d['name']): dict(d, indexed=':' in d['name'])
+    _varbase(d['name']):
+    dict(
+        d,
+        indexed=':' in d['name'],
+        units=d['units'].split(',')[-1].strip(),
+        units_all=[s.strip() for s in d['units'].split(',')]
+    )
     for d in _vars['VARIABLES']
 }
 EVENTS = {d['name'].upper(): d for (i, d) in enumerate(_vars['EVENTS'])}
-UNITS = {k.strip(): d for d in _vars['UNITS'] for k in d['name'].split(',')}
+UNITS = {k.strip().upper(): d for d in _vars['UNITS'] for k in d['name'].split(',')}

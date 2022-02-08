@@ -171,7 +171,7 @@ class SimConnect:
         values = {d['name']: d['value'] for d in simdata}
         data = dd._pack_data(values)
         logging.debug(f"setting simdata {simdata} with {sizeof(data)} bytes")
-        # TODO: some data types can be also be set as array,
+        #TODO: some data types can be also be set as array,
         # e.g. any number of waypoints can be given to an AI object using a single call to this function,
         # and any number of marker state structures can also be combined into an array
         # in that case number of items would be greater than 1
