@@ -2,11 +2,10 @@ from typing import List, Sequence, Union, Dict, Any, Callable, Optional, Type, T
 import logging
 import json
 from hashlib import sha1
-from difflib import get_close_matches
 from ctypes import cast, byref, sizeof, POINTER, c_float, c_double, c_longlong
 from ctypes.wintypes import DWORD
 
-from .scvars import _scvars, _namestd, _unitstd
+from .scvars import validate_simvar, validate_units, validate_event
 from .scdefs import (
     Struct1, RECV_SIMOBJECT_DATA, DATA_REQUEST_FLAG_TAGGED,
     DATATYPE_INT32, DATATYPE_INT64, DATATYPE_FLOAT32, DATATYPE_FLOAT64,
@@ -15,13 +14,9 @@ from .changedict import ChangeDict
 if TYPE_CHECKING:
     from .sc import SimConnect
 
+
 EPSILON_DEFAULT = 1e-4
 
-
-SimData = Dict[str, Any]
-SimDataHandler = Callable[[SimData], None]
-SimVarSpec = Union[str, Dict[str, Any]]
-SimVarsSpec = Union[SimVarSpec, Sequence[SimVarSpec]]
 """
 simvars can be specified as:
 - a single simvar as a string like "Indicated Altitude"
@@ -42,6 +37,12 @@ type: one of the scdefs.py::DATATYPE_* constants (currently only numeric types a
 
 epsilon: the precision to detect changes (see SDK), defaulting to 0.0001
 """
+SimData = Dict[str, Any]
+SimDataHandler = Callable[[SimData], None]
+SimVarSpec = Union[str, Dict[str, Any]]
+SimVarsSpec = Union[SimVarSpec, Sequence[SimVarSpec]]
+
+
 def _norm_simvars(simvars: SimVarsSpec) -> Sequence[Dict[str, Any]]:
     """convert simvars into a seq of dict"""
     ds = simvars if isinstance(simvars, (list, tuple)) else [simvars]
@@ -58,41 +59,13 @@ class DataDefinition:
         svs = _norm_simvars(simvars)
         for d in svs:
             name = d['name']
-            base = _namestd(d['name'])
-            sv = SIMVARS.get(base, {})
-            if not sv:
-                logging.warning(f"SimConnect: unrecognized simvar '{base}', {_closemsg(base, SIMVARS)}")
-            else:
-                if sv['indexed'] and ':' not in name:
-                    logging.warning(f"SimConnect: expected indexed simvar, e.g. {name}:3")
-                if settable and not sv.get('settable'):
-                    logging.warning(f"SimConnect: simvar {name} is not settable")
-            # lookup default units if not provided, note units='' is valid
-            v = d.get('units')
-            if v is None:
-                if sv is not None:
-                    # If not specified, try inferring units from variable
-                    units = sv.get('units_std', '')
-                else:
-                    units = ''
-                if not units:
-                    logging.warning(f"SimConnect: no units specified or inferred for {name}")
-            else:
-                # standardize the units
-                units = _unitstd(v)[0]
-                if units not in UNITS:
-                    if sv:
-                        possibilities = DIMENSIONS.get(sv['dimensions'])
-                    if not possibilities:
-                        possibilities = [u['name_std'] for u in UNITS.values()]
-                    msg = _closemsg(units, possibilities)
-                    logging.warning(f"SimConnect: unrecognized units '{v}' for {name}, {msg}")
-                else:
-                    units = UNITS[units]['name_std']
+            sv = validate_simvar(name, settable)
+            units = validate_units(name, d.get('units'), sv)
             dtyp = d.get('type', DATATYPE_FLOAT64)
             epsilon = d.get('epsilon', EPSILON_DEFAULT)
             defs.append(dict(name=name, units=units, dtyp=dtyp, epsilon=epsilon))
 
+        # if we already have this data definition, re-use it
         key = sha1(json.dumps(defs, sort_keys=True).encode('utf-8')).hexdigest()
         if key not in kls._instances:
             kls._instances[key] = kls(sc, len(kls._instances), defs)
@@ -149,10 +122,8 @@ class DataDefinition:
         return self._struct(**simdata)
 
 
-def _map_event_id(sc: 'SimConnect', event: str) -> int:
-    s = event.upper()
-    if s not in EVENTS:
-        logging.warn(f"Unrecognized event {event}")
+def map_event_id(sc: 'SimConnect', event: str) -> int:
+    s = validate_event(event)
     client_id = _event_ids.get(s)
     if client_id is None:
         client_id = len(_event_ids)
@@ -161,14 +132,8 @@ def _map_event_id(sc: 'SimConnect', event: str) -> int:
     return client_id
 
 
-def _closemsg(s, ss):
-    xs = get_close_matches(s, ss)
-    if xs:
-        msg = f"perhaps one of {', '.join(xs)}?" 
-    else:
-        options = (ss[:3] + ['...']) if len(ss) > 3 else ss
-        msg = f"found no similar options among: {', '.join(options)}"
-    return msg
+# Track client-mapped event ids
+_event_ids: Dict[str, int] = {}
 
 
 # Map scdefs type flags to ctypes
@@ -178,10 +143,3 @@ _dtyps = {
     DATATYPE_FLOAT32: c_float,   # 32-bit floating-point number (float)
     DATATYPE_FLOAT64: c_double,   # 64-bit floating-point number (double)
 }
-# Track client-mapped event ids
-_event_ids: Dict[str, int] = {}
-
-SIMVARS = _scvars['VARIABLES']
-EVENTS = _scvars['EVENTS']
-UNITS = _scvars['UNITS']
-DIMENSIONS = _scvars['DIMENSIONS']

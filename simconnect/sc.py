@@ -12,7 +12,7 @@ from .scdefs import (
     GROUP_PRIORITY_HIGHEST, EVENT_FLAG_GROUPID_IS_PRIORITY,
 )
 from .receiver import Receiver, ReceiverInstance, _default_receivers
-from .datadef import SimVarsSpec, DataDefinition, SimData, SimDataHandler, _norm_simvars, _map_event_id
+from .datadef import SimVarsSpec, DataDefinition, SimData, SimDataHandler, _norm_simvars, map_event_id
 
 
 RECV_P = POINTER(RECV)
@@ -194,7 +194,7 @@ class SimConnect:
 
     def send_event(self, event, data=0):
         """Send an event to FlightSim, see datadef.EVENTS"""
-        client_id = _map_event_id(self, event)
+        client_id = map_event_id(self, event)
         self.TransmitClientEvent(
             OBJECT_ID_USER,
             client_id,
