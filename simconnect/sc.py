@@ -111,7 +111,7 @@ class SimConnect:
         """get a one-off value of a single simvar variable, see also subscribe_simdata"""
         spec = dict(name=name, units=units)
         simdata = self.get_simdata([spec], timeout_seconds)
-        return list(simdata.values())[0]
+        return list(simdata.values())[0] if simdata else None
 
     def get_simdata(
             self,
@@ -124,7 +124,11 @@ class SimConnect:
         returning SimData (a dictionary that supports changedsince, see changedict.py)
         """
         dd = self.subscribe_simdata(simvars, period=PERIOD_ONCE, repeat_count=1, flags=0)
-        self.receive(timeout_seconds)
+        tmax = time() + (timeout_seconds or 1)
+        # we'll potentially receive other messages while we're looking for this result
+        # so wait up to timeout_seconds total while there are messages and we haven't got data yet
+        while self.receive(tmax - time()) and not dd.simdata:
+            pass
         self._receivers.pop()
         return dd.simdata
 

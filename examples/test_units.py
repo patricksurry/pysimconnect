@@ -14,5 +14,7 @@ with SimConnect() as sc:
     # Alternative length units
     print("meters",  sc.get_simdatum("Indicated Altitude", units="meters"))
     print("m",  sc.get_simdatum("Indicated Altitude", units="m"))
-    # Explicitly empty
+    # Explicitly empty, oddly seems to default to meters
     print("empty ('')", sc.get_simdatum("Indicated Altitude", units=""))
+    # fails to retrieve data, returns None with warning
+    print("FUBAR (unknown)", sc.get_simdatum("Indicated Altitude", units="FUBAR"))

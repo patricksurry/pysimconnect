@@ -43,6 +43,7 @@ type: one of the scdefs.py::DATATYPE_* constants (currently only numeric types a
 epsilon: the precision to detect changes (see SDK), defaulting to 0.0001
 """
 def _norm_simvars(simvars: SimVarsSpec) -> Sequence[Dict[str, Any]]:
+    """convert simvars into a seq of dict"""
     ds = simvars if isinstance(simvars, (list, tuple)) else [simvars]
     return [dict(name=d) if isinstance(d, str) else d for d in ds]
 
@@ -80,7 +81,12 @@ class DataDefinition:
                 # standardize the units
                 units = _unitstd(v)[0]
                 if units not in UNITS:
-                    logging.warning(f"SimConnect: unrecognized units '{v}' for {name}, {_closemsg(units, UNITS)}")
+                    if sv:
+                        possibilities = DIMENSIONS.get(sv['dimensions'])
+                    if not possibilities:
+                        possibilities = [u['name_std'] for u in UNITS.values()]
+                    msg = _closemsg(units, possibilities)
+                    logging.warning(f"SimConnect: unrecognized units '{v}' for {name}, {msg}")
                 else:
                     units = UNITS[units]['name_std']
             dtyp = d.get('type', DATATYPE_FLOAT64)
@@ -157,7 +163,12 @@ def _map_event_id(sc: 'SimConnect', event: str) -> int:
 
 def _closemsg(s, ss):
     xs = get_close_matches(s, ss)
-    return f"perhaps one of {', '.join(xs)}?" if xs else "found nothing similar."
+    if xs:
+        msg = f"perhaps one of {', '.join(xs)}?" 
+    else:
+        options = (ss[:3] + ['...']) if len(ss) > 3 else ss
+        msg = f"found no similar options among: {', '.join(options)}"
+    return msg
 
 
 # Map scdefs type flags to ctypes
@@ -173,3 +184,4 @@ _event_ids: Dict[str, int] = {}
 SIMVARS = _scvars['VARIABLES']
 EVENTS = _scvars['EVENTS']
 UNITS = _scvars['UNITS']
+DIMENSIONS = _scvars['DIMENSIONS']

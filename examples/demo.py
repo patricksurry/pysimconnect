@@ -8,6 +8,7 @@ sc = SimConnect()
 # one-off blocking fetch of a single simulator variable,
 # which will wait up to 1s (default) to receive the value
 altitude = sc.get_simdatum("Indicated Altitude")
+print("Got indicated altitude", altitude)
 
 # subscribing to one or more variables is much more efficient,
 # with the SDK sending updated values up to once per simulator frame.

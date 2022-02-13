@@ -13,7 +13,12 @@ from scvars import _unitstd, _namestd, _eventstd
 
 
 def prepvars(src: Dict) -> Dict:
-    prep: Dict[str, Dict[str, Dict]] = dict(UNITS={}, VARIABLES={}, EVENTS={})
+    prep: Dict[str, Dict[str, Dict]] = dict(
+        DIMENSIONS={},
+        UNITS={}, 
+        VARIABLES={}, 
+        EVENTS={},
+    )
     # build a list of all recognized units, seed with a few not mentioned in UNITS table
     all_units = {
         '_': '',
@@ -24,8 +29,10 @@ def prepvars(src: Dict) -> Dict:
         us = _unitstd(d['name'])
         for (name, u) in zip(names, us):
             all_units[u] = name
-            prep['UNITS'][u] = dict(d, name_std=name)
+            prep['UNITS'][u] = dict(d, name_std=name, dimensions=d.get('section', ''))
     json.dump(all_units, open(os.path.join(thisdir, 'all_units.json'), 'w'), indent=4)
+    for v in prep['UNITS'].values():
+        prep['DIMENSIONS'].setdefault(v['dimensions'], []).append(v['name_std'])
     for d in src['VARIABLES']:
         # skip some extraneous tables we scraped
         if 'RTPC' in d['page'] or re.match(r'\d+', d['name']):
@@ -41,6 +48,8 @@ def prepvars(src: Dict) -> Dict:
                 logging.warning(f"Simvar {d['name']} has unrecognized unit '{u}'")
         ustd = all_units.get(u, '')
         d['units_std'] = ustd
+        # get a list of all canonical units with matching dimensions
+        d['dimensions'] = prep['UNITS'].get(u, {}).get('dimensions', '')
         d['indexed'] = ':' in d['name']
         prep['VARIABLES'][k] = d
     for d in src['EVENTS']:
