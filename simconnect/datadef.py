@@ -1,12 +1,12 @@
-from typing import List, Union, Dict, Any, Callable, Optional, Type, TYPE_CHECKING
+from typing import List, Sequence, Union, Dict, Any, Callable, Optional, Type, TYPE_CHECKING
 import logging
 import json
-import os
 from hashlib import sha1
 from difflib import get_close_matches
-from ctypes import cast, byref, sizeof, POINTER, c_float, c_double, c_longlong, c_void_p
+from ctypes import cast, byref, sizeof, POINTER, c_float, c_double, c_longlong
 from ctypes.wintypes import DWORD
 
+from .scvars import _scvars, _namestd, _unitstd
 from .scdefs import (
     Struct1, RECV_SIMOBJECT_DATA, DATA_REQUEST_FLAG_TAGGED,
     DATATYPE_INT32, DATATYPE_INT64, DATATYPE_FLOAT32, DATATYPE_FLOAT64,
@@ -20,8 +20,8 @@ EPSILON_DEFAULT = 1e-4
 
 SimData = Dict[str, Any]
 SimDataHandler = Callable[[SimData], None]
-SimVarSpec = Union[str, Dict]
-SimVarsSpec = Union[SimVarSpec, List[SimVarSpec]]
+SimVarSpec = Union[str, Dict[str, Any]]
+SimVarsSpec = Union[SimVarSpec, Sequence[SimVarSpec]]
 """
 simvars can be specified as:
 - a single simvar as a string like "Indicated Altitude"
@@ -42,6 +42,9 @@ type: one of the scdefs.py::DATATYPE_* constants (currently only numeric types a
 
 epsilon: the precision to detect changes (see SDK), defaulting to 0.0001
 """
+def _norm_simvars(simvars: SimVarsSpec) -> Sequence[Dict[str, Any]]:
+    ds = simvars if isinstance(simvars, (list, tuple)) else [simvars]
+    return [dict(name=d) if isinstance(d, str) else d for d in ds]
 
 
 class DataDefinition:
@@ -51,13 +54,10 @@ class DataDefinition:
     def create(kls, sc: 'SimConnect', simvars: SimVarsSpec, settable=False) -> 'DataDefinition':
         """create or retrieve a data definition for the specified variables"""
         defs: List[Dict[str, Any]] = []
-        if isinstance(simvars, (str, Dict)):
-            simvars = [simvars]
-        for d in simvars:
-            if isinstance(d, str):
-                d = dict(name=d)
+        svs = _norm_simvars(simvars)
+        for d in svs:
             name = d['name']
-            base = _varbase(d['name'])
+            base = _namestd(d['name'])
             sv = SIMVARS.get(base, {})
             if not sv:
                 logging.warning(f"SimConnect: unrecognized simvar '{base}', {_closemsg(base, SIMVARS)}")
@@ -66,10 +66,23 @@ class DataDefinition:
                     logging.warning(f"SimConnect: expected indexed simvar, e.g. {name}:3")
                 if settable and not sv.get('settable'):
                     logging.warning(f"SimConnect: simvar {name} is not settable")
-            # lookup default units if not provided
-            units = d.get('units') or sv.get('units') or ''
-            if units.upper() not in UNITS:
-                logging.warning(f"SimConnect: unrecognized units '{units}', {_closemsg(units, UNITS)}")
+            # lookup default units if not provided, note units='' is valid
+            v = d.get('units')
+            if v is None:
+                if sv is not None:
+                    # If not specified, try inferring units from variable
+                    units = sv.get('units_std', '')
+                else:
+                    units = ''
+                if not units:
+                    logging.warning(f"SimConnect: no units specified or inferred for {name}")
+            else:
+                # standardize the units
+                units = _unitstd(v)[0]
+                if units not in UNITS:
+                    logging.warning(f"SimConnect: unrecognized units '{v}' for {name}, {_closemsg(units, UNITS)}")
+                else:
+                    units = UNITS[units]['name_std']
             dtyp = d.get('type', DATATYPE_FLOAT64)
             epsilon = d.get('epsilon', EPSILON_DEFAULT)
             defs.append(dict(name=name, units=units, dtyp=dtyp, epsilon=epsilon))
@@ -142,10 +155,6 @@ def _map_event_id(sc: 'SimConnect', event: str) -> int:
     return client_id
 
 
-def _varbase(s):
-    return s.rsplit(':', 1)[0].upper()
-
-
 def _closemsg(s, ss):
     xs = get_close_matches(s, ss)
     return f"perhaps one of {', '.join(xs)}?" if xs else "found nothing similar."
@@ -160,12 +169,7 @@ _dtyps = {
 }
 # Track client-mapped event ids
 _event_ids: Dict[str, int] = {}
-_vars = json.load(open(os.path.join(os.path.dirname(__file__), 'scvars.json')))
-for d in _vars['VARIABLES']:
-    d['indexed'] = ':' in d['name']
-    d['units_all'] = [s.strip() for s in d['units'].split(',')] if 'units' in d else []
-    d['units'] = d['units_all'][-1] if d['units_all'] else None
 
-SIMVARS = { _varbase(d['name']): d for d in _vars['VARIABLES']}
-EVENTS = {d['name'].upper(): d for d in _vars['EVENTS']}
-UNITS = {k.strip().upper(): d for d in _vars['UNITS'] for k in d['name'].split(',')}
+SIMVARS = _scvars['VARIABLES']
+EVENTS = _scvars['EVENTS']
+UNITS = _scvars['UNITS']

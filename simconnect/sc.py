@@ -12,7 +12,7 @@ from .scdefs import (
     GROUP_PRIORITY_HIGHEST, EVENT_FLAG_GROUPID_IS_PRIORITY,
 )
 from .receiver import Receiver, ReceiverInstance, _default_receivers
-from .datadef import SimVarsSpec, DataDefinition, SimData, SimDataHandler, _map_event_id
+from .datadef import SimVarsSpec, DataDefinition, SimData, SimDataHandler, _norm_simvars, _map_event_id
 
 
 RECV_P = POINTER(RECV)
@@ -106,9 +106,11 @@ class SimConnect:
     def get_simdatum(
             self,
             name,
+            units=None,
             timeout_seconds=1) -> Any:
         """get a one-off value of a single simvar variable, see also subscribe_simdata"""
-        simdata = self.get_simdata([name], timeout_seconds)
+        spec = dict(name=name, units=units)
+        simdata = self.get_simdata([spec], timeout_seconds)
         return list(simdata.values())[0]
 
     def get_simdata(
@@ -158,19 +160,21 @@ class SimConnect:
         )
         return dd
 
-    def set_simdatum(self, name, value):
+    def set_simdatum(self, name, value, units=None):
         """Set a single simulator variable"""
-        self.set_simdata([dict(name=name, value=value)])
+        self.set_simdata([dict(name=name, units=units, value=value)])
 
-    def set_simdata(self, simdata: List[Dict[str, Any]]):
+    def set_simdata(self, simdata: SimVarsSpec):
         """
         Set one or more simulator variables, based on a list
         of dictionary of {name: , value: , [units: ], [type: ]}
         """
-        dd = DataDefinition.create(self, simdata, settable=True)
-        values = {d['name']: d['value'] for d in simdata}
+        sds = _norm_simvars(simdata)
+        dd = DataDefinition.create(self, sds, settable=True)
+        assert all(['value' in d for d in sds]), "set_simdata: must specify value for each item"
+        values = {d['name']: d['value'] for d in sds}
         data = dd._pack_data(values)
-        logging.debug(f"setting simdata {simdata} with {sizeof(data)} bytes")
+        logging.debug(f"setting simdata {sds} with {sizeof(data)} bytes")
         #TODO: some data types can be also be set as array,
         # e.g. any number of waypoints can be given to an AI object using a single call to this function,
         # and any number of marker state structures can also be combined into an array

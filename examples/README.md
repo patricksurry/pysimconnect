@@ -2,6 +2,8 @@ Various examples of how to use the `simconnect` package.
 
 - `demo.py`: pythonic README example showing get, set, subscribe and send_event
 
+- `test_units.py`: illustrate SDK unit conversion options
+
 - `send_event.py`: simple send_event example
 
 - `set_data.py`: simple set_datum example
