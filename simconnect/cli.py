@@ -126,7 +126,7 @@ def send(event: str = eventdef, value: Optional[float] = None):
 
 
 @app.command()
-def find(name: str, kind: Optional[MetadataKind] = None, max_results: int = 5, verbose: bool = True):
+def search(name: str, kind: Optional[MetadataKind] = None, max_results: int = 5, brief: bool = False):
     q = name
     if kind:
         q += f" +kind:{kind.name.upper()}S"
@@ -152,19 +152,26 @@ def find(name: str, kind: Optional[MetadataKind] = None, max_results: int = 5, v
         k, name = r['ref'].split('_', 1)
         docs.append(dict(scvars[k][name], kind=k))
 
+    typer.echo(
+        'Showing '
+        + typer.style(f"{len(docs)}/{len(refs)}", fg=typer.colors.BLUE)
+        + ' results'
+    )
     if not docs:
         typer.echo(fill("""
-No results.
 Perhaps try wildcard 'alti*', fuzzy match 'alti~2'
 or advanced options at https://lunr.readthedocs.io/en/latest/usage.html
         """.strip()))
     else:
+        if len(docs) < len(refs):
+            typer.echo('Increase --max-results for more')
+        typer.echo('')
         for d in docs:
             name = d['name_std'] if ',' in d['name'] else d['name']
             style = styles[d['kind']]
             label = typer.style(f"{name}", fg=style['color'], bold=True)
             typer.echo(style['symbol'] + ' ' + label + f"{' ✏️ ' if d.get('settable') else ''}")
-            if not verbose:
+            if brief:
                 continue
             desc = d.get('description')
             if desc:
