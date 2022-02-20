@@ -26,7 +26,9 @@ class MetadataKind(str, Enum):
 
 
 def floatfmt(v, width=12, precision=3):
-    return f"{v:{width}.{precision}f}".rstrip('0').rstrip('.') + (' '*(precision+1))[:width]
+    s = f"{v:{width}.{precision}f}".rstrip('0').rstrip('.') 
+    s += ' ' * (width - len(s))
+    return s
 
 
 def labelfmt(s, width=2*12):
@@ -59,24 +61,24 @@ simvardef = typer.Argument(..., autocompletion=scoped_autocomplete('VARIABLES'))
 eventdef = typer.Argument(..., autocompletion=scoped_autocomplete('EVENTS'))
 unitsdef = typer.Option(None, autocompletion=scoped_autocomplete('UNITS'))
 
+def canonicalvars(simvars: List[str]) -> List[str]:
+    # appear to be case insenstive but ' ' vs '_' is important
+    return [s.upper().replace('_', ' ') for s in simvars]
+
 
 @app.command()
 def get(simvars: List[str] = simvardef, units: Optional[str] = unitsdef):
-    if units:
-        units = units.upper()
-    simvars = [s.upper() for s in simvars]
+    simvars = canonicalvars(simvars)
     unitdesc = f" ({units})" if units else ''
     for s in simvars:
         with SimConnect(name='cli') as sc:
-            v = sc.get_simdatum(s, units)
+            v = sc.get_simdatum(s.replace('_,', ' '), units)
         typer.echo(f"{s}{unitdesc} = {v}")
 
 
 @app.command()
 def watch(simvars: List[str] = simvardef, units: Optional[str] = unitsdef, interval: Optional[int] = 1):
-    if units:
-        units = units.upper()
-    simvars = [s.upper() for s in simvars]
+    simvars = canonicalvars(simvars)
     typer.echo(f"Watching {', '.join(simvars)} every {interval} seconds")
     with SimConnect(name='cli') as sc:
         dd = sc.subscribe_simdata(
@@ -84,34 +86,32 @@ def watch(simvars: List[str] = simvardef, units: Optional[str] = unitsdef, inter
             interval=interval
         )
         latest = 0
+        headings = None
         while True:
-            # consume incoming messages
-            while sc.receive(timeout_seconds=0.1):
-                pass
-            if not latest:
+            # consume incoming messages, waiting up to a second
+            sc.receive(timeout_seconds=1)
+            if not headings:
                 # show staggered header across two lines
-                ks = list(dd.simdata.keys())
+                headings = list(dd.simdata.keys())
                 # even cols
-                typer.echo(''.join(labelfmt(ks[i]) for i in range(0, len(ks), 2)))
+                typer.echo(''.join(labelfmt(headings[i]) for i in range(0, len(headings), 2)))
                 # odd cols
-                typer.echo(' '*12 + ''.join(labelfmt(ks[i]) for i in range(1, len(ks), 2)))
+                typer.echo(' '*12 + ''.join(labelfmt(headings[i]) for i in range(1, len(headings), 2)))
             changed = list(dd.simdata.changedsince(latest).keys())
             latest = dd.simdata.latest()
             values = [
                 typer.style(
-                    floatfmt(v),
+                    floatfmt(dd.simdata[k]),
                     fg=typer.colors.BLUE if k in changed else typer.colors.WHITE
                 )
-                for (k, v) in dd.simdata.items()
+                for k in headings
             ]
             typer.echo(''.join(values))
 
 
 @app.command()
 def set(simvar: str = simvardef, value: float = typer.Argument(...), units: Optional[str] = unitsdef):
-    simvar = simvar.upper()
-    if units:
-        units = units.upper()
+    simvar = canonicalvars([simvar])[0]
     typer.echo(f"Setting {simvar} = {value}" + (f" ({units})" if units else ''))
     with SimConnect(name='cli') as sc:
         sc.set_simdatum(simvar, value, units)
@@ -122,7 +122,7 @@ def send(event: str = eventdef, value: Optional[float] = None):
     event = event.upper()
     typer.echo(f"Sending {event}({value})")
     with SimConnect(name='cli') as sc:
-        sc.send_event(event, value)
+        sc.send_event(event, value or 0)
 
 
 @app.command()
@@ -135,9 +135,10 @@ def search(name: str, kind: Optional[MetadataKind] = None, max_results: int = 5,
         scvarsidx = Index.load(json.load(f))
 
     styles = dict(
-        # seems double-width emoji need a trailing space to display correctly in terminal
+        # in mac terminal some double-width emoji need a trailing space to display correctly
+        # but this seems fine on windows terminal
         VARIABLES=dict(color=typer.colors.BLUE, symbol="🧭"),
-        EVENTS=dict(color=typer.colors.GREEN, symbol="⚙️ "),  # or maybe? 🔔
+        EVENTS=dict(color=typer.colors.GREEN, symbol="⚙️"),  # or maybe? 🔔
         UNITS=dict(color=typer.colors.RED, symbol="📐"),
         DIMENSIONS=dict(color=typer.colors.MAGENTA, symbol="📏"),
     )
@@ -170,7 +171,7 @@ or advanced options at https://lunr.readthedocs.io/en/latest/usage.html
             name = d['name_std'] if ',' in d['name'] else d['name']
             style = styles[d['kind']]
             label = typer.style(f"{name}", fg=style['color'], bold=True)
-            typer.echo(style['symbol'] + ' ' + label + f"{' ✏️ ' if d.get('settable') else ''}")
+            typer.echo(style['symbol'] + ' ' + label + f"{' ✏️' if d.get('settable') else ''}")
             if brief:
                 continue
             desc = d.get('description')
