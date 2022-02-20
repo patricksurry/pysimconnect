@@ -1,6 +1,5 @@
-from typing import List, Dict, Optional, Type, Any
-from ctypes import byref, sizeof, cast, windll, POINTER, c_void_p
-from ctypes.wintypes import HANDLE
+from typing import List, Optional, Type, Any
+from ctypes import byref, sizeof, cast, POINTER, c_void_p
 import itertools
 import logging
 import os
@@ -10,6 +9,7 @@ from .scdefs import (
     RECV, DATA_REQUEST_FLAG_CHANGED, DATA_REQUEST_FLAG_TAGGED,
     OBJECT_ID_USER, PERIOD_SECOND, PERIOD_ONCE,
     GROUP_PRIORITY_HIGHEST, EVENT_FLAG_GROUPID_IS_PRIORITY,
+    HANDLE, windll,
 )
 from .receiver import Receiver, ReceiverInstance, _default_receivers
 from .datadef import SimVarsSpec, DataDefinition, SimData, SimDataHandler, _norm_simvars, map_event_id

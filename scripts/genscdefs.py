@@ -229,9 +229,14 @@ with open('simconnect/scdefs.py', 'w') as out:
 from ctypes import (
     c_bool, c_char, c_int, c_long, c_float, c_double,
     c_char_p, c_void_p,
-    Structure, POINTER, HRESULT, WINFUNCTYPE,
+    Structure, POINTER,
 )
-from ctypes.wintypes import BYTE, WORD, DWORD, HANDLE, LPCSTR, HWND
+try:
+    from ctypes import HRESULT, WINFUNCTYPE, windll
+    from ctypes.wintypes import BYTE, WORD, DWORD, HANDLE, LPCSTR, HWND
+except:
+    from .winstubs import HRESULT, WINFUNCTYPE, windll
+    from .winstubs import BYTE, WORD, DWORD, HANDLE, LPCSTR, HWND
 
 
 c_float_p = POINTER(c_float)

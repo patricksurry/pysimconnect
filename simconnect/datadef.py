@@ -3,12 +3,12 @@ import logging
 import json
 from hashlib import sha1
 from ctypes import cast, byref, sizeof, POINTER, c_float, c_double, c_longlong
-from ctypes.wintypes import DWORD
 
 from .scvars import validate_simvar, validate_units, validate_event
 from .scdefs import (
     Struct1, RECV_SIMOBJECT_DATA, DATA_REQUEST_FLAG_TAGGED,
     DATATYPE_INT32, DATATYPE_INT64, DATATYPE_FLOAT32, DATATYPE_FLOAT64,
+    DWORD
 )
 from .changedict import ChangeDict
 if TYPE_CHECKING:

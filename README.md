@@ -151,5 +151,9 @@ Packaging
 Bump version in `setup.cfg` then following https://packaging.python.org/en/latest/tutorials/packaging-projects/
 
     python3 -m build
+    git commit -am ...
+    git push origin
+    git tag v0.1.1
+    git push origin --tags
+    python3 -m twine upload dist/*0.1.1*  # login with __token__ / pypi...
 
-    python3 -m twine upload dist/*  # login with __token__ / pypi...

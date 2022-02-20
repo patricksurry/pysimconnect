@@ -7290,14 +7290,15 @@
             "dimensions": "Miscellaneous Units",
             "indexed": false
         },
-        "BREAKER LTS PWR\n          DEPRECATED! DO NOT USE!": {
-            "name": "BREAKER LTS PWR\n          Deprecated! Do Not Use!",
+        "BREAKER LTS PWR": {
+            "name": "BREAKER LTS PWR",
             "units": "Bool",
             "settable": false,
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_Electrics_Variables.htm",
             "page": "AIRCRAFT ELECTRICS VARIABLES",
             "section": "Breakers",
-            "name_std": "BREAKER LTS PWR\n          DEPRECATED! DO NOT USE!",
+            "description": "  Deprecated! Do Not Use!",
+            "name_std": "BREAKER LTS PWR",
             "units_std": "Bool",
             "dimensions": "Miscellaneous Units",
             "indexed": false
@@ -21410,14 +21411,14 @@
             "section": "G1000 (Multi-Function Display)",
             "name_std": "G1000_MFD_PROCEDURE_BUTTON"
         },
-        "G1000_MFD_SOFTKEY1\n            G1000_MFD_SOFTKEY2\n            G1000_MFD_SOFTKEY3\n            G1000_MFD_SOFTKEY4\n            G1000_MFD_SOFTKEY5\n            G1000_MFD_SOFTKEY6\n            G1000_MFD_SOFTKEY7\n            G1000_MFD_SOFTKEY8\n            G1000_MFD_SOFTKEY9\n            G1000_MFD_SOFTKEY10\n            G1000_MFD_SOFTKEY11\n            G1000_MFD_SOFTKEY12": {
-            "name": "G1000_MFD_SOFTKEY1\n            G1000_MFD_SOFTKEY2\n            G1000_MFD_SOFTKEY3\n            G1000_MFD_SOFTKEY4\n            G1000_MFD_SOFTKEY5\n            G1000_MFD_SOFTKEY6\n            G1000_MFD_SOFTKEY7\n            G1000_MFD_SOFTKEY8\n            G1000_MFD_SOFTKEY9\n            G1000_MFD_SOFTKEY10\n            G1000_MFD_SOFTKEY11\n            G1000_MFD_SOFTKEY12",
-            "description": "Initiate the action for the icon displayed in the softkey position.",
+        "G1000_MFD_SOFTKEY1": {
+            "name": "G1000_MFD_SOFTKEY1",
+            "description": "Initiate the action for the icon displayed in the softkey position.  G1000_MFD_SOFTKEY2\n            G1000_MFD_SOFTKEY3\n            G1000_MFD_SOFTKEY4\n            G1000_MFD_SOFTKEY5\n            G1000_MFD_SOFTKEY6\n            G1000_MFD_SOFTKEY7\n            G1000_MFD_SOFTKEY8\n            G1000_MFD_SOFTKEY9\n            G1000_MFD_SOFTKEY10\n            G1000_MFD_SOFTKEY11\n            G1000_MFD_SOFTKEY12",
             "multiplayer": "Shared Cockpit",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Autopilot_Flight_Assist_Events.htm",
             "page": "AIRCRAFT AUTOPILOT/FLIGHT ASSISTANCE EVENTS",
             "section": "G1000 (Multi-Function Display)",
-            "name_std": "G1000_MFD_SOFTKEY1\n            G1000_MFD_SOFTKEY2\n            G1000_MFD_SOFTKEY3\n            G1000_MFD_SOFTKEY4\n            G1000_MFD_SOFTKEY5\n            G1000_MFD_SOFTKEY6\n            G1000_MFD_SOFTKEY7\n            G1000_MFD_SOFTKEY8\n            G1000_MFD_SOFTKEY9\n            G1000_MFD_SOFTKEY10\n            G1000_MFD_SOFTKEY11\n            G1000_MFD_SOFTKEY12"
+            "name_std": "G1000_MFD_SOFTKEY1"
         },
         "G1000_MFD_ZOOMIN_BUTTON": {
             "name": "G1000_MFD_ZOOMIN_BUTTON",
@@ -21536,14 +21537,14 @@
             "section": "G1000 (Multi-Function Display)",
             "name_std": "G1000_PFD_PROCEDURE_BUTTON"
         },
-        "G1000_PFD_SOFTKEY1\n          G1000_PFD_SOFTKEY2\n          G1000_PFD_SOFTKEY3\n          G1000_PFD_SOFTKEY4\n          G1000_PFD_SOFTKEY5\n          G1000_PFD_SOFTKEY6\n          G1000_PFD_SOFTKEY7\n          G1000_PFD_SOFTKEY8\n          G1000_PFD_SOFTKEY9\n          G1000_PFD_SOFTKEY10\n          G1000_PFD_SOFTKEY11\n          G1000_PFD_SOFTKEY12": {
-            "name": "G1000_PFD_SOFTKEY1\n          G1000_PFD_SOFTKEY2\n          G1000_PFD_SOFTKEY3\n          G1000_PFD_SOFTKEY4\n          G1000_PFD_SOFTKEY5\n          G1000_PFD_SOFTKEY6\n          G1000_PFD_SOFTKEY7\n          G1000_PFD_SOFTKEY8\n          G1000_PFD_SOFTKEY9\n          G1000_PFD_SOFTKEY10\n          G1000_PFD_SOFTKEY11\n          G1000_PFD_SOFTKEY12",
-            "description": "Initiate the action for the icon displayed in the softkey position.",
+        "G1000_PFD_SOFTKEY1": {
+            "name": "G1000_PFD_SOFTKEY1",
+            "description": "Initiate the action for the icon displayed in the softkey position.  G1000_PFD_SOFTKEY2\n          G1000_PFD_SOFTKEY3\n          G1000_PFD_SOFTKEY4\n          G1000_PFD_SOFTKEY5\n          G1000_PFD_SOFTKEY6\n          G1000_PFD_SOFTKEY7\n          G1000_PFD_SOFTKEY8\n          G1000_PFD_SOFTKEY9\n          G1000_PFD_SOFTKEY10\n          G1000_PFD_SOFTKEY11\n          G1000_PFD_SOFTKEY12",
             "multiplayer": "Shared Cockpit",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Autopilot_Flight_Assist_Events.htm",
             "page": "AIRCRAFT AUTOPILOT/FLIGHT ASSISTANCE EVENTS",
             "section": "G1000 (Multi-Function Display)",
-            "name_std": "G1000_PFD_SOFTKEY1\n          G1000_PFD_SOFTKEY2\n          G1000_PFD_SOFTKEY3\n          G1000_PFD_SOFTKEY4\n          G1000_PFD_SOFTKEY5\n          G1000_PFD_SOFTKEY6\n          G1000_PFD_SOFTKEY7\n          G1000_PFD_SOFTKEY8\n          G1000_PFD_SOFTKEY9\n          G1000_PFD_SOFTKEY10\n          G1000_PFD_SOFTKEY11\n          G1000_PFD_SOFTKEY12"
+            "name_std": "G1000_PFD_SOFTKEY1"
         },
         "G1000_PFD_ZOOMIN_BUTTON": {
             "name": "G1000_PFD_ZOOMIN_BUTTON",
@@ -26036,23 +26037,23 @@
             "section": "EGT",
             "name_std": "EGT4_SET"
         },
-        "LOW_HEIGHT_WARNING_GAUGE_WILL_SET\n          OR\n          LOW_HIGHT_WARNING_GAUGE_WILL_SET": {
-            "name": "LOW_HEIGHT_WARNING_GAUGE_WILL_SET\n          or\n          LOW_HIGHT_WARNING_GAUGE_WILL_SET",
-            "description": "",
+        "LOW_HEIGHT_WARNING_GAUGE_WILL_SET": {
+            "name": "LOW_HEIGHT_WARNING_GAUGE_WILL_SET",
+            "description": "  or\n          LOW_HIGHT_WARNING_GAUGE_WILL_SET",
             "multiplayer": "",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Misc_Events.htm",
             "page": "AIRCRAFT MISCELLANEOUS EVENTS",
             "section": "Aircraft Failures",
-            "name_std": "LOW_HEIGHT_WARNING_GAUGE_WILL_SET\n          OR\n          LOW_HIGHT_WARNING_GAUGE_WILL_SET"
+            "name_std": "LOW_HEIGHT_WARNING_GAUGE_WILL_SET"
         },
-        "LOW_HEIGHT_WARNING_SET\n          OR\n          LOW_HIGHT_WARNING_SET": {
-            "name": "LOW_HEIGHT_WARNING_SET\n          or\n          LOW_HIGHT_WARNING_SET",
-            "description": "",
+        "LOW_HEIGHT_WARNING_SET": {
+            "name": "LOW_HEIGHT_WARNING_SET",
+            "description": "  or\n          LOW_HIGHT_WARNING_SET",
             "multiplayer": "",
             "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Misc_Events.htm",
             "page": "AIRCRAFT MISCELLANEOUS EVENTS",
             "section": "Aircraft Failures",
-            "name_std": "LOW_HEIGHT_WARNING_SET\n          OR\n          LOW_HIGHT_WARNING_SET"
+            "name_std": "LOW_HEIGHT_WARNING_SET"
         },
         "TOGGLE_ELECTRICAL_FAILURE": {
             "name": "TOGGLE_ELECTRICAL_FAILURE",
