@@ -21591,6 +21591,1220 @@
             "section": "Virtual Copilot",
             "name_std": "VIRTUAL_COPILOT_TOGGLE"
         },
+        "ALTERNATOR_OFF": {
+            "name": "ALTERNATOR_OFF",
+            "description": "alternator index",
+            "multiplayer": "Turns the indexed alternator off.",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Alternator",
+            "name_std": "ALTERNATOR_OFF"
+        },
+        "ALTERNATOR_ON": {
+            "name": "ALTERNATOR_ON",
+            "description": "alternator index",
+            "multiplayer": "Turns the indexed alternator on.",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Alternator",
+            "name_std": "ALTERNATOR_ON"
+        },
+        "ALTERNATOR_SET": {
+            "name": "ALTERNATOR_SET",
+            "description": "alternator index",
+            "multiplayer": "Sets the indexed alternator.",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Alternator",
+            "name_std": "ALTERNATOR_SET"
+        },
+        "ELECTRICAL_ALTERNATOR_BREAKER_TOGGLE": {
+            "name": "ELECTRICAL_ALTERNATOR_BREAKER_TOGGLE",
+            "description": "alternator index",
+            "multiplayer": "Toggle alternator breaker state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Alternator",
+            "name_std": "ELECTRICAL_ALTERNATOR_BREAKER_TOGGLE"
+        },
+        "TOGGLE_ALTERNATOR1": {
+            "name": "TOGGLE_ALTERNATOR1",
+            "description": "",
+            "multiplayer": "Toggles alternator/generator 1 switch",
+            "units": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Alternator",
+            "name_std": "TOGGLE_ALTERNATOR1"
+        },
+        "TOGGLE_ALTERNATOR2": {
+            "name": "TOGGLE_ALTERNATOR2",
+            "description": "",
+            "multiplayer": "Toggles alternator/generator 2 switch",
+            "units": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Alternator",
+            "name_std": "TOGGLE_ALTERNATOR2"
+        },
+        "TOGGLE_ALTERNATOR3": {
+            "name": "TOGGLE_ALTERNATOR3",
+            "description": "",
+            "multiplayer": "Toggles alternator/generator 3 switch",
+            "units": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Alternator",
+            "name_std": "TOGGLE_ALTERNATOR3"
+        },
+        "TOGGLE_ALTERNATOR4": {
+            "name": "TOGGLE_ALTERNATOR4",
+            "description": "",
+            "multiplayer": "Toggles alternator/generator 4 switch",
+            "units": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Alternator",
+            "name_std": "TOGGLE_ALTERNATOR4"
+        },
+        "TOGGLE_MASTER_ALTERNATOR": {
+            "name": "TOGGLE_MASTER_ALTERNATOR",
+            "description": "alternator index",
+            "multiplayer": "Toggles main alternator/generator switch",
+            "units": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Alternator",
+            "name_std": "TOGGLE_MASTER_ALTERNATOR"
+        },
+        "APU_BLEED_AIR_SOURCE_SET": {
+            "name": "APU_BLEED_AIR_SOURCE_SET",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "\n    APU",
+            "name_std": "APU_BLEED_AIR_SOURCE_SET"
+        },
+        "APU_BLEED_AIR_SOURCE_TOGGLE": {
+            "name": "APU_BLEED_AIR_SOURCE_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "\n    APU",
+            "name_std": "APU_BLEED_AIR_SOURCE_TOGGLE"
+        },
+        "APU_EXTINGUISH_FIRE": {
+            "name": "APU_EXTINGUISH_FIRE",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "\n    APU",
+            "name_std": "APU_EXTINGUISH_FIRE"
+        },
+        "APU_GENERATOR_SWITCH_TOGGLE": {
+            "name": "APU_GENERATOR_SWITCH_TOGGLE",
+            "description": "",
+            "multiplayer": "Turn the auxiliary generator on or off.",
+            "units": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "\n    APU",
+            "name_std": "APU_GENERATOR_SWITCH_TOGGLE"
+        },
+        "APU_GENERATOR_SWITCH_SET": {
+            "name": "APU_GENERATOR_SWITCH_SET",
+            "description": "",
+            "multiplayer": "Set the auxiliary generator switch (0,1).",
+            "units": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "\n    APU",
+            "name_std": "APU_GENERATOR_SWITCH_SET"
+        },
+        "APU_OFF_SWITCH": {
+            "name": "APU_OFF_SWITCH",
+            "description": "",
+            "multiplayer": "Turn the APU off.",
+            "units": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "\n    APU",
+            "name_std": "APU_OFF_SWITCH"
+        },
+        "APU_STARTER": {
+            "name": "APU_STARTER",
+            "description": "",
+            "multiplayer": "Start up the auxiliary power unit (APU).",
+            "units": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "\n    APU",
+            "name_std": "APU_STARTER"
+        },
+        "BATTERY1_SET": {
+            "name": "BATTERY1_SET",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "BATTERY1_SET"
+        },
+        "BATTERY2_SET": {
+            "name": "BATTERY2_SET",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "BATTERY2_SET"
+        },
+        "BATTERY3_SET": {
+            "name": "BATTERY3_SET",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "BATTERY3_SET"
+        },
+        "BATTERY4_SET": {
+            "name": "BATTERY4_SET",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "BATTERY4_SET"
+        },
+        "ELECTRICAL_BATTERY_BREAKER_TOGGLE": {
+            "name": "ELECTRICAL_BATTERY_BREAKER_TOGGLE",
+            "description": "battery index",
+            "multiplayer": "Toggle battery breaker state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "ELECTRICAL_BATTERY_BREAKER_TOGGLE"
+        },
+        "MASTER_BATTERY_OFF": {
+            "name": "MASTER_BATTERY_OFF",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "MASTER_BATTERY_OFF"
+        },
+        "MASTER_BATTERY_ON": {
+            "name": "MASTER_BATTERY_ON",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "MASTER_BATTERY_ON"
+        },
+        "MASTER_BATTERY_SET": {
+            "name": "MASTER_BATTERY_SET",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "MASTER_BATTERY_SET"
+        },
+        "TOGGLE_MASTER_BATTERY": {
+            "name": "TOGGLE_MASTER_BATTERY",
+            "description": "battery index",
+            "multiplayer": "Toggle battery switch state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "TOGGLE_MASTER_BATTERY"
+        },
+        "TOGGLE_MASTER_BATTERY_ALTERNATOR": {
+            "name": "TOGGLE_MASTER_BATTERY_ALTERNATOR",
+            "description": "",
+            "multiplayer": "Toggles master battery and alternator switch",
+            "units": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "TOGGLE_MASTER_BATTERY_ALTERNATOR"
+        },
+        "TOGGLE_ELECTRIC_VACUUM_PUMP": {
+            "name": "TOGGLE_ELECTRIC_VACUUM_PUMP",
+            "description": "",
+            "multiplayer": "Toggles backup electric vacuum pump",
+            "units": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Batteries",
+            "name_std": "TOGGLE_ELECTRIC_VACUUM_PUMP"
+        },
+        "BREAKER_AVNFAN_TOGGLE": {
+            "name": "BREAKER_AVNFAN_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_AVNFAN_TOGGLE"
+        },
+        "BREAKER_AUTOPILOT_TOGGLE": {
+            "name": "BREAKER_AUTOPILOT_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_AUTOPILOT_TOGGLE"
+        },
+        "BREAKER_GPS_TOGGLE": {
+            "name": "BREAKER_GPS_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_GPS_TOGGLE"
+        },
+        "BREAKER_NAVCOM1_TOGGLE": {
+            "name": "BREAKER_NAVCOM1_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_NAVCOM1_TOGGLE"
+        },
+        "BREAKER_NAVCOM2_TOGGLE": {
+            "name": "BREAKER_NAVCOM2_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_NAVCOM2_TOGGLE"
+        },
+        "BREAKER_NAVCOM3_TOGGLE": {
+            "name": "BREAKER_NAVCOM3_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_NAVCOM3_TOGGLE"
+        },
+        "BREAKER_ADF_TOGGLE": {
+            "name": "BREAKER_ADF_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_ADF_TOGGLE"
+        },
+        "BREAKER_XPNDR_TOGGLE": {
+            "name": "BREAKER_XPNDR_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_XPNDR_TOGGLE"
+        },
+        "BREAKER_FLAP_TOGGLE": {
+            "name": "BREAKER_FLAP_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_FLAP_TOGGLE"
+        },
+        "BREAKER_INST_TOGGLE": {
+            "name": "BREAKER_INST_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_INST_TOGGLE"
+        },
+        "BREAKER_AVNBUS1_TOGGLE": {
+            "name": "BREAKER_AVNBUS1_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_AVNBUS1_TOGGLE"
+        },
+        "BREAKER_AVNBUS2_TOGGLE": {
+            "name": "BREAKER_AVNBUS2_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_AVNBUS2_TOGGLE"
+        },
+        "BREAKER_TURNCOORD_TOGGLE": {
+            "name": "BREAKER_TURNCOORD_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_TURNCOORD_TOGGLE"
+        },
+        "BREAKER_INSTLTS_TOGGLE": {
+            "name": "BREAKER_INSTLTS_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_INSTLTS_TOGGLE"
+        },
+        "BREAKER_ALTFLD_TOGGLE": {
+            "name": "BREAKER_ALTFLD_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_ALTFLD_TOGGLE"
+        },
+        "BREAKER_WARN_TOGGLE": {
+            "name": "BREAKER_WARN_TOGGLE",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_WARN_TOGGLE"
+        },
+        "BREAKER_AVNFAN_SET": {
+            "name": "BREAKER_AVNFAN_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_AVNFAN_SET"
+        },
+        "BREAKER_AUTOPILOT_SET": {
+            "name": "BREAKER_AUTOPILOT_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_AUTOPILOT_SET"
+        },
+        "BREAKER_GPS_SET": {
+            "name": "BREAKER_GPS_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_GPS_SET"
+        },
+        "BREAKER_NAVCOM1_SET": {
+            "name": "BREAKER_NAVCOM1_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_NAVCOM1_SET"
+        },
+        "BREAKER_NAVCOM2_SET": {
+            "name": "BREAKER_NAVCOM2_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_NAVCOM2_SET"
+        },
+        "BREAKER_NAVCOM3_SET": {
+            "name": "BREAKER_NAVCOM3_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_NAVCOM3_SET"
+        },
+        "BREAKER_ADF_SET": {
+            "name": "BREAKER_ADF_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_ADF_SET"
+        },
+        "BREAKER_XPNDR_SET": {
+            "name": "BREAKER_XPNDR_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_XPNDR_SET"
+        },
+        "BREAKER_FLAP_SET": {
+            "name": "BREAKER_FLAP_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_FLAP_SET"
+        },
+        "BREAKER_INST_SET": {
+            "name": "BREAKER_INST_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_INST_SET"
+        },
+        "BREAKER_AVNBUS1_SET": {
+            "name": "BREAKER_AVNBUS1_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_AVNBUS1_SET"
+        },
+        "BREAKER_AVNBUS2_SET": {
+            "name": "BREAKER_AVNBUS2_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_AVNBUS2_SET"
+        },
+        "BREAKER_TURNCOORD_SET": {
+            "name": "BREAKER_TURNCOORD_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_TURNCOORD_SET"
+        },
+        "BREAKER_INSTLTS_SET": {
+            "name": "BREAKER_INSTLTS_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_INSTLTS_SET"
+        },
+        "BREAKER_ALTFLD_SET": {
+            "name": "BREAKER_ALTFLD_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_ALTFLD_SET"
+        },
+        "BREAKER_WARN_SET": {
+            "name": "BREAKER_WARN_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Breakers",
+            "name_std": "BREAKER_WARN_SET"
+        },
+        "ALL_LIGHTS_TOGGLE": {
+            "name": "ALL_LIGHTS_TOGGLE",
+            "description": "Toggle all lights",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "ALL_LIGHTS_TOGGLE"
+        },
+        "BEACON_LIGHTS_ON": {
+            "name": "BEACON_LIGHTS_ON",
+            "description": "Turn beacon lights on",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "BEACON_LIGHTS_ON"
+        },
+        "BEACON_LIGHTS_OFF": {
+            "name": "BEACON_LIGHTS_OFF",
+            "description": "Turn beacon lights off",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "BEACON_LIGHTS_OFF"
+        },
+        "BEACON_LIGHTS_SET": {
+            "name": "BEACON_LIGHTS_SET",
+            "description": "Set beacon lights on/off (1,0)",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "BEACON_LIGHTS_SET"
+        },
+        "CABIN_LIGHTS_OFF": {
+            "name": "CABIN_LIGHTS_OFF",
+            "description": "Turn cabin lights off",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "CABIN_LIGHTS_OFF"
+        },
+        "CABIN_LIGHTS_ON": {
+            "name": "CABIN_LIGHTS_ON",
+            "description": "Turn cabin lights on",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "CABIN_LIGHTS_ON"
+        },
+        "CABIN_LIGHTS_SET": {
+            "name": "CABIN_LIGHTS_SET",
+            "description": "Set cabin lights on/off (1,0)",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "CABIN_LIGHTS_SET"
+        },
+        "GLARESHIELD_LIGHTS_OFF": {
+            "name": "GLARESHIELD_LIGHTS_OFF",
+            "description": "Turn glareshield lights off",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "GLARESHIELD_LIGHTS_OFF"
+        },
+        "GLARESHIELD_LIGHTS_ON": {
+            "name": "GLARESHIELD_LIGHTS_ON",
+            "description": "Turn glareshield lights on",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "GLARESHIELD_LIGHTS_ON"
+        },
+        "GLARESHIELD_LIGHTS_SET": {
+            "name": "GLARESHIELD_LIGHTS_SET",
+            "description": "Set glareshield lights on/off (1,0)",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "GLARESHIELD_LIGHTS_SET"
+        },
+        "GLARESHIELD_LIGHTS_TOGGLE": {
+            "name": "GLARESHIELD_LIGHTS_TOGGLE",
+            "description": "Toggle glareshield lights",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "GLARESHIELD_LIGHTS_TOGGLE"
+        },
+        "LANDING_LIGHT_DOWN": {
+            "name": "LANDING_LIGHT_DOWN",
+            "description": "Rotate landing light down",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LANDING_LIGHT_DOWN"
+        },
+        "LANDING_LIGHT_HOME": {
+            "name": "LANDING_LIGHT_HOME",
+            "description": "Return landing light to default position",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LANDING_LIGHT_HOME"
+        },
+        "LANDING_LIGHT_LEFT": {
+            "name": "LANDING_LIGHT_LEFT",
+            "description": "Rotate landing light left",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LANDING_LIGHT_LEFT"
+        },
+        "LANDING_LIGHT_RIGHT": {
+            "name": "LANDING_LIGHT_RIGHT",
+            "description": "Rotate landing light right",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LANDING_LIGHT_RIGHT"
+        },
+        "LANDING_LIGHT_UP": {
+            "name": "LANDING_LIGHT_UP",
+            "description": "Rotate landing light up",
+            "multiplayer": "Shared Cockpit",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LANDING_LIGHT_UP"
+        },
+        "LANDING_LIGHTS_ON": {
+            "name": "LANDING_LIGHTS_ON",
+            "description": "Turn landing lights on",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LANDING_LIGHTS_ON"
+        },
+        "LANDING_LIGHTS_OFF": {
+            "name": "LANDING_LIGHTS_OFF",
+            "description": "Turn landing lights off",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LANDING_LIGHTS_OFF"
+        },
+        "LANDING_LIGHTS_SET": {
+            "name": "LANDING_LIGHTS_SET",
+            "description": "Set landing lights on/off (1,0)",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LANDING_LIGHTS_SET"
+        },
+        "LANDING_LIGHTS_TOGGLE": {
+            "name": "LANDING_LIGHTS_TOGGLE",
+            "description": "Toggle landing lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LANDING_LIGHTS_TOGGLE"
+        },
+        "LIGHT_POTENTIOMETER_INC": {
+            "name": "LIGHT_POTENTIOMETER_INC",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LIGHT_POTENTIOMETER_INC"
+        },
+        "LIGHT_POTENTIOMETER_DEC": {
+            "name": "LIGHT_POTENTIOMETER_DEC",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LIGHT_POTENTIOMETER_DEC"
+        },
+        "LIGHT_POTENTIOMETER_SET": {
+            "name": "LIGHT_POTENTIOMETER_SET",
+            "description": "",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LIGHT_POTENTIOMETER_SET"
+        },
+        "LIGHT_POTENTIOMETER_1_SET": {
+            "name": "LIGHT_POTENTIOMETER_1_SET",
+            "description": "  LIGHT_POTENTIOMETER_2_SET\n          LIGHT_POTENTIOMETER_3_SET\n          LIGHT_POTENTIOMETER_4_SET\n          LIGHT_POTENTIOMETER_5_SET\n          LIGHT_POTENTIOMETER_6_SET\n          LIGHT_POTENTIOMETER_7_SET\n          LIGHT_POTENTIOMETER_8_SET\n          LIGHT_POTENTIOMETER_9_SET\n          LIGHT_POTENTIOMETER_10_SET",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LIGHT_POTENTIOMETER_1_SET"
+        },
+        "LOGO_LIGHTS_SET": {
+            "name": "LOGO_LIGHTS_SET",
+            "description": "Set logo lights on/off (1,0)",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "LOGO_LIGHTS_SET"
+        },
+        "NAV_LIGHTS_ON": {
+            "name": "NAV_LIGHTS_ON",
+            "description": "Turn navigation lights on",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "NAV_LIGHTS_ON"
+        },
+        "NAV_LIGHTS_OFF": {
+            "name": "NAV_LIGHTS_OFF",
+            "description": "Turn navigation lights off",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "NAV_LIGHTS_OFF"
+        },
+        "NAV_LIGHTS_SET": {
+            "name": "NAV_LIGHTS_SET",
+            "description": "Set navigation lights on/off (1,0)",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "NAV_LIGHTS_SET"
+        },
+        "PANEL_LIGHTS_ON": {
+            "name": "PANEL_LIGHTS_ON",
+            "description": "Turn panel lights on",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "PANEL_LIGHTS_ON"
+        },
+        "PANEL_LIGHTS_OFF": {
+            "name": "PANEL_LIGHTS_OFF",
+            "description": "Turn panel lights off",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "PANEL_LIGHTS_OFF"
+        },
+        "PANEL_LIGHTS_SET": {
+            "name": "PANEL_LIGHTS_SET",
+            "description": "Set panel lights on/off (1,0)",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "PANEL_LIGHTS_SET"
+        },
+        "PANEL_LIGHTS_TOGGLE": {
+            "name": "PANEL_LIGHTS_TOGGLE",
+            "description": "Toggle panel lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "PANEL_LIGHTS_TOGGLE"
+        },
+        "PEDESTRAL_LIGHTS_OFF": {
+            "name": "PEDESTRAL_LIGHTS_OFF",
+            "description": "Turn pedestral lights off",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "PEDESTRAL_LIGHTS_OFF"
+        },
+        "PEDESTRAL_LIGHTS_ON": {
+            "name": "PEDESTRAL_LIGHTS_ON",
+            "description": "Turn pedestral lights on",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "PEDESTRAL_LIGHTS_ON"
+        },
+        "PEDESTRAL_LIGHTS_SET": {
+            "name": "PEDESTRAL_LIGHTS_SET",
+            "description": "Set pedestral lights on/off (1,0)",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "PEDESTRAL_LIGHTS_SET"
+        },
+        "PEDESTRAL_LIGHTS_TOGGLE": {
+            "name": "PEDESTRAL_LIGHTS_TOGGLE",
+            "description": "Toggle pedestral lights",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "PEDESTRAL_LIGHTS_TOGGLE"
+        },
+        "RECOGNITION_LIGHTS_SET": {
+            "name": "RECOGNITION_LIGHTS_SET",
+            "description": "Set recognition lights on/off (1,0)",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "RECOGNITION_LIGHTS_SET"
+        },
+        "STROBES_ON": {
+            "name": "STROBES_ON",
+            "description": "Turn strobe lights on",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "STROBES_ON"
+        },
+        "STROBES_OFF": {
+            "name": "STROBES_OFF",
+            "description": "Turn strobe light off",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "STROBES_OFF"
+        },
+        "STROBES_SET": {
+            "name": "STROBES_SET",
+            "description": "Set strobe lights on/off (1,0)",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "STROBES_SET"
+        },
+        "STROBES_TOGGLE": {
+            "name": "STROBES_TOGGLE",
+            "description": "Toggle strobe lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "STROBES_TOGGLE"
+        },
+        "TAXI_LIGHTS_ON": {
+            "name": "TAXI_LIGHTS_ON",
+            "description": "Turn taxi lights on",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TAXI_LIGHTS_ON"
+        },
+        "TAXI_LIGHTS_OFF": {
+            "name": "TAXI_LIGHTS_OFF",
+            "description": "Turn taxi light off",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TAXI_LIGHTS_OFF"
+        },
+        "TAXI_LIGHTS_SET": {
+            "name": "TAXI_LIGHTS_SET",
+            "description": "Set taxi lights on/off (1,0)",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TAXI_LIGHTS_SET"
+        },
+        "TOGGLE_BEACON_LIGHTS": {
+            "name": "TOGGLE_BEACON_LIGHTS",
+            "description": "Toggle beacon lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TOGGLE_BEACON_LIGHTS"
+        },
+        "TOGGLE_CABIN_LIGHTS": {
+            "name": "TOGGLE_CABIN_LIGHTS",
+            "description": "Toggle cockpit/cabin lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TOGGLE_CABIN_LIGHTS"
+        },
+        "TOGGLE_LOGO_LIGHTS": {
+            "name": "TOGGLE_LOGO_LIGHTS",
+            "description": "Toggle logo lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TOGGLE_LOGO_LIGHTS"
+        },
+        "TOGGLE_NAV_LIGHTS": {
+            "name": "TOGGLE_NAV_LIGHTS",
+            "description": "Toggle navigation lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TOGGLE_NAV_LIGHTS"
+        },
+        "TOGGLE_RECOGNITION_LIGHTS": {
+            "name": "TOGGLE_RECOGNITION_LIGHTS",
+            "description": "Toggle recognition lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TOGGLE_RECOGNITION_LIGHTS"
+        },
+        "TOGGLE_TAXI_LIGHTS": {
+            "name": "TOGGLE_TAXI_LIGHTS",
+            "description": "Toggle taxi lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TOGGLE_TAXI_LIGHTS"
+        },
+        "TOGGLE_WING_LIGHTS": {
+            "name": "TOGGLE_WING_LIGHTS",
+            "description": "Toggle wing lights",
+            "multiplayer": "All aircraft",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "TOGGLE_WING_LIGHTS"
+        },
+        "WING_LIGHTS_OFF": {
+            "name": "WING_LIGHTS_OFF",
+            "description": "Turn wing lights off",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "WING_LIGHTS_OFF"
+        },
+        "WING_LIGHTS_ON": {
+            "name": "WING_LIGHTS_ON",
+            "description": "Turn wing light on",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "WING_LIGHTS_ON"
+        },
+        "WING_LIGHTS_SET": {
+            "name": "WING_LIGHTS_SET",
+            "description": "Set wing lights on/off (1,0)",
+            "multiplayer": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Lights",
+            "name_std": "WING_LIGHTS_SET"
+        },
+        "ELECTRICAL_BUS_BREAKER_TOGGLE": {
+            "name": "ELECTRICAL_BUS_BREAKER_TOGGLE",
+            "description": "bus index",
+            "multiplayer": "Toggle bus breaker state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_BUS_BREAKER_TOGGLE"
+        },
+        "ELECTRICAL_BUS_TO_ALTERNATOR_CONNECTION_TOGGLE": {
+            "name": "ELECTRICAL_BUS_TO_ALTERNATOR_CONNECTION_TOGGLE",
+            "description": "alternator index",
+            "multiplayer": "Toggle alternator connection state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_BUS_TO_ALTERNATOR_CONNECTION_TOGGLE"
+        },
+        "ELECTRICAL_BUS_TO_BATTERY_CONNECTION_TOGGLE": {
+            "name": "ELECTRICAL_BUS_TO_BATTERY_CONNECTION_TOGGLE",
+            "description": "battery index",
+            "multiplayer": "Toggle battery connection state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_BUS_TO_BATTERY_CONNECTION_TOGGLE"
+        },
+        "ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE": {
+            "name": "ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE",
+            "description": "bus index",
+            "multiplayer": "Toggle bus connection state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE"
+        },
+        "ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE": {
+            "name": "ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE",
+            "description": "circuit index",
+            "multiplayer": "Toggle circuit connection state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE"
+        },
+        "ELECTRICAL_BUS_TO_EXTERNAL_POWER_CONNECTION_TOGGLE": {
+            "name": "ELECTRICAL_BUS_TO_EXTERNAL_POWER_CONNECTION_TOGGLE",
+            "description": "external power index",
+            "multiplayer": "Toggle external power connection state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_BUS_TO_EXTERNAL_POWER_CONNECTION_TOGGLE"
+        },
+        "ELECTRICAL_CIRCUIT_BREAKER_TOGGLE": {
+            "name": "ELECTRICAL_CIRCUIT_BREAKER_TOGGLE",
+            "description": "circuit index",
+            "multiplayer": "Toggle circuit breaker state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_CIRCUIT_BREAKER_TOGGLE"
+        },
+        "ELECTRICAL_CIRCUIT_POWER_SETTING_SET": {
+            "name": "ELECTRICAL_CIRCUIT_POWER_SETTING_SET",
+            "description": "[0] circuit index\n          [1] circuit power setting (%)",
+            "multiplayer": "Set circuit power setting",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_CIRCUIT_POWER_SETTING_SET"
+        },
+        "ELECTRICAL_CIRCUIT_TOGGLE": {
+            "name": "ELECTRICAL_CIRCUIT_TOGGLE",
+            "description": "circuit index",
+            "multiplayer": "Toggle the indexed circuit switch state. The index is the  value assigned to the circuit Type when the circuit.N was defined.",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_CIRCUIT_TOGGLE"
+        },
+        "ELECTRICAL_EXECUTE_PROCEDURE": {
+            "name": "ELECTRICAL_EXECUTE_PROCEDURE",
+            "description": "procedure index, Bool bInverse",
+            "multiplayer": "Execute procedure with bInverse as an argument",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_EXECUTE_PROCEDURE"
+        },
+        "ELECTRICAL_EXTERNAL_POWER_BREAKER_TOGGLE": {
+            "name": "ELECTRICAL_EXTERNAL_POWER_BREAKER_TOGGLE",
+            "description": "external power index",
+            "multiplayer": "Toggle external power breaker state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "ELECTRICAL_EXTERNAL_POWER_BREAKER_TOGGLE"
+        },
+        "PANEL_LIGHTS_POWER_SETTING_SET": {
+            "name": "PANEL_LIGHTS_POWER_SETTING_SET",
+            "description": "[0] panel light circuit index\n          [1] power setting (%)",
+            "multiplayer": "Set panel light circuit power setting",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "PANEL_LIGHTS_POWER_SETTING_SET"
+        },
+        "CABIN_LIGHTS_POWER_SETTING_SET": {
+            "name": "CABIN_LIGHTS_POWER_SETTING_SET",
+            "description": "[0] cabin light circuit index\n          [1] power setting (%)",
+            "multiplayer": "Set cabin light circuit power setting",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "CABIN_LIGHTS_POWER_SETTING_SET"
+        },
+        "PEDESTRAL_LIGHTS_POWER_SETTING_SET": {
+            "name": "PEDESTRAL_LIGHTS_POWER_SETTING_SET",
+            "description": "[0] pedestral light circuit index\n          [1] power setting (%)",
+            "multiplayer": "Set pedestral light circuit power setting",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "PEDESTRAL_LIGHTS_POWER_SETTING_SET"
+        },
+        "GLARESHIELD_LIGHTS_POWER_SETTING_SET": {
+            "name": "GLARESHIELD_LIGHTS_POWER_SETTING_SET",
+            "description": "[0] glareshield light circuit index\n          [1] power setting (%)",
+            "multiplayer": "Set glareshield light circuit power setting",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "GLARESHIELD_LIGHTS_POWER_SETTING_SET"
+        },
+        "SET_EXTERNAL_POWER": {
+            "name": "SET_EXTERNAL_POWER",
+            "description": "",
+            "multiplayer": "",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "SET_EXTERNAL_POWER"
+        },
+        "TOGGLE_EXTERNAL_POWER": {
+            "name": "TOGGLE_EXTERNAL_POWER",
+            "description": "external power index",
+            "multiplayer": "Toggle external power switch state",
+            "units": "",
+            "url": "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm",
+            "page": "AIRCRAFT ELECTRICAL EVENTS",
+            "section": "Miscellaneous",
+            "name_std": "TOGGLE_EXTERNAL_POWER"
+        },
         "ANTI_ICE_GRADUAL_SET": {
             "name": "ANTI_ICE_GRADUAL_SET",
             "description": "",

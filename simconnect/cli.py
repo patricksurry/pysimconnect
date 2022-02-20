@@ -126,8 +126,8 @@ def send(event: str = eventdef, value: Optional[float] = None):
 
 
 @app.command()
-def search(name: str, kind: Optional[MetadataKind] = None, max_results: int = 5, brief: bool = False):
-    q = name
+def search(name: List[str], kind: Optional[MetadataKind] = None, max_results: int = 5, brief: bool = False):
+    q = ' '.join(name)
     if kind:
         q += f" +kind:{kind.name.upper()}S"
 

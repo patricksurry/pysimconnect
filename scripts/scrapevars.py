@@ -11,7 +11,12 @@ import json
 from prepvars import prepvars
 
 
-base_url = 'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm'
+base_urls = [
+    # main list of links
+    'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm',
+    # not linked explicitly elsewhere
+    'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm'
+]
 
 
 def normtext(s):
@@ -54,12 +59,8 @@ class SimConnectSpider(scrapy.Spider):
     }
 
     def start_requests(self):
-        yield scrapy.Request(base_url, callback=self.find_vars)
-
-    def find_vars(self, response):
-        urls = response.xpath('//div//ul/li/a/@href').getall()
-        for url in urls:
-            yield scrapy.Request(url=response.urljoin(url), callback=self.parse)
+        for url in base_urls:
+            yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
         def alltext(elt):
@@ -90,8 +91,9 @@ class SimConnectSpider(scrapy.Spider):
             return dict(zip(labels, vs))
 
         # look for nested pages
-        for req in self.find_vars(response):
-            yield req
+        urls = response.xpath('//div//ul/li/a/@href').getall()
+        for url in urls:
+            yield scrapy.Request(url=response.urljoin(url), callback=self.parse)
 
         page = normtext(response.xpath('//h2/text()').get()).strip()
         context = {
