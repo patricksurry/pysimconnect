@@ -25,6 +25,15 @@ class MetadataKind(str, Enum):
     unit = 'unit'
 
 
+def floatfmt(v, width=12, precision=3):
+    return f"{v:{width}.{precision}f}".rstrip('0').rstrip('.') + (' '*(precision+1))[:width]
+
+
+def labelfmt(s, width=2*12):
+    label = s if len(s) < width else s[:width-4] + '...'
+    return f"{label:{width}s}"
+
+
 def matchcase(s: str, prefix: str) -> Optional[str]:
     if not prefix:
         return s
@@ -56,19 +65,11 @@ def get(simvars: List[str] = simvardef, units: Optional[str] = unitsdef):
     if units:
         units = units.upper()
     simvars = [s.upper() for s in simvars]
+    unitdesc = f" ({units})" if units else ''
     for s in simvars:
-        typer.echo(f"Getting {s}" + (f"({units})" if units else ''))
         with SimConnect(name='cli') as sc:
-            sc.get_simdatum(s, units)
-
-
-def floatfmt(v, width=12, precision=3):
-    return f"{v:{width}.{precision}f}".rstrip('0').rstrip('.') + (' '*(precision+1))[:width]
-
-
-def labelfmt(s, width=2*12):
-    label = s if len(s) < width else s[:width-4] + '...'
-    return f"{label:{width}s}"
+            v = sc.get_simdatum(s, units)
+        typer.echo(f"{s}{unitdesc} = {v}")
 
 
 @app.command()
@@ -76,10 +77,10 @@ def watch(simvars: List[str] = simvardef, units: Optional[str] = unitsdef, inter
     if units:
         units = units.upper()
     simvars = [s.upper() for s in simvars]
-    typer.echo(f"Watching {simvars} every {interval} seconds")
+    typer.echo(f"Watching {', '.join(simvars)} every {interval} seconds")
     with SimConnect(name='cli') as sc:
         dd = sc.subscribe_simdata(
-            [dict(name=s, units=units) for s in simvars],
+            [dict(name=sv, units=units) for sv in simvars],
             interval=interval
         )
         latest = 0
@@ -87,9 +88,6 @@ def watch(simvars: List[str] = simvardef, units: Optional[str] = unitsdef, inter
             # consume incoming messages
             while sc.receive(timeout_seconds=0.1):
                 pass
-            n = len(dd.simdata.changedsince(latest))
-            if not n:
-                continue
             if not latest:
                 # show staggered header across two lines
                 ks = list(dd.simdata.keys())
@@ -97,8 +95,16 @@ def watch(simvars: List[str] = simvardef, units: Optional[str] = unitsdef, inter
                 typer.echo(''.join(labelfmt(ks[i]) for i in range(0, len(ks), 2)))
                 # odd cols
                 typer.echo(' '*12 + ''.join(labelfmt(ks[i]) for i in range(1, len(ks), 2)))
-            typer.echo(''.join(floatfmt(v) for v in dd.simdata.values()))
+            changed = list(dd.simdata.changedsince(latest).keys())
             latest = dd.simdata.latest()
+            values = [
+                typer.style(
+                    floatfmt(v),
+                    fg=typer.colors.BLUE if k in changed else typer.colors.WHITE
+                )
+                for (k, v) in dd.simdata.items()
+            ]
+            typer.echo(''.join(values))
 
 
 @app.command()
@@ -106,7 +112,7 @@ def set(simvar: str = simvardef, value: float = typer.Argument(...), units: Opti
     simvar = simvar.upper()
     if units:
         units = units.upper()
-    typer.echo(f"Setting {simvar} = {value}" + (f"({units})" if units else ''))
+    typer.echo(f"Setting {simvar} = {value}" + (f" ({units})" if units else ''))
     with SimConnect(name='cli') as sc:
         sc.set_simdatum(simvar, value, units)
 
