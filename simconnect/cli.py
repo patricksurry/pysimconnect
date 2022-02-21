@@ -49,17 +49,18 @@ def matchcase(s: str, prefix: str) -> Optional[str]:
 
 
 def scoped_autocomplete(kind: str, max_results=10):
-    def _complete(q: str):
+    def _complete(incomplete: str):
         return sorted(
-            list(filter(None, (matchcase(d['name_'], q) for d in scvars[kind].values()))),
-            key=lambda s: (len(s), s)[:max_results]
-        )
+            list(filter(None, (matchcase(d['name_'], incomplete) for d in scvars[kind].values()))),
+            key=lambda s: (len(s), s)
+        )[:max_results]
     return _complete
 
 
 simvardef = typer.Argument(..., autocompletion=scoped_autocomplete('VARIABLES'))
 eventdef = typer.Argument(..., autocompletion=scoped_autocomplete('EVENTS'))
 unitsdef = typer.Option(None, autocompletion=scoped_autocomplete('UNITS'))
+
 
 def canonicalvars(simvars: List[str]) -> List[str]:
     # appear to be case insenstive but ' ' vs '_' is important
@@ -126,7 +127,7 @@ def send(event: str = eventdef, value: Optional[float] = None):
 
 
 @app.command()
-def search(name: List[str], kind: Optional[MetadataKind] = None, max_results: int = 5, brief: bool = False):
+def search(name: List[str], kind: Optional[MetadataKind] = None, max_results: int = 12, brief: bool = False):
     q = ' '.join(name)
     if kind:
         q += f" +kind:{kind.name.upper()}S"
