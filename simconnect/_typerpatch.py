@@ -6,7 +6,6 @@ import os
 from typer import _completion_shared
 from typer.utils import _get_click_major
 
-print('patching typer')
 
 if '_TYPER_CURSOR_POSITION' not in _completion_shared.COMPLETION_SCRIPT_POWER_SHELL:
     _pwsh_script = """
