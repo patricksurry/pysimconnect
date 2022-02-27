@@ -105,7 +105,7 @@ The command-line tool is just a lightweight
 wrapper for some features of the `simconnect` python package.
 This means that you can write simple python code to do anything
 the command-line tool does, and much more besides.
-The best way to get started is to browse some [examples/README.md](examples/README.md)
+The best way to get started is to browse some [examples](examples/README.md)
 which show both low-level interaction with the SDK,
 and some of the simplified sugar the package offers.
 
@@ -116,9 +116,12 @@ to `DEBUG` before running your code, rather than the default `INFO`:
 
     set LOGLEVEL=DEBUG
 
-Also, be warned that the SDK documentation has various copy & paste errors
+Also, be warned that the official
+[SDK documentation](https://docs.flightsimulator.com/html/index.htm?#t=Programming_Tools%2FSimConnect%2FSimConnect_SDK.htm_)
+has various errors (copy/paste gone wrong?)
 which can make it difficult to understand some details.
-Where possible refer directly to the header file definitions and comments
+Where possible refer directly to the `SimConnect.h`
+header file definitions and comments
 as a more authoritative source.
 
 

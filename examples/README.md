@@ -1,6 +1,6 @@
-Various examples of how to use the `simconnect` package.
+Introductory examples of how to use the `simconnect` package.
 
-- `demo.py`: pythonic README example showing get, set, subscribe and send_event
+- `demo.py`: illustrates all major features
 
 - `test_units.py`: illustrate SDK unit conversion options
 
@@ -8,9 +8,10 @@ Various examples of how to use the `simconnect` package.
 
 - `set_data.py`: simple set_datum example
 
-- `subscribe.py`: pythonic version of the low-level `monitor_metrics.py` example
+- `subscribe.py`: pythonic wrapper for watching one or more variables over time
+    (cf. `monitor_metrics.py` for a low-level implementation)
 
-Low level examples calling raw SDK functions:
+Examples calling SDK functions directly:
 
 - `show_version.py`: trivial low-level example showing how to retrieve the result of the SDK `Open()` call.
 
