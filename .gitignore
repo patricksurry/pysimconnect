@@ -2,3 +2,4 @@ __pycache__/
 pysimconnect.egg-info/
 dist/
 scripts/all_units.json
+.DS_Store

@@ -1,4 +1,4 @@
-The `pysimconnect` package provides a simple, performant wrapper for FlightSimulator 2020's
+The `pysimconnect` package provides a simple, efficient wrapper for FlightSimulator 2020's
 [SimConnect SDK](https://docs.flightsimulator.com/html/index.htm?#t=Programming_Tools%2FSimConnect%2FSimConnect_SDK.htm),
 inspired by [Python-SimConnect](https://github.com/odwdinc/Python-SimConnect).
 
@@ -6,8 +6,8 @@ If you're looking to build external instrument displays,
 connect custom controllers to FS2020,
 or just explore how the simulation works in more detail
 then `pysimconnect` is for you.
-(You might also be interested in [G3](https://github.com/patricksurry/g3),
-a flexible Javascript framework for building steam gauge instrument panels.)
+You might also be interested in [G3](https://github.com/patricksurry/g3),
+a flexible Javascript framework for building steam gauge instrument panels.
 
 The package contains a python module called `simconnect`
 which exposes a simple pythonic interface
@@ -39,8 +39,8 @@ To use the `simconnect` command-line tool,
 install [Powershell7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.2) and
 set your [default terminal](https://devblogs.microsoft.com/commandline/windows-terminal-as-your-default-command-line-experience/)
 to Windows Terminal rather than Windows Console Host.
-This gives better auto-completion and emoji support.
-Start Powershell7 and install TAB auto-complete by typing `simconnect --install-completion powershell`,
+Start Powershell7 and install TAB auto-completion support by typing
+`simconnect --install-completion powershell`
 then restart your terminal as instructed:
 
 ![simconnect install completion](doc/sc-install-completion.png)
@@ -72,12 +72,12 @@ Normally using underscore-separated everywhere will be easier for auto-completio
 and avoids quoting in the terminal.
 
 We can read multiple variables by just appending them in a list.
-In a similar way we can monitor how multiple variables change over time using `watch`:
+We can also monitor multiple variables over time using `watch`:
 
 ![simconnect watch example](doc/sc-watch.png)
 
 By default we'll see an update once every second,
-highlighting variables that change during each update.
+highlighting the variables that change during each update.
 Some commands support additional options,
 for example `simconnect watch --help` will show us how to change the
 monitoring interval time.
@@ -90,15 +90,15 @@ than the default `feet`:
 ![simconnect set example](doc/sc-set.png)
 
 Lastly, let's send an event to FS2020.
-A simple example is to bump the altimeter adjustment knob, like so:
+A simple example is to bump the altimeter adjustment knob, like so.
+If you send this event a few times, you'll see the indicated altitude adjust in response.
 
 ![simconnect send example](doc/sc-send.png)
 
 This simple event needs no data, but with others you also need to provide a value.
-If you send this event a few times, you'll see the indicated altitude adjust in response.
 
 
-Writing code
+Working with python
 ---
 
 The command-line tool is just a lightweight
@@ -138,7 +138,7 @@ SDK functions as well as some pythonic sugar.
 The command line tool is implemented by `cli.py`.
 
 The package requires a copy of `SimConnect.dll` to work.
-This normally with FS2020 but a recent copy is also included here.
+This normally ships with FS2020 but a recent copy is also included here.
 You can point to your own version by specifying the `dll_path` argument
 when initializing `SimConnect(...)`.
 The `scvars.json` file lists all the simulation variables (SimVars),
@@ -157,14 +157,11 @@ The `genscdefs.py` script creates `scdefs.py` from a post-processed
 version of the `SimConnect.h` C++ header that ships with the SDK
 (which can be installed via the Options > General > Developer tools help menu).
 This generates a python translation of all the SDK function declarations, data structures
-and enumerated constants.  The translation is quite fragile:
+and enumerated constants.  The automated translation is quite fragile:
 it assumes the header is formatted in a particular way, and has been
 pre-processed with `cpp` to `SimConnect_cpp.h` from the raw header.
 This approach makes it easy to tweak the rules for mapping from C++
 to Python, as long as header format doesn't change significantly.
-The `scrapevars.py` script is a quick hack to scrape the tables of
-simulation variables, events and units from the API documentation.
-This results in `scvars.json` which is
 
 
 
