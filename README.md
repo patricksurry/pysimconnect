@@ -43,13 +43,13 @@ Start Powershell7 and install TAB auto-completion support by typing
 `simconnect --install-completion powershell`
 then restart your terminal as instructed:
 
-![simconnect install completion](doc/sc-install-completion.png)
+![simconnect install completion](https://raw.githubusercontent.com/patricksurry/pysimconnect/master/doc/sc-install-completion.png)
 
 Now start a flight in FS2020, perhaps with the AI pilot flying.
 Let's experiment with reading and modifying the altitude.
 First let's find some relevant variables with `search`:
 
-![simconnect search example](doc/sc-search.png)
+![simconnect search example](https://raw.githubusercontent.com/patricksurry/pysimconnect/master/doc/sc-search.png)
 
 Nice!  We get a list of results from the SDK documentation ranked by relevance.
 Result categories are distinguished by different colors and symbols, e.g.
@@ -59,11 +59,11 @@ Now let's read the value of the `PLANE ALTITUDE` variable using the `get` comman
 Start typing `simconnect get PLA<TAB>`, hitting the TAB key part way through the variable name
 to see contextual auto-complete options:
 
-![simconnect tab completion](doc/sc-tab-completion.png)
+![simconnect tab completion](https://raw.githubusercontent.com/patricksurry/pysimconnect/master/doc/sc-tab-completion.png)
 
 Select the desired `PLANE_ALTITUDE` option and hit ENTER:
 
-![simconnect get example](doc/sc-get.png)
+![simconnect get example](https://raw.githubusercontent.com/patricksurry/pysimconnect/master/doc/sc-get.png)
 
 Note that although the underlying SDK variables are space-separated
 and events are underscore-separated,
@@ -74,7 +74,7 @@ and avoids quoting in the terminal.
 We can read multiple variables by just appending them in a list.
 We can also monitor multiple variables over time using `watch`:
 
-![simconnect watch example](doc/sc-watch.png)
+![simconnect watch example](https://raw.githubusercontent.com/patricksurry/pysimconnect/master/doc/sc-watch.png)
 
 By default we'll see an update once every second,
 highlighting the variables that change during each update.
@@ -87,13 +87,13 @@ Now let's change the plane's altitude during flight(!) using the `set` command.
 Here we'll add the `--units` option to specify that our value is measured in `meters` rather
 than the default `feet`:
 
-![simconnect set example](doc/sc-set.png)
+![simconnect set example](https://raw.githubusercontent.com/patricksurry/pysimconnect/master/doc/sc-set.png)
 
 Lastly, let's send an event to FS2020.
 A simple example is to bump the altimeter adjustment knob, like so.
 If you send this event a few times, you'll see the indicated altitude adjust in response.
 
-![simconnect send example](doc/sc-send.png)
+![simconnect send example](https://raw.githubusercontent.com/patricksurry/pysimconnect/master/doc/sc-send.png)
 
 This simple event needs no data, but with others you also need to provide a value.
 
