@@ -4,7 +4,7 @@ from typing import List, Tuple
 import click
 import os
 from typer import _completion_shared
-from typer.utils import _get_click_major
+from typer._compat_utils import _get_click_major
 
 
 if '_TYPER_CURSOR_POSITION' not in _completion_shared.COMPLETION_SCRIPT_POWER_SHELL:
