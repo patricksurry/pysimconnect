@@ -58,18 +58,24 @@ def validate_units(name: str, units: Optional[str], simvar: Optional[Dict[str, A
 
 
 def type_for_unit(unit: str) -> int:
+    unit = unit.upper()
     if unit in UNITS:
         u = UNITS[unit]
-        if u['unit_std'] in ('Bool', 'Boolean', 'Enum', 'BCO16', 'mask', 'flags'):
-            return DATATYPE_INT32
-        elif u['unit_std'] == 'string':
-            return DATATYPE_STRINGV
+        if u['dimensions'] == 'Miscellaneous Units':
+            if u['name_std'] in ('Bool', 'Boolean', 'Enum', 'BCO16', 'mask', 'flags'):
+                return DATATYPE_INT32
+            elif u['name_std'] == 'string':
+                return DATATYPE_STRINGV
+            else:
+                warn = f"SimConnect: unrecognized Miscellaneous Unit in typefor({unit})"
         elif u['dimensions'] == 'Structs And Other Complex Units':
-            warn = f"SimConnect: complex types not support for {unit}"
+            warn = f"SimConnect: complex types not supported for {unit}"
+        else:
+            return DATATYPE_FLOAT64
     else:
-        warn = f"SimConnect: unrecognied unit in typefor({unit})"
+        warn = f"SimConnect: unrecognized unit in typefor({unit})"
 
-    logging.warning(warn)
+    logging.warning(warn + "; using float64 as fallback")
     return DATATYPE_FLOAT64
 
 

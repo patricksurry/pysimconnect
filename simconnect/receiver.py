@@ -7,6 +7,11 @@ from . import scdefs
 
 Receiver = Callable[[RECV], bool]
 
+_exc_map = dict(
+    (getattr(scdefs, s), s)
+    for s in dir(scdefs)
+    if s.startswith('EXCEPTION_')
+)
 
 def all_subclasses(cls):
     return set(cls.__subclasses__()).union(
@@ -42,8 +47,10 @@ class ReceiverInstance:
 
 
 def receiveException(recv: RECV_EXCEPTION) -> bool:
+    excid = recv.dwException
+    excname = _exc_map.get(excid, '<unknown>')
     logging.warning(
-        f"sc.receiveNext: exception {recv.dwException}, sendID {recv.dwSendID}, index {recv.dwIndex}"
+        f"sc.receiveNext: exception {excname}({excid}), sendID {recv.dwSendID}, index {recv.dwIndex}"
     )
     return True
 

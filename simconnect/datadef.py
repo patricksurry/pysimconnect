@@ -2,14 +2,13 @@ from typing import List, Sequence, Union, Dict, Any, Callable, Optional, Type, T
 import logging
 import json
 from hashlib import sha1
-from ctypes import cast, byref, sizeof, POINTER, c_float, c_double, c_longlong
+from ctypes import cast, byref, sizeof, POINTER, c_float, c_double, c_longlong, c_char_p
 
 from .scvars import validate_simvar, validate_units, validate_event, type_for_unit
 from .scdefs import (
     Struct1, RECV_SIMOBJECT_DATA, DATA_REQUEST_FLAG_TAGGED,
     DATATYPE_INT32, DATATYPE_INT64, DATATYPE_FLOAT32, DATATYPE_FLOAT64,
-    DATATYPE_STRINGV,
-    DWORD
+    DATATYPE_STRINGV, DWORD
 )
 from .changedict import ChangeDict
 if TYPE_CHECKING:
@@ -63,6 +62,8 @@ class DataDefinition:
             sv = validate_simvar(name, settable)
             units = validate_units(name, d.get('units'), sv)
             dtyp = d.get('type') or type_for_unit(units)
+            # see https://forums.flightsimulator.com/t/how-to-read-simvar-of-type-string/502402
+            if dtyp == DATATYPE_STRINGV: units = ''
             epsilon = d.get('epsilon', EPSILON_DEFAULT if dtyp == DATATYPE_FLOAT64 else 0)
             defs.append(dict(name=name, units=units, dtyp=dtyp, epsilon=epsilon))
 
@@ -94,7 +95,6 @@ class DataDefinition:
             # so get a void* to that location and cast appropriately
             offset = RECV_SIMOBJECT_DATA.dwData.offset
             tagged = recv.dwFlags & DATA_REQUEST_FLAG_TAGGED > 0
-
             idx = -1
             for _ in range(recv.dwDefineCount):
                 if tagged:
@@ -104,9 +104,12 @@ class DataDefinition:
                     idx += 1
                 d = self.defs[idx]
                 ctyp = _dtyps[d['dtyp']]
-                #TODO handle string
-                val = cast(byref(recv, offset), POINTER(ctyp))[0]
-                offset += sizeof(ctyp)
+                if ctyp == c_char_p:
+                    val = cast(byref(recv, offset), ctyp).value
+                    offset += len(val) + 1
+                else:
+                    val = cast(byref(recv, offset), POINTER(ctyp))[0]
+                    offset += sizeof(ctyp)
                 self.simdata[d['name']] = val
 
             if callback:
@@ -144,5 +147,5 @@ _dtyps = {
     DATATYPE_INT64: c_longlong,   # 64-bit integer number
     DATATYPE_FLOAT32: c_float,   # 32-bit floating-point number (float)
     DATATYPE_FLOAT64: c_double,   # 64-bit floating-point number (double)
-    DATATYPE_STRINGV: POINTER(c_char),  # variable length string
+    DATATYPE_STRINGV: c_char_p,  # variable length string
 }
