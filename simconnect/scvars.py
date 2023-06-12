@@ -4,7 +4,7 @@ import os
 import json
 import logging
 from difflib import get_close_matches
-from .scdefs import DATATYPE_INT32, DATATYPE_FLOAT64, DATATYPE_STRINGV
+from .scdefs import DATATYPE_INT32, DATATYPE_FLOAT64, DATATYPE_STRING256
 
 
 def validate_simvar(name: str, settable: bool) -> Optional[Dict[str, Any]]:
@@ -65,7 +65,7 @@ def type_for_unit(unit: str) -> int:
             if u['name_std'] in ('Bool', 'Boolean', 'Enum', 'BCO16', 'mask', 'flags'):
                 return DATATYPE_INT32
             elif u['name_std'] == 'string':
-                return DATATYPE_STRINGV
+                return DATATYPE_STRING256
             else:
                 warn = f"SimConnect: unrecognized Miscellaneous Unit in typefor({unit})"
         elif u['dimensions'] == 'Structs And Other Complex Units':

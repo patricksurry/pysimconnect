@@ -4,8 +4,12 @@ from simconnect import SimConnect
 
 with SimConnect(name='MonitorMetrics') as sc:
     simvars = [
+        # We can monitor simvars with string values
+        "ATC ID",
+        # boolean, flag, and mask vars are retured as int, most others as float
+        "ATC cleared landing",
         # Simulation variable names are not case-sensitive
-        "Kohlsman setting hg",
+        "Kohlsman setting hg:1",
         # Provide a dictionary to specify optional attributes:
         # 'units' (per SDK), 'epsilon' (default 1e-4) and 'type' (default DATATYPE_FLOAT64)
         dict(name="Indicated Altitude", units="m", epsilon=0.1),
