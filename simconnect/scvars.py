@@ -4,6 +4,7 @@ import os
 import json
 import logging
 from difflib import get_close_matches
+from .scdefs import DATATYPE_INT32, DATATYPE_FLOAT64, DATATYPE_STRINGV
 
 
 def validate_simvar(name: str, settable: bool) -> Optional[Dict[str, Any]]:
@@ -54,6 +55,22 @@ def validate_units(name: str, units: Optional[str], simvar: Optional[Dict[str, A
             msg = _closemsg(ustd, possibilities)
             logging.warning(f"SimConnect: unrecognized units '{units}' for {name}, {msg}")
     return ustd
+
+
+def type_for_unit(unit: str) -> int:
+    if unit in UNITS:
+        u = UNITS[unit]
+        if u['unit_std'] in ('Bool', 'Boolean', 'Enum', 'BCO16', 'mask', 'flags'):
+            return DATATYPE_INT32
+        elif u['unit_std'] == 'string':
+            return DATATYPE_STRINGV
+        elif u['dimensions'] == 'Structs And Other Complex Units':
+            warn = f"SimConnect: complex types not support for {unit}"
+    else:
+        warn = f"SimConnect: unrecognied unit in typefor({unit})"
+
+    logging.warning(warn)
+    return DATATYPE_FLOAT64
 
 
 def _closemsg(s, ss):

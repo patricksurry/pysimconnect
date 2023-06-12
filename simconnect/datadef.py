@@ -4,10 +4,11 @@ import json
 from hashlib import sha1
 from ctypes import cast, byref, sizeof, POINTER, c_float, c_double, c_longlong
 
-from .scvars import validate_simvar, validate_units, validate_event
+from .scvars import validate_simvar, validate_units, validate_event, type_for_unit
 from .scdefs import (
     Struct1, RECV_SIMOBJECT_DATA, DATA_REQUEST_FLAG_TAGGED,
     DATATYPE_INT32, DATATYPE_INT64, DATATYPE_FLOAT32, DATATYPE_FLOAT64,
+    DATATYPE_STRINGV,
     DWORD
 )
 from .changedict import ChangeDict
@@ -61,8 +62,8 @@ class DataDefinition:
             name = d['name']
             sv = validate_simvar(name, settable)
             units = validate_units(name, d.get('units'), sv)
-            dtyp = d.get('type', DATATYPE_FLOAT64)
-            epsilon = d.get('epsilon', EPSILON_DEFAULT)
+            dtyp = d.get('type') or type_for_unit(units)
+            epsilon = d.get('epsilon', EPSILON_DEFAULT if dtyp == DATATYPE_FLOAT64 else 0)
             defs.append(dict(name=name, units=units, dtyp=dtyp, epsilon=epsilon))
 
         # if we already have this data definition, re-use it
@@ -103,6 +104,7 @@ class DataDefinition:
                     idx += 1
                 d = self.defs[idx]
                 ctyp = _dtyps[d['dtyp']]
+                #TODO handle string
                 val = cast(byref(recv, offset), POINTER(ctyp))[0]
                 offset += sizeof(ctyp)
                 self.simdata[d['name']] = val
@@ -142,4 +144,5 @@ _dtyps = {
     DATATYPE_INT64: c_longlong,   # 64-bit integer number
     DATATYPE_FLOAT32: c_float,   # 32-bit floating-point number (float)
     DATATYPE_FLOAT64: c_double,   # 64-bit floating-point number (double)
+    DATATYPE_STRINGV: POINTER(c_char),  # variable length string
 }
