@@ -32,8 +32,11 @@ units: a string from scvars.json::UNITS as defined in the SDK,
     if not present will be inferred using the default from the SDK,
     via scvars.json::VARIABLES
 
-type: one of the scdefs.py::DATATYPE_* constants (currently only numeric types are supported),
-    defaulting to DATATYPE_FLOAT64
+type: one of the supported scdefs.py::DATATYPE_* constants enumerated in _dtyps below.
+    The default DATATYPE_FLOAT64 (a python float) is good for most simvars.
+    Strings are supported via DATATYPE_STRING256 (a string of max length 256),
+    note fixed length is required for datadefs, and enum, boolean, mask and flag simvars
+    can be represented as DATATYPE_INT32 (a python int)
 
 epsilon: the precision to detect changes (see SDK), defaulting to 0.0001
 """
