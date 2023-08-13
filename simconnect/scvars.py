@@ -62,7 +62,7 @@ def type_for_unit(unit: str) -> int:
     if unit in UNITS:
         u = UNITS[unit]
         if u['dimensions'] == 'Miscellaneous Units':
-            if u['name_std'] in ('Bool', 'Boolean', 'Enum', 'BCO16', 'mask', 'flags'):
+            if u['name_std'] in ('Bool', 'Boolean', 'Enum', 'Bco16', 'mask', 'flags'):
                 return DATATYPE_INT32
             elif u['name_std'] == 'string':
                 return DATATYPE_STRING256
