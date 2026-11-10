@@ -66,6 +66,8 @@ def type_for_unit(unit: str) -> int:
                 return DATATYPE_INT32
             elif u['name_std'] == 'string':
                 return DATATYPE_STRING256
+            elif u['name_std'] == 'percent':
+                return DATATYPE_FLOAT64
             else:
                 warn = f"SimConnect: unrecognized Miscellaneous Unit in typefor({unit})"
         elif u['dimensions'] == 'Structs And Other Complex Units':
