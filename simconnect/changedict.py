@@ -22,9 +22,9 @@ def equal_or_close(rel_tol=1e-6, abs_tol=1e-6) -> Callable[[Any, Any], bool]:
 
 class ChangeDict(OrderedDict):
     """An ordered dict that records timestamp of changed items"""
-    def __init__(self, default_comparator=equal_or_close(), comparators={}):
+    def __init__(self, default_comparator=equal_or_close(), comparators=None):
         self.__default_comparator = default_comparator
-        self.__comparators = comparators
+        self.__comparators = comparators if comparators is not None else {}
         self.__times = {}
 
     def __setitem__(self, k, v):
@@ -37,12 +37,17 @@ class ChangeDict(OrderedDict):
         self.move_to_end(k)
         self.__times[k] = now()
 
-    def __delitem__(self, k, v):
-        super().__delitem__(k, v)
-        del self.__times[k]
+    def __delitem__(self, k):
+        super().__delitem__(k)
+        self.__times.pop(k, None)
+
+    def pop(self, k, *args):
+        v = super().pop(k, *args)
+        self.__times.pop(k, None)
+        return v
 
     def latest(self):
-        if not self.__times:
+        if not self:
             return 0
         k = next(reversed(self))
         return self.__times[k]
