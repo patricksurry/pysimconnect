@@ -1,5 +1,4 @@
 import typer
-from . import _typerpatch
 import json
 from typing import List, Optional
 from textwrap import fill
@@ -72,10 +71,10 @@ def canonicalvars(simvars: List[str]) -> List[str]:
 def get(simvars: List[str] = simvardef, units: Optional[str] = unitsdef):
     simvars = canonicalvars(simvars)
     unitdesc = f" ({units})" if units else ''
-    for s in simvars:
-        with SimConnect(name='cli') as sc:
-            v = sc.get_simdatum(s.replace('_,', ' '), units)
-        typer.echo(f"{s}{unitdesc} = {v}")
+    with SimConnect(name='cli') as sc:
+        for s in simvars:
+            v = sc.get_simdatum(s, units)
+            typer.echo(f"{s}{unitdesc} = {v}")
 
 
 @app.command()
@@ -120,7 +119,7 @@ def set(simvar: str = simvardef, value: float = typer.Argument(...), units: Opti
 
 
 @app.command()
-def send(event: str = eventdef, value: Optional[float] = None):
+def send(event: str = eventdef, value: Optional[int] = None):
     event = event.upper()
     typer.echo(f"Sending {event}({value})")
     with SimConnect(name='cli') as sc:
