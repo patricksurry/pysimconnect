@@ -173,8 +173,8 @@ Bump version in `setup.cfg` then following https://packaging.python.org/en/lates
     python3 -m build
     git commit -am ...
     git push origin
-    git tag v0.2.6
+    git tag v0.2.7
     git push origin --tags
-    python3 -m twine upload dist/*0.2.6*
+    python3 -m twine upload dist/*0.2.7*
     # login with username: __token__ / password: pypi-...
 
