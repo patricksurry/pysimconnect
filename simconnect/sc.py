@@ -45,6 +45,8 @@ class SimConnect:
             raise
         self._reqid_iter = itertools.count()
         self._receivers: List[ReceiverInstance] = default_receivers[:]
+        self._datadefs = {}
+        self._event_ids = {}
         self.poll_interval_seconds = poll_interval_seconds
 
     def __enter__(self):
@@ -77,7 +79,7 @@ class SimConnect:
     def remove_receiver(self, receiver: Receiver) -> bool:
         """Remove a receiver instance by id, return True if found"""
         n = len(self._receivers)
-        self._receivers = [r for r in self._receivers if r._receiver == receiver]
+        self._receivers = [r for r in self._receivers if r._receiver != receiver and r != receiver]
         return len(self._receivers) < n
 
     def _dispatcher(self, pRecv, nSize, pContext):
@@ -86,7 +88,7 @@ class SimConnect:
         logging.debug(f"receive: got {recv.__class__.__name__} with size {nSize} and context {pContext}")
         self._received = sum(r.receive(recv) for r in self._receivers)
         if not self._received:
-            logging.warn(f"receive: no receiver found for {recv.__class__.__name__}")
+            logging.warning(f"receive: no receiver found for {recv.__class__.__name__}")
 
     def receive(self, timeout_seconds=None) -> bool:
         """

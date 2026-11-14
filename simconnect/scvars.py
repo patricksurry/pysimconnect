@@ -24,7 +24,7 @@ def validate_simvar(name: str, settable: bool) -> Optional[Dict[str, Any]]:
 def validate_event(event) -> str:
     s = _eventstd(event)
     if s not in EVENTS:
-        logging.warn(f"Simconnect: Unrecognized event {event}")
+        logging.warning(f"Simconnect: Unrecognized event {event}")
     return s
 
 
@@ -81,7 +81,8 @@ def _closemsg(s, ss):
     if xs:
         msg = f"perhaps one of {', '.join(xs)}?"
     else:
-        options = (ss[:3] + ['...']) if len(ss) > 3 else ss
+        ss_list = list(ss)
+        options = (ss_list[:3] + ['...']) if len(ss_list) > 3 else ss_list
         msg = f"found no similar options among: {', '.join(options)}"
     return msg
 
