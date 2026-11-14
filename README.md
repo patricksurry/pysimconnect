@@ -165,16 +165,35 @@ to Python, as long as header format doesn't change significantly.
 
 
 
+Testing and remote connectivity
+---
+
+Run unit tests via `pytest`:
+
+    python3 -m pytest -v
+
+Live integration tests in `tests/test_live_msfs.py` run automatically when `SimConnect.dll` can connect to a running MSFS 2020 instance, and are skipped otherwise (e.g. on macOS/Linux or when MSFS is not running).
+
+When running tests remotely over SSH on a Windows machine where `FlightSimulator.exe` is running in the interactive desktop session (`Session 1`), `sshd` runs in `Session 0` and cannot see the default local named pipe. Create a `SimConnect.cfg` in the working directory to connect over MSFS's local TCP port (`127.0.0.1:500`):
+
+    [SimConnect]
+    Protocol=IPv4
+    Address=127.0.0.1
+    Port=500
+
+For passwordless SSH to a Windows host where your user is in the `Administrators` group, OpenSSH reads authorized keys from `C:\ProgramData\ssh\administrators_authorized_keys` (with ACLs restricted to `Administrators` and `SYSTEM`), and Windows Firewall must allow inbound TCP port 22 (e.g. Private network profile).
+
+
 Packaging and distribution
 ---
 
 Bump version in `setup.cfg` then following https://packaging.python.org/en/latest/tutorials/packaging-projects/
 
-    python3 -m build
+    uv build --out-dir dist
     git commit -am ...
     git push origin
-    git tag v0.2.7
+    git tag v0.2.8
     git push origin --tags
-    python3 -m twine upload dist/*0.2.7*
+    uvx twine upload dist/*0.2.8*
     # login with username: __token__ / password: pypi-...
 
