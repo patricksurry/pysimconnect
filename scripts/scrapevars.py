@@ -14,8 +14,8 @@ from prepvars import prepvars
 base_urls = [
     # main list of links
     'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm',
-    # not linked explicitly elsewhere
-    'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm'
+    'https://docs.flightsimulator.com/html/Programming_Tools/Event_IDs/Event_IDs.htm',
+    'https://docs.flightsimulator.com/html/Programming_Tools/Environment_Variables.htm',
 ]
 
 

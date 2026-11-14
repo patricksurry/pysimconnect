@@ -141,6 +141,7 @@ The package requires a copy of `SimConnect.dll` to work.
 This normally ships with FS2020 but a recent copy is also included here.
 You can point to your own version by specifying the `dll_path` argument
 when initializing `SimConnect(...)`.
+When bundling an application with `PyInstaller` (especially in single-file `-F` mode), include the package's JSON metadata and DLL via `--collect-all simconnect` (or `--add-data ".../simconnect/*.json;./simconnect" --add-binary ".../simconnect/SimConnect.dll;./simconnect"`).
 The `scvars.json` file lists all the simulation variables (SimVars),
 events and dimensional units, which were scraped from the SDK documentation pages
 using `scripts/scrapevars.json`.  This is useful for finding content

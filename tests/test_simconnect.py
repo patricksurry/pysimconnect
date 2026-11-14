@@ -158,4 +158,17 @@ def test_receive_dispatches_open(caplog):
     with caplog.at_level(logging.INFO):
         assert sc.receive() is True
     assert any("Open: App" in r.message for r in caplog.records)
+    assert all(r.name.startswith("simconnect") for r in caplog.records)
+
+
+def test_logging_named_logger_and_verbose_flag(caplog):
+    """Regression test for Issue #10: use named logger and support verbose=False."""
+    import logging
+
+    with patch("simconnect.sc.windll.LoadLibrary", side_effect=OSError("no dll")):
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(OSError):
+                SimConnect(verbose=False)
+    assert caplog.records == []
+
 

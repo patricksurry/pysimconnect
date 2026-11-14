@@ -112,10 +112,30 @@ def test_validate_simvar_unknown_no_close_match(caplog):
     with caplog.at_level(logging.WARNING):
         sv = validate_simvar("C:fs9gps:FlightPlanDepartureAirportIdent", settable=False)
         assert sv == {}
-        sv2 = validate_simvar("ABSOLUTE TIME", settable=False)
-        assert sv2 == {}
-    assert len(caplog.records) == 2
+    assert len(caplog.records) == 1
     assert "unrecognized simvar" in caplog.records[0].message
+
+
+def test_validate_environment_and_helicopter_vars(caplog):
+    """Regression test for Issues #13 and #15: environment and helicopter vars/events."""
+    with caplog.at_level(logging.WARNING):
+        zulu = validate_simvar("ZULU TIME", settable=False)
+        assert validate_units("ZULU TIME", None, zulu) == "seconds"
+        abs_time = validate_simvar("ABSOLUTE TIME", settable=False)
+        assert validate_units("ABSOLUTE TIME", None, abs_time) == "seconds"
+        rotor = validate_simvar("ROTOR COLLECTIVE BLADE PITCH PCT", settable=False)
+        assert rotor != {}
+        assert validate_event("AXIS_CYCLIC_LATERAL_SET") == "AXIS_CYCLIC_LATERAL_SET"
+        assert validate_event("AXIS_CYCLIC_LONGITUDINAL_SET") == "AXIS_CYCLIC_LONGITUDINAL_SET"
+    assert caplog.records == []
+
+
+def test_validate_custom_mobiflight_event(caplog):
+    """Regression test for Issue #4: custom addon events containing '.' preserve case and do not warn."""
+    with caplog.at_level(logging.WARNING):
+        ev = validate_event("MobiFlight.AS1000_PFD_JOYSTICK_UP")
+        assert ev == "MobiFlight.AS1000_PFD_JOYSTICK_UP"
+    assert caplog.records == []
 
 
 def test_validate_event(caplog):

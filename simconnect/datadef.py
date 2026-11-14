@@ -14,6 +14,8 @@ from .changedict import ChangeDict
 if TYPE_CHECKING:
     from .sc import SimConnect
 
+logger = logging.getLogger(__name__)
+
 
 EPSILON_DEFAULT = 1e-4
 
@@ -94,7 +96,7 @@ class DataDefinition:
             if recv.dwRequestID != req_id:
                 return False
 
-            logging.debug(f"DataDefinition[{self.id}]: Reading RECV_SIMOBJECT_DATA for request {req_id}")
+            logger.debug(f"DataDefinition[{self.id}]: Reading RECV_SIMOBJECT_DATA for request {req_id}")
             # dwData is a placeholder for where the data values start
             # so get a void* to that location and cast appropriately
             offset = RECV_SIMOBJECT_DATA.dwData.offset
