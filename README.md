@@ -47,7 +47,7 @@ then restart your terminal as instructed:
 
 Now start a flight in FS2020, perhaps with the AI pilot flying.
 Let's experiment with reading and modifying the altitude.
-First let's find some relevant variables in the interactive [SDK Explorer](https://patricksurry.github.io/pysimconnect/) with `search`:
+First let's find some relevant variables in the interactive [SimVar Explorer](https://patricksurry.github.io/pysimconnect/) with `search`:
 
 ![simconnect search example](https://raw.githubusercontent.com/patricksurry/pysimconnect/master/doc/sc-search.svg)
 
@@ -97,6 +97,12 @@ If you send this event a few times, you'll see the indicated altitude adjust in 
 
 This simple event needs no data, but with others you also need to provide a value.
 
+You can also launch a live [G3](https://github.com/patricksurry/g3) steam-gauge instrument panel server directly from the CLI:
+
+    simconnect serve --port 8000
+
+Then open `http://localhost:8000` in any browser (or on a tablet/Raspberry Pi on your LAN) to view live navigation and radio-nav gauges streamed over Server-Sent Events (`/stream`, `/metrics.json`, `/inputs`). If MSFS 2020 is not running (or on macOS/Linux), `simconnect serve --mock` streams realistic synthetic flight telemetry.
+
 
 Working with python
 ---
@@ -109,7 +115,7 @@ The best way to get started is to browse some [examples](examples/README.md)
 which show both low-level interaction with the SDK,
 and some of the simplified sugar the package offers,
 or consult the [API & Architecture Reference](docs/reference.md) and interactive
-[SDK Explorer](docs/index.html) (`simconnect search --web`).
+[SimVar Explorer](docs/index.html) (`simconnect search`).
 
 
 With so many moving parts, debugging errors can sometimes be tricky.
@@ -151,7 +157,7 @@ you want to interact with, inferring missing units and data-types
 when querying simulation variables, and sanity-checking variable names.
 
 The `docs` folder contains the [API & Architecture Reference](docs/reference.md)
-and a self-contained static [SDK Explorer & Docs site](docs/index.html) suitable
+and a self-contained static [SimVar Explorer & Docs site](docs/index.html) suitable
 for hosting on GitHub Pages.
 
 The `examples` folder contains various illustrations of how to use
@@ -199,8 +205,8 @@ Bump version in `setup.cfg` then following https://packaging.python.org/en/lates
     uv build --out-dir dist
     git commit -am ...
     git push origin
-    git tag v0.2.9
+    git tag v0.3.0
     git push origin --tags
-    uvx twine upload dist/*0.2.9*
+    uvx twine upload dist/*0.3.0*
     # login with username: __token__ / password: pypi-...
 

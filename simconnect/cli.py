@@ -121,11 +121,57 @@ def send(event: str = eventdef, value: Optional[int] = None):
 
 @app.command()
 def search(name: Optional[List[str]] = typer.Argument(None)):
-    """Open the interactive SimConnect SDK Explorer in your web browser."""
+    """Open the interactive SimVar Explorer in your web browser."""
     q = '+'.join(name) if name else ''
     url = f"{DOCS_URL}#search={q}" if q else DOCS_URL
     typer.echo(f"Opening {url}")
     webbrowser.open(url)
+
+
+@app.command()
+def serve(
+    host: str = "0.0.0.0",
+    port: int = 8000,
+    interval: float = 0.1,
+    mock: bool = False,
+    config: Optional[str] = None,
+    static_dir: Optional[str] = None,
+    open_browser: bool = False,
+):
+    """Serve G3-compatible instrument metrics (/stream, /metrics.json, /inputs) and static panel files."""
+    from .g3 import SimConnectG3Bridge, create_g3_server, load_config
+    from .mock import MockSimConnect
+
+    cfg = load_config(config)
+    if static_dir is None and config:
+        static_dir = os.path.dirname(os.path.abspath(config))
+
+    if mock:
+        sc = MockSimConnect(name="g3_mock")
+        mode_label = "mock telemetry"
+    else:
+        try:
+            sc = SimConnect(name="g3_bridge")
+            mode_label = "live MSFS SimConnect"
+        except Exception as exc:
+            typer.echo(f"SimConnect unavailable ({exc}); starting in --mock telemetry mode.")
+            sc = MockSimConnect(name="g3_mock")
+            mode_label = "mock telemetry"
+
+    bridge = SimConnectG3Bridge(sc=sc, config=cfg)
+    server = create_g3_server(bridge, host=host, port=port, stream_interval=interval, static_dir=static_dir)
+    display_host = "localhost" if host in ("0.0.0.0", "127.0.0.1") else host
+    url = f"http://{display_host}:{port}/"
+    typer.echo(f"Serving G3 Flight Deck ({mode_label}) at {url}")
+    if open_browser:
+        webbrowser.open(url)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+        bridge.close()
 
 
 if __name__ == "__main__":
