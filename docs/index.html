@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pysimconnect — Python Wrapper & SDK Explorer for MSFS 2020 SimConnect</title>
+  <title>pysimconnect — Python Wrapper & SimVar Explorer for MSFS SimConnect</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -264,10 +264,10 @@
   <header>
     <div class="brand">
       <h1>✈️ pysimconnect</h1>
-      <span>Python Wrapper &amp; SDK Explorer for MSFS 2020 SimConnect</span>
+      <span>Python Wrapper &amp; SimVar Explorer for MSFS SimConnect</span>
     </div>
     <nav>
-      <button id="tab-btn-explorer" class="active" onclick="switchTab('explorer')">🧭 SDK Explorer</button>
+      <button id="tab-btn-explorer" class="active" onclick="switchTab('explorer')">🧭 SimVar Explorer</button>
       <button id="tab-btn-quickstart" onclick="switchTab('quickstart')">🚀 Quick Start</button>
       <button id="tab-btn-reference" onclick="switchTab('reference')">📘 API Reference</button>
       <a href="https://github.com/patricksurry/pysimconnect" target="_blank" style="padding:0.5rem 0.75rem;font-size:0.9rem;">GitHub ↗</a>
@@ -275,13 +275,13 @@
   </header>
 
   <main>
-    <!-- TAB 1: SDK EXPLORER -->
+    <!-- TAB 1: SIMVAR EXPLORER -->
     <section id="tab-explorer" class="tab-pane active">
       <div class="controls">
         <input
           type="search"
           id="search-input"
-          placeholder="Hybrid search 3,200+ SimVars, Events & Units (e.g. 'indicated altitude', 'barometer', 'cyclic', 'transponder', 'fuel pressure')..."
+          placeholder="Search 3,200+ SimVars, Events & Units (e.g. 'indicated altitude', 'kohlsman', 'cyclic', 'transponder', 'fuel pressure')..."
           autocomplete="off"
         />
         <div class="filter-pills">

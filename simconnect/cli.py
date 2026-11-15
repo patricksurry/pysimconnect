@@ -121,7 +121,7 @@ def send(event: str = eventdef, value: Optional[int] = None):
 
 @app.command()
 def search(name: Optional[List[str]] = typer.Argument(None)):
-    """Open the interactive SimConnect SDK Explorer in your web browser."""
+    """Open the interactive SimVar Explorer in your web browser."""
     q = '+'.join(name) if name else ''
     url = f"{DOCS_URL}#search={q}" if q else DOCS_URL
     typer.echo(f"Opening {url}")

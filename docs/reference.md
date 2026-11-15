@@ -104,7 +104,7 @@ Helper functions:
 ## 6. Command-Line Interface (`simconnect`)
 
 ```bash
-# Open the interactive SDK Explorer in your browser
+# Open the interactive SimVar Explorer in your browser
 simconnect search altitude
 
 # Read one or more SimVars
