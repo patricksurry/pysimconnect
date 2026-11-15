@@ -124,6 +124,7 @@ class DataDefinition:
             return True
 
         sc.add_receiver(RECV_SIMOBJECT_DATA, _receiver)
+        return _receiver
 
     def _pack_data(self, simdata: Dict[str, Any]) -> Struct1:
         if self._struct is None:

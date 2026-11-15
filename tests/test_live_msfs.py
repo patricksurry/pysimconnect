@@ -57,3 +57,30 @@ def test_live_reconnect_separate_instance(live_sc):
     with SimConnect(name="pytest_reconnect") as sc2:
         alt = sc2.get_simdatum("Indicated Altitude")
         assert isinstance(alt, float)
+
+
+def test_live_readme_cli_e2e(live_sc):
+    """Run the actual README CLI commands (search, get, set, send) against live MSFS 2020."""
+    from typer.testing import CliRunner
+    from simconnect.cli import app
+
+    runner = CliRunner()
+
+    res_search = runner.invoke(app, ["search", "altitude"])
+    assert res_search.exit_code == 0
+    assert "PLANE ALTITUDE" in res_search.stdout
+
+    res_get = runner.invoke(app, ["get", "PLANE_ALTITUDE"])
+    assert res_get.exit_code == 0
+    assert "PLANE ALTITUDE =" in res_get.stdout
+
+    # Read current altitude in meters, set it back to the same value in meters so flight isn't disrupted
+    cur_alt_m = live_sc.get_simdatum("PLANE ALTITUDE", units="meters")
+    res_set = runner.invoke(app, ["set", "PLANE_ALTITUDE", str(round(cur_alt_m, 2)), "--units", "meters"])
+    assert res_set.exit_code == 0
+    assert "Setting PLANE ALTITUDE =" in res_set.stdout
+
+    res_send = runner.invoke(app, ["send", "KOHLSMAN_INC"])
+    assert res_send.exit_code == 0
+    assert "Sending KOHLSMAN_INC" in res_send.stdout
+

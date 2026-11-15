@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pysimconnect — Python Wrapper & SDK Explorer for MSFS 2020 SimConnect</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-hover: #26354d;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --var-color: #60a5fa;
+      --evt-color: #4ade80;
+      --unit-color: #f87171;
+      --code-bg: #0b1120;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    header {
+      background: #0b1120;
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .brand span {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    nav {
+      display: flex;
+      gap: 0.5rem;
+    }
+    nav button {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid transparent;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    nav button:hover { color: var(--text); background: var(--panel); }
+    nav button.active {
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 4rem;
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    .controls {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 820px) {
+      .controls { grid-template-columns: 1fr; }
+    }
+    input[type="search"], select {
+      background: var(--code-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.6rem 0.85rem;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+    input[type="search"]:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .filter-pills {
+      display: flex;
+      gap: 0.35rem;
+    }
+    .pill {
+      background: var(--code-bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.75rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .pill.active {
+      color: var(--text);
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.15);
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .results-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.65rem;
+      padding: 0.9rem 1.1rem;
+      transition: background 0.12s;
+    }
+    .card:hover { background: var(--panel-hover); }
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+    .item-title {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 700;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .kind-VARIABLES { color: var(--var-color); }
+    .kind-EVENTS { color: var(--evt-color); }
+    .kind-UNITS { color: var(--unit-color); }
+    .badge {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.35rem;
+      background: var(--code-bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .badge.settable {
+      color: #fde047;
+      border-color: rgba(253, 224, 71, 0.35);
+    }
+    .desc {
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      margin: 0.35rem 0;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .snippet-btns {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .copy-btn {
+      background: var(--code-bg);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 0.35rem;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.75rem;
+      font-family: ui-monospace, monospace;
+      cursor: pointer;
+    }
+    .copy-btn:hover { border-color: var(--accent); }
+    .doc-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.25rem;
+    }
+    .doc-section h2 {
+      margin-top: 0;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+    .doc-section h3 { color: var(--text); margin-top: 1.25rem; }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.85rem 1rem;
+      overflow-x: auto;
+      font-size: 0.88rem;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #e2e8f0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--accent); background: var(--code-bg); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>✈️ pysimconnect</h1>
+      <span>Python Wrapper &amp; SDK Explorer for MSFS 2020 SimConnect</span>
+    </div>
+    <nav>
+      <button id="tab-btn-explorer" class="active" onclick="switchTab('explorer')">🧭 SDK Explorer</button>
+      <button id="tab-btn-quickstart" onclick="switchTab('quickstart')">🚀 Quick Start</button>
+      <button id="tab-btn-reference" onclick="switchTab('reference')">📘 API Reference</button>
+      <a href="https://github.com/patricksurry/pysimconnect" target="_blank" style="padding:0.5rem 0.75rem;font-size:0.9rem;">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- TAB 1: SDK EXPLORER -->
+    <section id="tab-explorer" class="tab-pane active">
+      <div class="controls">
+        <input
+          type="search"
+          id="search-input"
+          placeholder="Hybrid search 3,200+ SimVars, Events & Units (e.g. 'indicated altitude', 'barometer', 'cyclic', 'transponder', 'fuel pressure')..."
+          autocomplete="off"
+        />
+        <div class="filter-pills">
+          <button class="pill active" data-kind="ALL" onclick="setKind('ALL')">All</button>
+          <button class="pill" data-kind="VARIABLES" onclick="setKind('VARIABLES')">🧭 Variables</button>
+          <button class="pill" data-kind="EVENTS" onclick="setKind('EVENTS')">⚙️ Events</button>
+          <button class="pill" data-kind="UNITS" onclick="setKind('UNITS')">📐 Units</button>
+        </div>
+        <select id="category-select" onchange="runSearch()">
+          <option value="">All Categories</option>
+        </select>
+        <label class="checkbox-label">
+          <input type="checkbox" id="settable-only" onchange="runSearch()" />
+          ✏️ Settable only
+        </label>
+      </div>
+
+      <div class="stats-bar">
+        <span id="results-count">Loading SDK catalog...</span>
+        <span>Tip: Click any Python or CLI button on a card to copy ready-to-use code</span>
+      </div>
+
+      <div id="results-container" class="results-list"></div>
+    </section>
+
+    <!-- TAB 2: QUICK START (Rendered live from ../README.md) -->
+    <section id="tab-quickstart" class="tab-pane">
+      <div id="quickstart-md" class="doc-section">Loading Quick Start from <code>README.md</code>...</div>
+    </section>
+
+    <!-- TAB 3: API REFERENCE (Rendered live from ./reference.md) -->
+    <section id="tab-reference" class="tab-pane">
+      <div id="reference-md" class="doc-section">Loading API Reference from <code>docs/reference.md</code>...</div>
+    </section>
+  </main>
+
+  <script>
+    // Aviation domain synonyms for hybrid semantic expansion
+    const SYNONYMS = {
+      baro: ["kohlsman", "barometer", "altimeter", "pressure"],
+      barometer: ["kohlsman", "altimeter", "pressure"],
+      altimeter: ["kohlsman", "indicated altitude", "barometer"],
+      xpdr: ["transponder", "bco16", "squawk"],
+      squawk: ["transponder", "bco16"],
+      hdg: ["heading"],
+      ias: ["airspeed indicated"],
+      tas: ["airspeed true"],
+      vs: ["vertical speed", "variometer"],
+      vsi: ["vertical speed"],
+      cht: ["cylinder head temperature"],
+      egt: ["exhaust gas temperature"],
+      rpm: ["revolutions", "general eng rpm", "prop"],
+      cyclic: ["helicopter", "rotor", "disk"],
+      collective: ["helicopter", "rotor", "blade pitch"],
+      utc: ["zulu", "absolute time"],
+    };
+
+    let allItems = [];
+    let currentKind = "ALL";
+
+    function trigrams(s) {
+      const padded = "  " + s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() + "  ";
+      const set = new Set();
+      for (let i = 0; i < padded.length - 2; i++) {
+        set.add(padded.slice(i, i + 3));
+      }
+      return set;
+    }
+
+    function trigramSim(aSet, bSet) {
+      if (!aSet.size || !bSet.size) return 0;
+      let inter = 0;
+      for (const t of aSet) {
+        if (bSet.has(t)) inter++;
+      }
+      return inter / Math.sqrt(aSet.size * bSet.size);
+    }
+
+    async function loadCatalog() {
+      const urls = [
+        "../simconnect/scvars.json",
+        "https://raw.githubusercontent.com/patricksurry/pysimconnect/master/simconnect/scvars.json"
+      ];
+      let data = null;
+      for (const url of urls) {
+        try {
+          const resp = await fetch(url);
+          if (resp.ok) {
+            data = await resp.json();
+            break;
+          }
+        } catch (e) {}
+      }
+      if (!data) {
+        document.getElementById("results-count").textContent = "Failed to load scvars.json.";
+        return;
+      }
+
+      const pages = new Set();
+      for (const kind of ["VARIABLES", "EVENTS", "UNITS"]) {
+        const entries = data[kind] || {};
+        for (const [key, d] of Object.entries(entries)) {
+          const name = kind === "UNITS" ? (d.name_std || d.name) : d.name;
+          const nameClean = name.toLowerCase().replace(/_/g, " ");
+          const desc = (d.description || "").replace(/\s+/g, " ").trim();
+          const page = (d.page || "").trim();
+          const section = (d.section || "").trim();
+          if (page) pages.add(page);
+          allItems.push({
+            kind,
+            key,
+            name,
+            nameClean,
+            desc,
+            descLower: desc.toLowerCase(),
+            page,
+            section,
+            catLower: (page + " " + section).toLowerCase(),
+            units: d.units_std || d.units || "",
+            dimensions: d.dimensions || "",
+            settable: Boolean(d.settable),
+            indexed: Boolean(d.indexed),
+            nameTrigrams: trigrams(nameClean),
+          });
+        }
+      }
+
+      const catSelect = document.getElementById("category-select");
+      Array.from(pages).sort().forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        catSelect.appendChild(opt);
+      });
+
+      // Check URL hash for #search=...
+      if (window.location.hash.startsWith("#search=")) {
+        const q = decodeURIComponent(window.location.hash.slice("#search=".length).replace(/\+/g, " "));
+        document.getElementById("search-input").value = q;
+      }
+      runSearch();
+    }
+
+    function setKind(k) {
+      currentKind = k;
+      document.querySelectorAll(".pill").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.kind === k);
+      });
+      runSearch();
+    }
+
+    function switchTab(tab) {
+      ["explorer", "quickstart", "reference"].forEach(t => {
+        document.getElementById("tab-" + t).classList.toggle("active", t === tab);
+        document.getElementById("tab-btn-" + t).classList.toggle("active", t === tab);
+      });
+    }
+
+    function copyText(btn, text) {
+      navigator.clipboard.writeText(text);
+      const orig = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(() => { btn.textContent = orig; }, 1200);
+    }
+
+    function runSearch() {
+      const rawQ = document.getElementById("search-input").value.trim().toLowerCase();
+      const catFilter = document.getElementById("category-select").value;
+      const settableOnly = document.getElementById("settable-only").checked;
+
+      const tokens = rawQ.split(/[\s_]+/).filter(Boolean).map(t => t.replace(/\*+$/, ""));
+      const qTrigrams = rawQ ? trigrams(rawQ) : null;
+
+      // Expand tokens with domain synonyms
+      const expandedGroups = tokens.map(tok => {
+        const group = [tok];
+        if (SYNONYMS[tok]) group.push(...SYNONYMS[tok]);
+        return group;
+      });
+
+      const matches = [];
+      for (const item of allItems) {
+        if (currentKind !== "ALL" && item.kind !== currentKind) continue;
+        if (catFilter && item.page !== catFilter) continue;
+        if (settableOnly && !item.settable) continue;
+
+        if (!tokens.length) {
+          matches.push({ score: 1, item });
+          continue;
+        }
+
+        let score = 0;
+        let allMatched = true;
+        for (const group of expandedGroups) {
+          let groupScore = 0;
+          for (let idx = 0; idx < group.length; idx++) {
+            const term = group[idx];
+            const weight = idx === 0 ? 1.0 : 0.75; // direct token vs synonym
+            if (item.nameClean === term) {
+              groupScore = Math.max(groupScore, 30 * weight);
+            } else if (item.nameClean.startsWith(term)) {
+              groupScore = Math.max(groupScore, 18 * weight);
+            } else if (item.nameClean.includes(term)) {
+              groupScore = Math.max(groupScore, 12 * weight);
+            } else if (item.descLower.includes(term)) {
+              groupScore = Math.max(groupScore, 5 * weight);
+            } else if (item.catLower.includes(term)) {
+              groupScore = Math.max(groupScore, 3 * weight);
+            }
+          }
+          if (groupScore === 0 && qTrigrams) {
+            const sim = trigramSim(qTrigrams, item.nameTrigrams);
+            if (sim >= 0.35) {
+              groupScore = sim * 10;
+            }
+          }
+          if (groupScore === 0) {
+            allMatched = false;
+            break;
+          }
+          score += groupScore;
+        }
+
+        if (allMatched && score > 0) {
+          matches.push({ score, item });
+        }
+      }
+
+      matches.sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name));
+      const limit = 100;
+      const shown = matches.slice(0, limit);
+      document.getElementById("results-count").textContent =
+        `Showing ${shown.length} of ${matches.length} matching items (${allItems.length} total in SDK catalog)`;
+
+      const container = document.getElementById("results-container");
+      container.innerHTML = "";
+      const symbols = { VARIABLES: "🧭", EVENTS: "⚙️", UNITS: "📐" };
+
+      for (const { item } of shown) {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const sampleName = item.indexed ? item.name.replace(/:index$/i, ":1") : item.name;
+        const cliName = sampleName.replace(/\s+/g, "_");
+        let pySnippet = "";
+        let cliSnippet = "";
+        if (item.kind === "VARIABLES") {
+          pySnippet = `sc.get_simdatum("${sampleName}")`;
+          cliSnippet = `simconnect get ${cliName}`;
+        } else if (item.kind === "EVENTS") {
+          pySnippet = `sc.send_event("${sampleName}")`;
+          cliSnippet = `simconnect send ${cliName}`;
+        } else {
+          pySnippet = `units="${item.name}"`;
+          cliSnippet = `--units ${cliName}`;
+        }
+
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="item-title kind-${item.kind}">
+              <span>${symbols[item.kind]}</span>
+              <span>${item.name}</span>
+              ${item.settable ? '<span class="badge settable">✏️ Settable</span>' : ''}
+              ${item.units ? `<span class="badge">${item.units}</span>` : ''}
+              ${item.dimensions ? `<span class="badge">${item.dimensions}</span>` : ''}
+            </div>
+            <div class="snippet-btns">
+              <button class="copy-btn" title="Copy Python snippet">Python</button>
+              <button class="copy-btn" title="Copy CLI command">CLI</button>
+            </div>
+          </div>
+          ${item.desc ? `<div class="desc">${item.desc}</div>` : ''}
+          <div class="meta-row">
+            <span>${[item.page, item.section].filter(Boolean).join(" › ")}</span>
+            <code>${pySnippet}</code>
+          </div>
+        `;
+        const btns = card.querySelectorAll(".copy-btn");
+        btns[0].onclick = () => copyText(btns[0], pySnippet);
+        btns[1].onclick = () => copyText(btns[1], cliSnippet);
+        container.appendChild(card);
+      }
+    }
+
+    function renderMarkdown(md) {
+      // Normalize setext headings ("Title\n---" -> "## Title")
+      md = md.replace(/^([^\n]+)\n-{3,}\s*$/gm, "## $1");
+      // Extract fenced code blocks first
+      const codeBlocks = [];
+      md = md.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+        const esc = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        codeBlocks.push(`<pre><code class="lang-${lang}">${esc}</code></pre>`);
+        return `\x00CODE${codeBlocks.length - 1}\x00`;
+      });
+      // Extract 4-space indented code blocks
+      md = md.replace(/(?:^(?:    |\t).+\n?)+/gm, (block) => {
+        const code = block.replace(/^(?:    |\t)/gm, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        codeBlocks.push(`<pre><code>${code}</code></pre>`);
+        return `\x00CODE${codeBlocks.length - 1}\x00\n`;
+      });
+      // Render tables
+      md = md.replace(/^\|(.+)\|\n\|[-| :]+?\|\n((?:\|.+\|\n?)+)/gm, (_, hdr, rows) => {
+        const ths = hdr.split("|").map(c => `<th>${inlineMd(c.trim())}</th>`).join("");
+        const trs = rows.trim().split("\n").map(r => {
+          const tds = r.replace(/^\||\|$/g, "").split("|").map(c => `<td>${inlineMd(c.trim())}</td>`).join("");
+          return `<tr>${tds}</tr>`;
+        }).join("");
+        return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+      });
+      // Headings, HR, lists, paragraphs
+      const out = [];
+      for (const block of md.split(/\n{2,}/)) {
+        const b = block.trim();
+        if (!b) continue;
+        if (/^\x00CODE\d+\x00$/.test(b)) { out.push(b); continue; }
+        if (b.startsWith("<table")) { out.push(b); continue; }
+        if (/^---+$/.test(b)) { out.push("<hr style='border-color:var(--border);margin:1.5rem 0;'/>"); continue; }
+        const hm = b.match(/^(#{1,4})\s+(.+)$/);
+        if (hm) {
+          const lvl = hm[1].length;
+          out.push(`<h${lvl}>${inlineMd(hm[2])}</h${lvl}>`);
+          continue;
+        }
+        if (/^[-*]\s+/m.test(b)) {
+          const items = b.split(/\n(?=[-*]\s+)/).map(li => `<li>${inlineMd(li.replace(/^[-*]\s+/, ""))}</li>`).join("");
+          out.push(`<ul>${items}</ul>`);
+          continue;
+        }
+        out.push(`<p>${inlineMd(b)}</p>`);
+      }
+      let html = out.join("\n");
+      html = html.replace(/\x00CODE(\d+)\x00/g, (_, idx) => codeBlocks[Number(idx)]);
+      return html;
+    }
+
+    function inlineMd(s) {
+      return s
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2" style="max-width:100%;border-radius:0.5rem;border:1px solid var(--border);margin:0.5rem 0;" />')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    }
+
+    async function loadMarkdownDocs() {
+      const docs = [
+        {
+          el: "quickstart-md",
+          urls: ["../README.md", "https://raw.githubusercontent.com/patricksurry/pysimconnect/master/README.md"]
+        },
+        {
+          el: "reference-md",
+          urls: ["./reference.md", "https://raw.githubusercontent.com/patricksurry/pysimconnect/master/docs/reference.md"]
+        }
+      ];
+      for (const doc of docs) {
+        for (const url of doc.urls) {
+          try {
+            const resp = await fetch(url);
+            if (resp.ok) {
+              const md = await resp.text();
+              document.getElementById(doc.el).innerHTML = renderMarkdown(md);
+              break;
+            }
+          } catch (e) {}
+        }
+      }
+    }
+
+    document.getElementById("search-input").addEventListener("input", runSearch);
+    loadCatalog();
+    loadMarkdownDocs();
+  </script>
+</body>
+</html>

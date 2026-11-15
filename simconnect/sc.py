@@ -52,7 +52,14 @@ class SimConnect:
         self._receivers: List[ReceiverInstance] = default_receivers[:]
         self._datadefs = {}
         self._event_ids = {}
+        self._closed = False
         self.poll_interval_seconds = poll_interval_seconds
+
+    def Close(self):
+        if not self._closed:
+            self._closed = True
+            return self._decls['Close'](self.hsc)
+        return 0
 
     def __enter__(self):
         return self
@@ -130,13 +137,25 @@ class SimConnect:
         waits up to timeout_seconds for a response,
         returning SimData (a dictionary that supports changedsince, see changedict.py)
         """
-        dd = self.subscribe_simdata(simvars, period=PERIOD_ONCE, repeat_count=1, flags=0)
+        dd = DataDefinition.create(self, simvars)
+        req_id = next(self._reqid_iter)
+        rx = dd.add_receiver(self, req_id)
+        self.RequestDataOnSimObject(
+            req_id,
+            dd.id,
+            OBJECT_ID_USER,
+            PERIOD_ONCE,
+            0,
+            0,
+            1,
+            1,
+        )
         tmax = time() + (timeout_seconds or 1)
         # we'll potentially receive other messages while we're looking for this result
         # so wait up to timeout_seconds total while there are messages and we haven't got data yet
         while self.receive(tmax - time()) and not dd.simdata:
             pass
-        self._receivers.pop()
+        self.remove_receiver(rx)
         return dd.simdata
 
     def subscribe_simdata(

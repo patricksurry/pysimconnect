@@ -107,7 +107,9 @@ This means that you can write simple python code to do anything
 the command-line tool does, and much more besides.
 The best way to get started is to browse some [examples](examples/README.md)
 which show both low-level interaction with the SDK,
-and some of the simplified sugar the package offers.
+and some of the simplified sugar the package offers,
+or consult the [API & Architecture Reference](docs/reference.md) and interactive
+[SDK Explorer](docs/index.html) (`simconnect search --web`).
 
 
 With so many moving parts, debugging errors can sometimes be tricky.
@@ -144,9 +146,13 @@ when initializing `SimConnect(...)`.
 When bundling an application with `PyInstaller` (especially in single-file `-F` mode), include the package's JSON metadata and DLL via `--collect-all simconnect` (or `--add-data ".../simconnect/*.json;./simconnect" --add-binary ".../simconnect/SimConnect.dll;./simconnect"`).
 The `scvars.json` file lists all the simulation variables (SimVars),
 events and dimensional units, which were scraped from the SDK documentation pages
-using `scripts/scrapevars.json`.  This is useful for finding content
+using `scripts/scrapevars.py`.  This is useful for finding content
 you want to interact with, inferring missing units and data-types
 when querying simulation variables, and sanity-checking variable names.
+
+The `docs` folder contains the [API & Architecture Reference](docs/reference.md)
+and a self-contained static [SDK Explorer & Docs site](docs/index.html) suitable
+for hosting on GitHub Pages.
 
 The `examples` folder contains various illustrations of how to use
 the package, showing both low-level SDK access and the pythonic wrappers.
