@@ -1,9 +1,11 @@
-"""Lightweight, zero-dependency HTTP + SSE server bridging SimConnect to G3 instrument panels."""
+"""Lightweight HTTP + SSE server bridging SimConnect to G3 instrument panels."""
+from functools import partial
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
 import logging
 import math
+import os
 import threading
 import time
 from typing import Any, Dict, List, Optional
@@ -12,238 +14,67 @@ from urllib.parse import parse_qs, urlparse
 from .changedict import ChangeDict
 from .sc import SimConnect
 from .scdefs import PERIOD_VISUAL_FRAME
+from .scvars import validate_simvar, validate_units
 
 logger = logging.getLogger(__name__)
 
-# Mapping from G3 supported units (convert-units) to equivalent MSFS units
-G3_TO_MSFS_UNITS: Dict[str, List[str]] = {
-    "ft": ["feet", "foot"],
-    "deg": ["degrees", "degree"],
-    "rad": ["radians", "radian"],
-    "knot": ["knots", "knot"],
-    "R": ["rankine"],
-    "C": ["celsius"],
-    "F": ["fahrenheit"],
-    "rpm": ["rpm", "r.p.m."],
-    "inHg": ["inhg", "inches of mercury", "inch of mercury"],
-    "rad/s": ["radians per second", "radian per second"],
-    "ft/min": ["feet/minute", "feet per minute"],
-    "ft/s": ["feet/second", "feet per second"],
-    "hPa": ["millibars", "millibar", "hectopascals", "hectopascal"],
-    "gal": ["gallons", "gallon"],
-    "psi": ["psi", "pounds per square inch"],
-}
+DEFAULT_EXAMPLE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "examples", "g3")
+)
 
+# Map canonical MSFS unit names to G3 convert-units symbols
 MSFS_TO_G3_UNIT: Dict[str, str] = {
-    msfs_u.lower(): g3_u
-    for g3_u, msfs_list in G3_TO_MSFS_UNITS.items()
-    for msfs_u in msfs_list
+    "feet": "ft",
+    "foot": "ft",
+    "degrees": "deg",
+    "degree": "deg",
+    "radians": "rad",
+    "radian": "rad",
+    "knots": "knot",
+    "knot": "knot",
+    "rankine": "R",
+    "celsius": "C",
+    "fahrenheit": "F",
+    "rpm": "rpm",
+    "r.p.m.": "rpm",
+    "inhg": "inHg",
+    "inches of mercury": "inHg",
+    "radians per second": "rad/s",
+    "feet/minute": "ft/min",
+    "feet per minute": "ft/min",
+    "feet/second": "ft/s",
+    "feet per second": "ft/s",
+    "millibars": "hPa",
+    "hectopascals": "hPa",
+    "gallons": "gal",
+    "psi": "psi",
+    "pounds per square inch": "psi",
 }
-
-DEFAULT_CONFIG: Dict[str, Any] = {
-    "metrics": [
-        # Nav panel
-        {"metric": "heading", "simvar": "HEADING INDICATOR"},
-        {"metric": "altitude", "simvar": "INDICATED ALTITUDE"},
-        {"metric": "pressureSetting", "simvar": "BAROMETER PRESSURE"},
-        {"metric": "pitch", "simvar": "ATTITUDE INDICATOR PITCH DEGREES"},
-        {"metric": "roll", "simvar": "ATTITUDE INDICATOR BANK DEGREES"},
-        {"metric": "turnrate", "simvar": "TURN INDICATOR RATE"},
-        {"metric": "slip", "simvar": "TURN COORDINATOR BALL", "fx": "x / 5", "fxunit": "deg"},
-        {"metric": "airspeed", "simvar": "AIRSPEED INDICATED"},
-        {"metric": "verticalSpeed", "simvar": "VERTICAL SPEED"},
-        # ADF gauge
-        {"metric": "relativeADF", "simvar": "ADF RADIAL"},
-        {"metric": "headingADF", "simvar": "ADF CARD"},
-        # VOR gauge
-        {"metric": "radialVOR", "simvar": "NAV RADIAL:1"},
-        {"metric": "radialDeviation", "simvar": "NAV RADIAL ERROR:1"},
-        {"metric": "toFromVOR", "simvar": "NAV TOFROM:1", "fx": "-1 if x == 2 else x", "fxunit": None},
-        # Compass
-        {"metric": "compass", "simvar": "MAGNETIC COMPASS"},
-        # Engine / Center panel (DHC-2 Beaver)
-        {"metric": "suctionPressure", "simvar": "SUCTION PRESSURE"},
-        {"metric": "fuel.front", "simvar": "FUEL SELECTED QUANTITY:2"},
-        {"metric": "fuel.center", "simvar": "FUEL SELECTED QUANTITY:3"},
-        {"metric": "fuel.rear", "simvar": "FUEL SELECTED QUANTITY:6"},
-        {
-            "metric": "fuelSelector",
-            "simvar": "FUEL TANK SELECTOR:1",
-            "fx": "{1: 'front', 2: 'front', 3: 'center', 6: 'rear'}.get(x, 'front')",
-            "fxunit": None,
-        },
-        {"metric": "fuelPressure", "simvar": "ENG FUEL PRESSURE:1", "unit": "psi"},
-        {"metric": "oilPressure", "simvar": "ENG OIL PRESSURE:1", "unit": "psi"},
-        {"metric": "oilTemperature", "simvar": "ENG OIL TEMPERATURE:1"},
-        {"metric": "manifoldPressure", "simvar": "ENG MANIFOLD PRESSURE:1"},
-        {"metric": "engineRPM", "simvar": "GENERAL ENG RPM:1"},
-        {"metric": "cylinderHeadTemp", "simvar": "ENG CYLINDER HEAD TEMPERATURE:1"},
-        {"metric": "fuelWarning", "simvar": "WARNING FUEL"},
-        {"metric": "oilPressureWarning", "simvar": "WARNING OIL PRESSURE"},
-    ],
-    "actions": [
-        {"input": "ALT-ROT", "method": "incdec", "event": ["KOHLSMAN_INC", "KOHLSMAN_DEC"]},
-        {"input": "ATT-BTN", "event": "ATTITUDE_CAGE_BUTTON"},
-        {"input": "ATT-ROT", "method": "incdec", "event": ["ATTITUDE_BARS_POSITION_UP", "ATTITUDE_BARS_POSITION_DOWN"]},
-        {"input": "VOR-ROT", "method": "incdec", "event": ["VOR1_OBI_INC", "VOR1_OBI_DEC"]},
-        {"input": "ADF-ROT", "method": "incdec", "event": ["ADF_CARD_INC", "ADF_CARD_DEC"]},
-        {"input": "HDG-ROT", "method": "incdec", "event": ["HEADING_BUG_INC", "HEADING_BUG_DEC"]},
-        {"input": "MASTER0", "simvar": "GENERAL ENG GENERATOR ACTIVE:1"},
-        {"input": "MASTER1", "simvar": "ELECTRICAL MASTER BATTERY"},
-        {"input": "PRIMER", "simvar": "ENGINE PRIMER"},
-        {"input": "MIXTURE", "simvar": "GENERAL ENG MIXTURE LEVER POSITION:1"},
-        {"input": "SW1-1", "method": "set", "event": "PARKING_BRAKE_SET"},
-        {"input": "SW1-2", "method": "set", "event": "STROBES_SET"},
-        {"input": "SW1-3", "method": "set", "event": "LANDING_LIGHTS_SET"},
-        {"input": "SW2-1", "method": "set", "event": "BEACON_LIGHTS_SET"},
-        {"input": "SW2-2", "method": "set", "event": "NAV_LIGHTS_SET"},
-        {"input": "SW2-5", "method": "set", "event": "PITOT_HEAT_SET"},
-        {"input": "SW3-1", "event": "TOGGLE_ELECT_FUEL_PUMP"},
-        {"input": "fuelWarning", "output": "RED_WARNING"},
-        {"input": "oilPressureWarning", "output": "ORANGE_WARNING"},
-    ],
-}
-
-
-PANEL_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>pysimconnect × G3 — Live Flight Deck</title>
-  <style>
-    body {
-      margin: 0;
-      background: #111827;
-      color: #f3f4f6;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    header {
-      width: 100%;
-      background: #0b0f19;
-      border-bottom: 1px solid #374151;
-      padding: 0.65rem 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      box-sizing: border-box;
-    }
-    .title { font-weight: 700; font-size: 1rem; color: #38bdf8; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
-    button, a.btn {
-      background: #1f2937;
-      color: #e5e7eb;
-      border: 1px solid #374151;
-      border-radius: 0.4rem;
-      padding: 0.35rem 0.7rem;
-      font-size: 0.82rem;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    button:hover, a.btn:hover { border-color: #38bdf8; color: #fff; }
-    button.active { background: #0284c7; border-color: #38bdf8; color: #fff; }
-    #panel-host {
-      margin-top: 0.5rem;
-      display: flex;
-      justify-content: center;
-      width: 100%;
-    }
-    svg.g3-panel { background: #18181b; border-radius: 0.75rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  </style>
-  <script src="https://unpkg.com/@patricksurry/g3/dist/g3-contrib.min.js"></script>
-</head>
-<body>
-  <header>
-    <div class="title">✈️ pysimconnect × G3 Live Panel</div>
-    <div class="toolbar">
-      <a class="btn" id="btn-nav" href="/?panel=nav">🧭 DHC-2 Nav Panel</a>
-      <a class="btn" id="btn-engine" href="/?panel=engine">⚙️ DHC-2 Engine Panel</a>
-      <span style="color:#6b7280;margin:0 0.25rem;">|</span>
-      <button onclick="sendInput({'ALT-ROT': -1})">Baro −</button>
-      <button onclick="sendInput({'ALT-ROT': 1})">Baro +</button>
-      <button onclick="sendInput({'HDG-ROT': -5})">HDG −</button>
-      <button onclick="sendInput({'HDG-ROT': 5})">HDG +</button>
-      <button onclick="sendInput({'VOR-ROT': -5})">OBS −</button>
-      <button onclick="sendInput({'VOR-ROT': 5})">OBS +</button>
-      <button onclick="sendInput({'ADF-ROT': -5})">ADF −</button>
-      <button onclick="sendInput({'ADF-ROT': 5})">ADF +</button>
-      <button onclick="sendInput({'ATT-BTN': 1})">Cage AI</button>
-    </div>
-  </header>
-  <div id="panel-host"></div>
-  <script>
-    async function sendInput(payload) {
-      await fetch('/inputs', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-      });
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const mode = params.get('panel') || 'nav';
-    document.getElementById(mode === 'engine' ? 'btn-engine' : 'btn-nav').classList.add('active');
-
-    if (mode === 'engine') {
-      g3.panel()
-        .width(1024)
-        .height(768)
-        .interval(0)
-        .url('/stream')
-        .append(
-          g3.put().x(170).y(190).scale(1.1).append(g3.contrib.engine.suctionPressure.DHC2()),
-          g3.put().x(512).y(190).scale(1.1).append(g3.contrib.engine.fuel.DHC2()),
-          g3.put().x(854).y(190).scale(1.1).append(g3.contrib.engine.oilFuelStatus.DHC2()),
-          g3.put().x(320).y(540).scale(1.55).append(g3.contrib.engine.manifoldPressure.DHC2()),
-          g3.put().x(704).y(540).scale(1.55).append(g3.contrib.engine.tachometer.DHC2())
-        )('#panel-host');
-    } else {
-      g3.panel()
-        .width(1024)
-        .height(640)
-        .interval(0)
-        .url('/stream')
-        .append(
-          g3.put().x(128).y(180).scale(0.9).append(g3.contrib.nav.airspeed.DHC2()),
-          g3.put().x(384).y(180).scale(0.9).append(g3.contrib.nav.attitude.generic()),
-          g3.put().x(640).y(180).scale(0.9).append(g3.contrib.nav.altitude.generic()),
-          g3.put().x(896).y(180).scale(0.9).append(g3.contrib.radionav.VOR.generic()),
-          g3.put().x(128).y(448).scale(0.9).append(g3.contrib.nav.turnCoordinator.generic()),
-          g3.put().x(384).y(448).scale(0.9).append(g3.contrib.nav.heading.generic()),
-          g3.put().x(640).y(448).scale(0.9).append(g3.contrib.nav.VSI.generic()),
-          g3.put().x(896).y(448).scale(0.9).append(g3.contrib.radionav.ADF.generic())
-        )('#panel-host');
-    }
-  </script>
-</body>
-</html>
-"""
 
 
 def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
-    if not config_path:
-        return json.loads(json.dumps(DEFAULT_CONFIG))
-    with open(config_path, "r") as f:
-        if config_path.endswith((".yml", ".yaml")):
-            try:
-                from ruamel.yaml import YAML
-                return YAML(typ="safe").load(f)
-            except ImportError:
-                import yaml  # type: ignore
-                return yaml.safe_load(f)
+    path = config_path or os.path.join(DEFAULT_EXAMPLE_DIR, "config.json")
+    with open(path, "r") as f:
+        if path.endswith((".yml", ".yaml")):
+            import yaml  # type: ignore
+            return yaml.safe_load(f)
         return json.load(f)
+
+
+def _infer_g3_unit(simvar: str, explicit_unit: Optional[str] = None) -> Optional[str]:
+    sv_meta = validate_simvar(simvar, settable=False)
+    msfs_unit = validate_units(simvar, explicit_unit, sv_meta)
+    if not msfs_unit:
+        return None
+    return MSFS_TO_G3_UNIT.get(msfs_unit.lower(), msfs_unit)
 
 
 class SimConnectG3Bridge:
     """Polls SimConnect (or synthetic mock telemetry) and serves G3 metrics/actions."""
 
     def __init__(self, config: Optional[Dict[str, Any]] = None, mock: bool = False):
-        self.cfg = config or json.loads(json.dumps(DEFAULT_CONFIG))
-        self.mapping: List[Dict[str, Any]] = self.cfg.get("metrics", [])
+        self.cfg = config or load_config()
+        self.mapping: List[Dict[str, Any]] = [dict(m) for m in self.cfg.get("metrics", [])]
         self.actions: List[Dict[str, Any]] = self.cfg.get("actions", [])
         self.mock = mock
         self.state = ChangeDict()
@@ -257,7 +88,6 @@ class SimConnectG3Bridge:
             "heading": 0.0,
             "radialVOR": 45.0,
             "headingADF": 0.0,
-            "pitch_ trim": 0.0,
         }
 
         if not self.mock:
@@ -269,42 +99,11 @@ class SimConnectG3Bridge:
             )
             simvar_units = self.dd.get_units()
             for m in self.mapping:
-                sv = m["simvar"]
-                if sv in simvar_units and simvar_units[sv]:
-                    u = simvar_units[sv]
-                    m["unit"] = MSFS_TO_G3_UNIT.get(u.lower(), u)
-                else:
-                    m.setdefault("unit", None)
+                u = simvar_units.get(m["simvar"]) or m.get("unit")
+                m["unit"] = MSFS_TO_G3_UNIT.get(u.lower(), u) if u else None
         else:
-            # Populate standard G3 units for mock mode
-            default_mock_units = {
-                "heading": "deg",
-                "altitude": "ft",
-                "pressureSetting": "hPa",
-                "pitch": "deg",
-                "roll": "deg",
-                "turnrate": "deg",
-                "slip": "deg",
-                "airspeed": "knot",
-                "verticalSpeed": "ft/min",
-                "relativeADF": "deg",
-                "headingADF": "deg",
-                "radialVOR": "deg",
-                "radialDeviation": "deg",
-                "compass": "deg",
-                "suctionPressure": "inHg",
-                "fuel.front": "gal",
-                "fuel.center": "gal",
-                "fuel.rear": "gal",
-                "fuelPressure": "psi",
-                "oilPressure": "psi",
-                "oilTemperature": "R",
-                "manifoldPressure": "inHg",
-                "engineRPM": "rpm",
-                "cylinderHeadTemp": "R",
-            }
             for m in self.mapping:
-                m.setdefault("unit", default_mock_units.get(m["metric"]))
+                m["unit"] = _infer_g3_unit(m["simvar"], m.get("unit"))
 
     def metric_units(self) -> Dict[str, Any]:
         return {
@@ -324,8 +123,7 @@ class SimConnectG3Bridge:
                 self._dd_latest = self.dd.simdata.latest()
                 data = {}
                 for m in self.mapping:
-                    name = m["metric"]
-                    sv = m["simvar"]
+                    name, sv = m["metric"], m["simvar"]
                     if (metrics and name not in metrics) or sv not in recent:
                         continue
                     v = recent[sv]
@@ -333,16 +131,19 @@ class SimConnectG3Bridge:
                         v = eval(m["fx"], {"__builtins__": {}}, {"x": v})
                     data[name] = v
 
-            self._update_with_triggers(data)
+            latest = self.state.latest()
+            self.state.update(data)
+            changed = self.state.changedsince(latest)
+            if changed:
+                self.state.update(self.trigger_actions(changed))
             return data
 
     def _generate_mock_metrics(self, metrics: Optional[List[str]] = None) -> Dict[str, Any]:
         t = time.time() - self._t0
         baro = self._mock_offsets["pressureSetting"]
-        alt_offset = (baro - 1013.25) * 27.3
         raw = {
             "heading": (120.0 + 15.0 * math.sin(t * 0.15) + self._mock_offsets["heading"]) % 360.0,
-            "altitude": 5500.0 + 250.0 * math.sin(t * 0.2) + alt_offset,
+            "altitude": 5500.0 + 250.0 * math.sin(t * 0.2) + (baro - 1013.25) * 27.3,
             "pressureSetting": baro,
             "pitch": 4.0 * math.sin(t * 0.4),
             "roll": 12.0 * math.sin(t * 0.3),
@@ -356,32 +157,14 @@ class SimConnectG3Bridge:
             "radialDeviation": 4.0 * math.sin(t * 0.25),
             "toFromVOR": 1,
             "compass": (120.0 + 15.0 * math.sin(t * 0.15)) % 360.0,
-            "suctionPressure": 5.2 + 0.1 * math.sin(t * 0.5),
-            "fuel.front": 22.5,
-            "fuel.center": 24.0,
-            "fuel.rear": 16.0,
-            "fuelSelector": "front",
-            "fuelPressure": 5.4 + 0.2 * math.sin(t * 0.7),
-            "oilPressure": 78.0 + 2.0 * math.sin(t * 0.3),
-            "oilTemperature": 615.0 + 3.0 * math.sin(t * 0.1),
-            "manifoldPressure": 28.5 + 1.5 * math.sin(t * 0.25),
-            "engineRPM": 1950.0 + 40.0 * math.sin(t * 0.25),
-            "cylinderHeadTemp": 810.0 + 5.0 * math.sin(t * 0.1),
-            "fuelWarning": 0,
-            "oilPressureWarning": 0,
+            "suctionPressure": 5.2,
+            "fuelPressure": 5.4,
+            "oilPressure": 78.0,
+            "oilTemperature": 615.0,
+            "manifoldPressure": 24.5,
+            "engineRPM": 2350.0 + 30.0 * math.sin(t * 0.25),
         }
-        if metrics:
-            return {k: v for k, v in raw.items() if k in metrics}
-        return raw
-
-    def _update_with_triggers(self, d: Dict[str, Any]) -> None:
-        latest = self.state.latest()
-        self.state.update(d)
-        changed = self.state.changedsince(latest)
-        if changed:
-            out = self.trigger_actions(changed)
-            if out:
-                self.state.update(out)
+        return {k: v for k, v in raw.items() if not metrics or k in metrics}
 
     def handle_inputs(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         with self._lock:
@@ -392,28 +175,20 @@ class SimConnectG3Bridge:
 
     def trigger_actions(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         outputs: Dict[str, Any] = {}
+        mock_deltas = {"ALT-ROT": ("pressureSetting", 0.34), "HDG-ROT": ("heading", 1.0), "VOR-ROT": ("radialVOR", 1.0), "ADF-ROT": ("headingADF", 1.0)}
         for k, raw_v in inputs.items():
-            # Apply mock interactive adjustments so buttons visibly move mock needles
-            if self.mock:
-                if k == "ALT-ROT":
-                    self._mock_offsets["pressureSetting"] += float(raw_v) * 0.34
-                elif k == "HDG-ROT":
-                    self._mock_offsets["heading"] += float(raw_v)
-                elif k == "VOR-ROT":
-                    self._mock_offsets["radialVOR"] += float(raw_v)
-                elif k == "ADF-ROT":
-                    self._mock_offsets["headingADF"] += float(raw_v)
+            if self.mock and k in mock_deltas:
+                field, scale = mock_deltas[k]
+                self._mock_offsets[field] += float(raw_v) * scale
 
-            rules = [r for r in self.actions if r.get("input") == k]
-            for rule in rules:
+            for rule in (r for r in self.actions if r.get("input") == k):
                 v = eval(rule["fx"], {"__builtins__": {}}, {"x": raw_v}) if "fx" in rule else raw_v
                 if "output" in rule:
                     outputs[rule["output"]] = v
                 elif "simvar" in rule and self.sc is not None:
                     self.sc.set_simdatum(rule["simvar"], v)
                 elif "event" in rule and self.sc is not None:
-                    name = rule["event"]
-                    method = rule.get("method")
+                    name, method = rule["event"], rule.get("method")
                     if method == "incdec":
                         evt = name[0 if v > 0 else 1]
                         for _ in range(int(abs(v))):
@@ -429,123 +204,102 @@ class SimConnectG3Bridge:
             self.sc.Close()
 
 
+class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
+    """Serves static panel files plus /metrics.json, /stream (SSE), and POST /inputs."""
+
+    protocol_version = "HTTP/1.1"
+
+    def __init__(self, *args: Any, bridge: SimConnectG3Bridge, stream_interval: float = 0.1, directory: Optional[str] = None, **kwargs: Any):
+        self.bridge = bridge
+        self.stream_interval = stream_interval
+        super().__init__(*args, directory=directory or DEFAULT_EXAMPLE_DIR, **kwargs)
+
+    def log_message(self, fmt: str, *args: Any) -> None:
+        logger.debug(fmt, *args)
+
+    def end_headers(self) -> None:
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "*")
+        super().end_headers()
+
+    def _send_json(self, payload: Any, status: int = HTTPStatus.OK) -> None:
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_OPTIONS(self) -> None:
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def do_GET(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path == "/metrics.json":
+            qs = parse_qs(parsed.query)
+            ms = [m for m in qs.get("metrics", [""])[0].split(",") if m] or None
+            latest = int(qs.get("latest", ["0"])[0] or 0)
+            want_units = qs.get("units", ["false"])[0].lower() in ("true", "1", "yes")
+
+            self.bridge.poll_metrics(ms)
+            result: Dict[str, Any] = {
+                "latest": self.bridge.state.latest(),
+                "metrics": {k: v for k, v in self.bridge.state.changedsince(latest).items() if not ms or k in ms},
+            }
+            if want_units:
+                result["units"] = {k: v for k, v in self.bridge.metric_units().items() if not ms or k in ms}
+            return self._send_json(result)
+
+        if parsed.path == "/stream":
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Connection", "keep-alive")
+            self.end_headers()
+
+            client_latest, sent_units = 0, False
+            try:
+                while True:
+                    self.bridge.poll_metrics()
+                    deltas = self.bridge.state.changedsince(client_latest)
+                    if deltas or not sent_units:
+                        client_latest = self.bridge.state.latest()
+                        payload: Dict[str, Any] = {"metrics": deltas if sent_units else dict(self.bridge.state)}
+                        if not sent_units:
+                            payload["units"] = self.bridge.metric_units()
+                            sent_units = True
+                        self.wfile.write(f"data: {json.dumps(payload)}\n\n".encode("utf-8"))
+                        self.wfile.flush()
+                    time.sleep(self.stream_interval)
+            except (BrokenPipeError, ConnectionResetError, OSError):
+                return
+
+        super().do_GET()
+
+    def do_POST(self) -> None:
+        if urlparse(self.path).path != "/inputs":
+            return self.send_error(HTTPStatus.NOT_FOUND)
+        length = int(self.headers.get("Content-Length", "0") or 0)
+        payload = json.loads(self.rfile.read(length).decode("utf-8") if length else "{}")
+        self._send_json({"status": "ok", "outputs": self.bridge.handle_inputs(payload)})
+
+
 def create_g3_server(
     bridge: SimConnectG3Bridge,
     host: str = "0.0.0.0",
     port: int = 8000,
     stream_interval: float = 0.1,
+    static_dir: Optional[str] = None,
 ) -> ThreadingHTTPServer:
-    """Create a ThreadingHTTPServer serving G3 /stream, /metrics.json, /inputs, and the live panel UI."""
-
-    class G3RequestHandler(BaseHTTPRequestHandler):
-        protocol_version = "HTTP/1.1"
-
-        def log_message(self, fmt: str, *args: Any) -> None:
-            logger.debug(fmt, *args)
-
-        def _send_cors_headers(self) -> None:
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "*")
-
-        def do_OPTIONS(self) -> None:
-            self.send_response(HTTPStatus.NO_CONTENT)
-            self._send_cors_headers()
-            self.send_header("Content-Length", "0")
-            self.end_headers()
-
-        def do_GET(self) -> None:
-            parsed = urlparse(self.path)
-            path = parsed.path
-            qs = parse_qs(parsed.query)
-
-            if path in ("/", "/index.html", "/panels/dhc2-nav.html", "/panels/dhc2-center.html", "/panels/panel.html"):
-                body = PANEL_HTML.encode("utf-8")
-                self.send_response(HTTPStatus.OK)
-                self._send_cors_headers()
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(body)))
-                self.end_headers()
-                self.wfile.write(body)
-                return
-
-            if path == "/metrics.json":
-                metrics_arg = qs.get("metrics", [""])[0]
-                ms = [m for m in metrics_arg.split(",") if m] if metrics_arg else None
-                latest = int(qs.get("latest", ["0"])[0] or 0)
-                want_units = qs.get("units", ["false"])[0].lower() in ("true", "1", "yes")
-
-                bridge.poll_metrics(ms)
-                changed = {
-                    k: v
-                    for k, v in bridge.state.changedsince(latest).items()
-                    if not ms or k in ms
-                }
-                result: Dict[str, Any] = {
-                    "latest": bridge.state.latest(),
-                    "metrics": changed,
-                }
-                if want_units:
-                    result["units"] = {
-                        k: v
-                        for k, v in bridge.metric_units().items()
-                        if not ms or k in ms
-                    }
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(HTTPStatus.OK)
-                self._send_cors_headers()
-                self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(body)))
-                self.end_headers()
-                self.wfile.write(body)
-                return
-
-            if path == "/stream":
-                self.send_response(HTTPStatus.OK)
-                self._send_cors_headers()
-                self.send_header("Content-Type", "text/event-stream")
-                self.send_header("Cache-Control", "no-cache")
-                self.send_header("Connection", "keep-alive")
-                self.end_headers()
-
-                client_latest = 0
-                sent_units = False
-                try:
-                    while True:
-                        bridge.poll_metrics()
-                        deltas = bridge.state.changedsince(client_latest)
-                        if deltas or not sent_units:
-                            client_latest = bridge.state.latest()
-                            payload: Dict[str, Any] = {"metrics": deltas if sent_units else dict(bridge.state)}
-                            if not sent_units:
-                                payload["units"] = bridge.metric_units()
-                                sent_units = True
-                            chunk = f"data: {json.dumps(payload)}\n\n".encode("utf-8")
-                            self.wfile.write(chunk)
-                            self.wfile.flush()
-                        time.sleep(stream_interval)
-                except (BrokenPipeError, ConnectionResetError, OSError):
-                    return
-
-            self.send_error(HTTPStatus.NOT_FOUND, f"Unknown endpoint: {path}")
-
-        def do_POST(self) -> None:
-            parsed = urlparse(self.path)
-            if parsed.path != "/inputs":
-                self.send_error(HTTPStatus.NOT_FOUND)
-                return
-            length = int(self.headers.get("Content-Length", "0") or 0)
-            raw_body = self.rfile.read(length) if length > 0 else b"{}"
-            payload = json.loads(raw_body.decode("utf-8") or "{}")
-            outputs = bridge.handle_inputs(payload)
-            resp = json.dumps({"status": "ok", "outputs": outputs}).encode("utf-8")
-            self.send_response(HTTPStatus.OK)
-            self._send_cors_headers()
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(resp)))
-            self.end_headers()
-            self.wfile.write(resp)
-
-    server = ThreadingHTTPServer((host, port), G3RequestHandler)
+    handler_cls = partial(
+        G3HTTPRequestHandler,
+        bridge=bridge,
+        stream_interval=stream_interval,
+        directory=static_dir or DEFAULT_EXAMPLE_DIR,
+    )
+    server = ThreadingHTTPServer((host, port), handler_cls)
     server.daemon_threads = True
     return server

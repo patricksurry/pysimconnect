@@ -1,0 +1,35 @@
+{
+  "metrics": [
+    {"metric": "airspeed", "simvar": "AIRSPEED INDICATED"},
+    {"metric": "pitch", "simvar": "ATTITUDE INDICATOR PITCH DEGREES"},
+    {"metric": "roll", "simvar": "ATTITUDE INDICATOR BANK DEGREES"},
+    {"metric": "altitude", "simvar": "INDICATED ALTITUDE"},
+    {"metric": "pressureSetting", "simvar": "BAROMETER PRESSURE"},
+    {"metric": "turnrate", "simvar": "TURN INDICATOR RATE"},
+    {"metric": "slip", "simvar": "TURN COORDINATOR BALL", "fx": "x / 5", "fxunit": "deg"},
+    {"metric": "heading", "simvar": "HEADING INDICATOR"},
+    {"metric": "verticalSpeed", "simvar": "VERTICAL SPEED"},
+    {"metric": "radialVOR", "simvar": "NAV RADIAL:1"},
+    {"metric": "radialDeviation", "simvar": "NAV RADIAL ERROR:1"},
+    {"metric": "toFromVOR", "simvar": "NAV TOFROM:1", "fx": "-1 if x == 2 else x", "fxunit": null},
+    {"metric": "relativeADF", "simvar": "ADF RADIAL"},
+    {"metric": "headingADF", "simvar": "ADF CARD"},
+    {"metric": "compass", "simvar": "MAGNETIC COMPASS"},
+    {"metric": "engineRPM", "simvar": "GENERAL ENG RPM:1"},
+    {"metric": "manifoldPressure", "simvar": "ENG MANIFOLD PRESSURE:1"},
+    {"metric": "suctionPressure", "simvar": "SUCTION PRESSURE"},
+    {"metric": "oilPressure", "simvar": "ENG OIL PRESSURE:1", "unit": "psi"},
+    {"metric": "oilTemperature", "simvar": "ENG OIL TEMPERATURE:1"},
+    {"metric": "fuelPressure", "simvar": "ENG FUEL PRESSURE:1", "unit": "psi"}
+  ],
+  "actions": [
+    {"input": "ALT-ROT", "method": "incdec", "event": ["KOHLSMAN_INC", "KOHLSMAN_DEC"]},
+    {"input": "ATT-BTN", "event": "ATTITUDE_CAGE_BUTTON"},
+    {"input": "ATT-ROT", "method": "incdec", "event": ["ATTITUDE_BARS_POSITION_UP", "ATTITUDE_BARS_POSITION_DOWN"]},
+    {"input": "VOR-ROT", "method": "incdec", "event": ["VOR1_OBI_INC", "VOR1_OBI_DEC"]},
+    {"input": "ADF-ROT", "method": "incdec", "event": ["ADF_CARD_INC", "ADF_CARD_DEC"]},
+    {"input": "HDG-ROT", "method": "incdec", "event": ["HEADING_BUG_INC", "HEADING_BUG_DEC"]},
+    {"input": "MASTER0", "simvar": "GENERAL ENG GENERATOR ACTIVE:1"},
+    {"input": "MASTER1", "simvar": "ELECTRICAL MASTER BATTERY"}
+  ]
+}

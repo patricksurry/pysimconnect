@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>pysimconnect × G3 — Standard Six-Pack & Radio Nav Panel</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111827;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      background: #0b0f19;
+      border-bottom: 1px solid #374151;
+      padding: 0.65rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      box-sizing: border-box;
+    }
+    .title { font-weight: 700; font-size: 1rem; color: #38bdf8; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+    button {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+      border-radius: 0.4rem;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    button:hover { border-color: #38bdf8; color: #fff; }
+    #panel-host {
+      margin-top: 0.75rem;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    svg.g3-panel {
+      background: #18181b;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+  <script src="https://unpkg.com/@patricksurry/g3/dist/g3-contrib.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="title">✈️ pysimconnect × G3 Flight Panel (Cessna 152 / 172 / Standard GA)</div>
+    <div class="toolbar">
+      <button onclick="sendInput({'ALT-ROT': -1})">Baro −</button>
+      <button onclick="sendInput({'ALT-ROT': 1})">Baro +</button>
+      <button onclick="sendInput({'HDG-ROT': -5})">HDG −</button>
+      <button onclick="sendInput({'HDG-ROT': 5})">HDG +</button>
+      <button onclick="sendInput({'VOR-ROT': -5})">OBS −</button>
+      <button onclick="sendInput({'VOR-ROT': 5})">OBS +</button>
+      <button onclick="sendInput({'ADF-ROT': -5})">ADF −</button>
+      <button onclick="sendInput({'ADF-ROT': 5})">ADF +</button>
+      <button onclick="sendInput({'ATT-BTN': 1})">Cage AI</button>
+    </div>
+  </header>
+  <div id="panel-host"></div>
+  <script>
+    async function sendInput(payload) {
+      await fetch('/inputs', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+    }
+
+    g3.panel()
+      .width(1024)
+      .height(560)
+      .interval(0)
+      .url('/stream')
+      .append(
+        g3.put().x(128).y(150).scale(0.9).append(g3.contrib.nav.airspeed.generic()),
+        g3.put().x(384).y(150).scale(0.9).append(g3.contrib.nav.attitude.generic()),
+        g3.put().x(640).y(150).scale(0.9).append(g3.contrib.nav.altitude.generic()),
+        g3.put().x(896).y(150).scale(0.9).append(g3.contrib.radionav.VOR.generic()),
+
+        g3.put().x(128).y(410).scale(0.9).append(g3.contrib.nav.turnCoordinator.generic()),
+        g3.put().x(384).y(410).scale(0.9).append(g3.contrib.nav.heading.generic()),
+        g3.put().x(640).y(410).scale(0.9).append(g3.contrib.nav.VSI.generic()),
+        g3.put().x(896).y(410).scale(0.9).append(g3.contrib.radionav.ADF.generic())
+      )('#panel-host');
+  </script>
+</body>
+</html>

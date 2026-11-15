@@ -18,14 +18,15 @@ def test_g3_bridge_mock_metrics_and_actions():
     assert "altitude" in metrics
     assert "airspeed" in metrics
     assert "heading" in metrics
-    assert metrics["fuelSelector"] == "front"
 
-    # Triggering ALT-ROT adjusts mock pressureSetting and output triggers work
+    # Triggering ALT-ROT adjusts mock pressureSetting
     initial_baro = bridge._mock_offsets["pressureSetting"]
     bridge.handle_inputs({"ALT-ROT": 2})
     assert bridge._mock_offsets["pressureSetting"] > initial_baro
 
-    out = bridge.handle_inputs({"fuelWarning": 1})
+    # Output rule copies input to state
+    bridge.actions.append({"input": "testWarning", "output": "RED_WARNING"})
+    out = bridge.handle_inputs({"testWarning": 1})
     assert out == {"RED_WARNING": 1}
     assert bridge.state["RED_WARNING"] == 1
 
@@ -126,6 +127,7 @@ def test_g3_http_server_endpoints():
         assert data["units"]["altitude"] == "ft"
 
         # 3. POST /inputs
+        bridge.actions.append({"input": "fuelWarning", "output": "RED_WARNING"})
         post_body = json.dumps({"HDG-ROT": 5, "fuelWarning": 1}).encode("utf-8")
         req3 = (
             f"POST /inputs HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\n"

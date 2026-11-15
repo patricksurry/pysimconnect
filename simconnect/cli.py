@@ -135,19 +135,22 @@ def serve(
     interval: float = 0.1,
     mock: bool = False,
     config: Optional[str] = None,
+    static_dir: Optional[str] = None,
     open_browser: bool = False,
 ):
-    """Serve G3-compatible instrument metrics (/stream, /metrics.json, /inputs) and live DHC-2 panel UI."""
+    """Serve G3-compatible instrument metrics (/stream, /metrics.json, /inputs) and static panel files."""
     from .g3 import SimConnectG3Bridge, create_g3_server, load_config
 
     cfg = load_config(config)
+    if static_dir is None and config:
+        static_dir = os.path.dirname(os.path.abspath(config))
     try:
         bridge = SimConnectG3Bridge(config=cfg, mock=mock)
     except Exception as exc:
         typer.echo(f"SimConnect unavailable ({exc}); starting in --mock telemetry mode.")
         bridge = SimConnectG3Bridge(config=cfg, mock=True)
 
-    server = create_g3_server(bridge, host=host, port=port, stream_interval=interval)
+    server = create_g3_server(bridge, host=host, port=port, stream_interval=interval, static_dir=static_dir)
     display_host = "localhost" if host in ("0.0.0.0", "127.0.0.1") else host
     url = f"http://{display_host}:{port}/"
     mode_label = "mock telemetry" if bridge.mock else "live MSFS 2020 SimConnect"
