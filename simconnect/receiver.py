@@ -4,6 +4,8 @@ from ctypes import cast, POINTER
 from .scdefs import RECV, RECV_OPEN, RECV_EXCEPTION
 from . import scdefs
 
+logger = logging.getLogger(__name__)
+
 
 Receiver = Callable[[RECV], bool]
 
@@ -49,7 +51,7 @@ class ReceiverInstance:
 def receiveException(recv: RECV_EXCEPTION) -> bool:
     excid = recv.dwException
     excname = _exc_map.get(excid, '<unknown>')
-    logging.warning(
+    logger.warning(
         f"sc.receiveNext: exception {excname}({excid}), sendID {recv.dwSendID}, index {recv.dwIndex}"
     )
     return True
@@ -60,7 +62,7 @@ def receiveOpen(recv: RECV_OPEN) -> bool:
     appBuild = f"build {recv.dwApplicationBuildMajor}.{recv.dwApplicationBuildMinor}"
     scVer = f"v{recv.dwSimConnectVersionMajor}.{recv.dwSimConnectVersionMinor}"
     scBuild = f"build {recv.dwSimConnectBuildMajor}.{recv.dwSimConnectBuildMinor}"
-    logging.info(
+    logger.info(
         f"Open: App {recv.szApplicationName} {appVer} {appBuild} SimConnect: {scVer} {scBuild}"
     )
     return True

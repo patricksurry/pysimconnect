@@ -17,8 +17,9 @@ from .datadef import SimVarsSpec, DataDefinition, SimData, SimDataHandler, _norm
 
 RECV_P = POINTER(RECV)
 
-# to change the default logging, set the LOGLEVEL environment variable, e.g. LOGLEVEL=DEBUG
-logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+logger = logging.getLogger(__name__)
+# Configure package logger level via LOGLEVEL env var (default INFO) without overriding host root logger handlers
+logging.getLogger("simconnect").setLevel(os.environ.get("LOGLEVEL", "INFO"))
 
 _dll_path = os.path.join(os.path.dirname(__file__), 'SimConnect.dll')
 
@@ -29,11 +30,14 @@ class SimConnect:
             name='pySimConnect',
             dll_path=_dll_path,
             default_receivers=_default_receivers,
-            poll_interval_seconds=0.05):
+            poll_interval_seconds=0.05,
+            verbose: bool = True):
+        self.verbose = verbose
         try:
             dll = windll.LoadLibrary(dll_path)
         except Exception:
-            logging.error(f"Failed to load SimConnect DLL from {dll_path}")
+            if self.verbose:
+                logger.error(f"Failed to load SimConnect DLL from {dll_path}")
             raise
         self._decls = _decls(dll)
         self.hsc = HANDLE()
@@ -41,7 +45,8 @@ class SimConnect:
         try:
             self._decls['Open'](byref(self.hsc), name.encode('utf-8'), None, 0, 0, 0)
         except OSError:
-            logging.error("Failed to open SimConnect, is Flight Simulator running?")
+            if self.verbose:
+                logger.error("Failed to open SimConnect, is Flight Simulator running?")
             raise
         self._reqid_iter = itertools.count()
         self._receivers: List[ReceiverInstance] = default_receivers[:]
@@ -85,10 +90,10 @@ class SimConnect:
     def _dispatcher(self, pRecv, nSize, pContext):
         """Dispatch to all our handlers whenever we get a RECV object"""
         recv = ReceiverInstance.cast_recv(pRecv)
-        logging.debug(f"receive: got {recv.__class__.__name__} with size {nSize} and context {pContext}")
+        logger.debug(f"receive: got {recv.__class__.__name__} with size {nSize} and context {pContext}")
         self._received = sum(r.receive(recv) for r in self._receivers)
-        if not self._received:
-            logging.warning(f"receive: no receiver found for {recv.__class__.__name__}")
+        if not self._received and self.verbose:
+            logger.warning(f"receive: no receiver found for {recv.__class__.__name__}")
 
     def receive(self, timeout_seconds=None) -> bool:
         """
@@ -180,7 +185,7 @@ class SimConnect:
         assert all(['value' in d for d in sds]), "set_simdata: must specify value for each item"
         values = {d['name']: d['value'] for d in sds}
         data = dd._pack_data(values)
-        logging.debug(f"setting simdata {sds} with {sizeof(data)} bytes")
+        logger.debug(f"setting simdata {sds} with {sizeof(data)} bytes")
         #TODO: some data types can be also be set as array,
         # e.g. any number of waypoints can be given to an AI object using a single call to this function,
         # and any number of marker state structures can also be combined into an array

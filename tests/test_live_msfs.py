@@ -21,6 +21,8 @@ def test_live_get_simdata_various_types(live_sc):
         "YOKE X POSITION",
         "SIM ON GROUND",
         "TRANSPONDER CODE:1",
+        "ZULU TIME",
+        "ABSOLUTE TIME",
         dict(name="ENG FUEL FLOW PPH:1", units="pounds per hour"),
     ])
     assert isinstance(data["TITLE"], str) and len(data["TITLE"]) > 0
@@ -30,6 +32,8 @@ def test_live_get_simdata_various_types(live_sc):
     assert isinstance(data["YOKE X POSITION"], float)
     assert data["SIM ON GROUND"] in (0, 1, -1)
     assert isinstance(data["TRANSPONDER CODE:1"], int)
+    assert isinstance(data["ZULU TIME"], float) and data["ZULU TIME"] >= 0
+    assert isinstance(data["ABSOLUTE TIME"], float) and data["ABSOLUTE TIME"] > 0
     assert isinstance(data["ENG FUEL FLOW PPH:1"], float)
 
 

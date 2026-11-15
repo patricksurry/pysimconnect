@@ -6,25 +6,30 @@ import logging
 from difflib import get_close_matches
 from .scdefs import DATATYPE_INT32, DATATYPE_FLOAT64, DATATYPE_STRING256
 
+logger = logging.getLogger(__name__)
+
 
 def validate_simvar(name: str, settable: bool) -> Optional[Dict[str, Any]]:
     """Match a simvar name and settable flag to known variables"""
     base = _namestd(name)
     sv = SIMVARS.get(base, {})
     if not sv:
-        logging.warning(f"SimConnect: unrecognized simvar '{base}', {_closemsg(base, SIMVARS)}")
+        logger.warning(f"SimConnect: unrecognized simvar '{base}', {_closemsg(base, SIMVARS)}")
     else:
         if sv['indexed'] and ':' not in name:
-            logging.warning(f"SimConnect: expected indexed simvar, e.g. {name}:3")
+            logger.warning(f"SimConnect: expected indexed simvar, e.g. {name}:3")
         if settable and not sv.get('settable'):
-            logging.warning(f"SimConnect: simvar {name} is not settable")
+            logger.warning(f"SimConnect: simvar {name} is not settable")
     return sv
 
 
 def validate_event(event) -> str:
+    if '.' in event:
+        # Custom addon/WASM event (e.g. "MobiFlight.AS1000_PFD_JOYSTICK_UP"); preserve case
+        return event
     s = _eventstd(event)
     if s not in EVENTS:
-        logging.warning(f"Simconnect: Unrecognized event {event}")
+        logger.warning(f"Simconnect: Unrecognized event {event}")
     return s
 
 
@@ -37,7 +42,7 @@ def validate_units(name: str, units: Optional[str], simvar: Optional[Dict[str, A
         else:
             ustd = ''
         if not ustd:
-            logging.warning(f"SimConnect: no units specified or inferred for {name}")
+            logger.warning(f"SimConnect: no units specified or inferred for {name}")
     elif units == '':
         # deliberate empty string
         ustd = units
@@ -53,7 +58,7 @@ def validate_units(name: str, units: Optional[str], simvar: Optional[Dict[str, A
             if not possibilities:
                 possibilities = [u['name_std'] for u in UNITS.values()]
             msg = _closemsg(ustd, possibilities)
-            logging.warning(f"SimConnect: unrecognized units '{units}' for {name}, {msg}")
+            logger.warning(f"SimConnect: unrecognized units '{units}' for {name}, {msg}")
     return ustd
 
 
@@ -72,7 +77,7 @@ def type_for_unit(unit: str) -> int:
     else:
         warn = f"SimConnect: unrecognized unit in typefor({unit})"
 
-    logging.warning(warn + "; using float64 as fallback")
+    logger.warning(warn + "; using float64 as fallback")
     return DATATYPE_FLOAT64
 
 
@@ -121,7 +126,7 @@ def _eventstd(s):
 try:
     _scvars = json.load(open(os.path.join(os.path.dirname(__file__), 'scvars.json')))
 except Exception:
-    logging.warning('Failed to load scvars.json')
+    logger.warning('Failed to load scvars.json')
     _scvars = dict(SIMVARS={}, EVENTS={}, UNITS={}, DIMENSIONS={})
 
 # Expose the standardized definitions scraped from docs

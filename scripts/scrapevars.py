@@ -14,8 +14,8 @@ from prepvars import prepvars
 base_urls = [
     # main list of links
     'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm',
-    # not linked explicitly elsewhere
-    'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Event_IDs/Aircraft_Electrical_Events.htm'
+    'https://docs.flightsimulator.com/html/Programming_Tools/Event_IDs/Event_IDs.htm',
+    'https://docs.flightsimulator.com/html/Programming_Tools/Environment_Variables.htm',
 ]
 
 
@@ -69,11 +69,26 @@ class SimConnectSpider(scrapy.Spider):
             else:
                 return None
 
-        def parse_row(row, simvar):
+        def parse_row(row, headers):
             tds = row.xpath('td')
             ncol = len(tds)
             if ncol < 2:
                 return None
+            simvar = headers and headers[0] == 'simulation variable'
+            envvar = headers == ['variable', 'units', 'description']
+            if envvar and ncol == 3:
+                return {
+                    'name': jointext(tds[0].xpath('.//text()')),
+                    'units': alltext(tds[1]),
+                    'description': alltext(tds[2]),
+                    'settable': False,
+                }
+            if headers and headers[:3] == ['event name', 'parameters', 'description'] and ncol >= 3:
+                return {
+                    'name': jointext(tds[0].xpath('.//text()')),
+                    'parameters': alltext(tds[1]),
+                    'description': alltext(tds[2]),
+                }
             # simvar tables have 4 or 5 cols, with last two being units and settable
             # sometimes omitting multiplayer,
             # other tables have two or three cols
@@ -105,9 +120,9 @@ class SimConnectSpider(scrapy.Spider):
         for tbl in response.xpath('//table'):
             section = tbl.xpath('preceding-sibling::h4[1]') or tbl.xpath('preceding-sibling::h3[1]')
             context['section'] = normtext(section.xpath('text()').get())
-            simvar = tbl.xpath('tbody/tr/th/text()').get().strip().lower() == 'simulation variable'
+            headers = [normtext(h).strip().lower() for h in tbl.xpath('.//tr/th/text()').getall()]
             for row in tbl.xpath('tbody/tr'):
-                d = parse_row(row, simvar)
+                d = parse_row(row, headers)
                 if d:
                     d.update(context, index=i)
                     i += 1
