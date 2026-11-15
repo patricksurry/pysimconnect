@@ -176,3 +176,39 @@ def test_readme_python_demo_e2e():
             sc.Close()
 
         assert mock_dll.SimConnect_Close.call_count == 1
+
+
+def test_readme_with_mock_simconnect():
+    """Verify MockSimConnect supports the full README tutorial and CLI workflow."""
+    import time
+    from simconnect.mock import MockSimConnect
+
+    with MockSimConnect() as sc:
+        altitude = sc.get_simdatum("Indicated Altitude")
+        assert isinstance(altitude, float)
+
+        datadef = sc.subscribe_simdata(
+            [
+                "Indicated Altitude",
+                dict(name="Kohlsman setting hg", units="hectopascal"),
+                "ELECTRICAL BATTERY BUS VOLTAGE",
+            ],
+            period=PERIOD_VISUAL_FRAME,
+            interval=10,
+        )
+        assert datadef.get_units() == {
+            "Indicated Altitude": "feet",
+            "Kohlsman setting hg": "hectopascal",
+            "ELECTRICAL BATTERY BUS VOLTAGE": "volts",
+        }
+
+        latest = datadef.simdata.latest()
+        time.sleep(0.025)
+        sc.set_simdatum("PLANE ALTITUDE", 1500.0, units="meters")
+        sc.send_event("KOHLSMAN_INC")
+        while sc.receive():
+            pass
+        updated = datadef.simdata.changedsince(latest)
+        assert updated["Indicated Altitude"] == pytest.approx(1500.0 / 0.3048)
+        assert updated["Kohlsman setting hg"] > 1013.25
+

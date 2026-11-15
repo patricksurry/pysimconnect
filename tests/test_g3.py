@@ -1,14 +1,17 @@
 import json
 import socket
 import threading
-from unittest.mock import MagicMock, patch
+import time
+from unittest.mock import MagicMock
 import pytest
 
 from simconnect.g3 import SimConnectG3Bridge, create_g3_server
+from simconnect.mock import MockSimConnect
 
 
-def test_g3_bridge_mock_metrics_and_actions():
-    bridge = SimConnectG3Bridge(mock=True)
+def test_g3_bridge_with_mock_simconnect():
+    mock_sc = MockSimConnect()
+    bridge = SimConnectG3Bridge(sc=mock_sc)
     units = bridge.metric_units()
     assert units["altitude"] == "ft"
     assert units["airspeed"] == "knot"
@@ -19,10 +22,11 @@ def test_g3_bridge_mock_metrics_and_actions():
     assert "airspeed" in metrics
     assert "heading" in metrics
 
-    # Triggering ALT-ROT adjusts mock pressureSetting
-    initial_baro = bridge._mock_offsets["pressureSetting"]
+    # Triggering ALT-ROT sends KOHLSMAN_INC to MockSimConnect and bumps barometer pressure
+    initial_baro = mock_sc.get_simdatum("BAROMETER PRESSURE")
     bridge.handle_inputs({"ALT-ROT": 2})
-    assert bridge._mock_offsets["pressureSetting"] > initial_baro
+    assert ("KOHLSMAN_INC", 0) in mock_sc.event_history
+    assert mock_sc.get_simdatum("BAROMETER PRESSURE") > initial_baro
 
     # Output rule copies input to state
     bridge.actions.append({"input": "testWarning", "output": "RED_WARNING"})
@@ -32,44 +36,42 @@ def test_g3_bridge_mock_metrics_and_actions():
 
 
 def test_g3_bridge_live_simconnect_dispatch():
-    with patch("simconnect.g3.SimConnect") as mock_sc_cls:
-        mock_sc = MagicMock()
-        mock_sc.receive.return_value = False
-        mock_dd = MagicMock()
-        mock_dd.get_units.return_value = {
-            "INDICATED ALTITUDE": "feet",
-            "TURN COORDINATOR BALL": "position",
-            "NAV TOFROM:1": "Enum",
-        }
-        from simconnect.changedict import ChangeDict
-        sd = ChangeDict()
-        sd["INDICATED ALTITUDE"] = 4500.0
-        sd["TURN COORDINATOR BALL"] = 25.0
-        sd["NAV TOFROM:1"] = 2
-        mock_dd.simdata = sd
-        mock_sc.subscribe_simdata.return_value = mock_dd
-        mock_sc_cls.return_value = mock_sc
+    mock_sc = MagicMock()
+    mock_sc.receive.return_value = False
+    mock_dd = MagicMock()
+    mock_dd.get_units.return_value = {
+        "INDICATED ALTITUDE": "feet",
+        "TURN COORDINATOR BALL": "position",
+        "NAV TOFROM:1": "Enum",
+    }
+    from simconnect.changedict import ChangeDict
+    sd = ChangeDict()
+    sd["INDICATED ALTITUDE"] = 4500.0
+    sd["TURN COORDINATOR BALL"] = 25.0
+    sd["NAV TOFROM:1"] = 2
+    mock_dd.simdata = sd
+    mock_sc.subscribe_simdata.return_value = mock_dd
 
-        bridge = SimConnectG3Bridge(mock=False)
-        assert bridge.metric_units()["altitude"] == "ft"
-        assert bridge.metric_units()["slip"] == "deg"
+    bridge = SimConnectG3Bridge(sc=mock_sc)
+    assert bridge.metric_units()["altitude"] == "ft"
+    assert bridge.metric_units()["slip"] == "deg"
 
-        polled = bridge.poll_metrics()
-        assert polled["altitude"] == pytest.approx(4500.0)
-        assert polled["slip"] == pytest.approx(5.0)  # fx: x / 5
-        assert polled["toFromVOR"] == -1  # fx: -1 if x == 2 else x
+    polled = bridge.poll_metrics()
+    assert polled["altitude"] == pytest.approx(4500.0)
+    assert polled["slip"] == pytest.approx(5.0)  # fx: x / 5
+    assert polled["toFromVOR"] == -1  # fx: -1 if x == 2 else x
 
-        # Test incdec event action
-        bridge.handle_inputs({"ALT-ROT": -3})
-        assert mock_sc.send_event.call_count == 3
-        mock_sc.send_event.assert_called_with("KOHLSMAN_DEC")
+    # Test incdec event action
+    bridge.handle_inputs({"ALT-ROT": -3})
+    assert mock_sc.send_event.call_count == 3
+    mock_sc.send_event.assert_called_with("KOHLSMAN_DEC")
 
-        # Test simvar set action
-        bridge.handle_inputs({"MASTER1": 1})
-        mock_sc.set_simdatum.assert_called_once_with("ELECTRICAL MASTER BATTERY", 1)
+    # Test simvar set action
+    bridge.handle_inputs({"MASTER1": 1})
+    mock_sc.set_simdatum.assert_called_once_with("ELECTRICAL MASTER BATTERY", 1)
 
-        bridge.close()
-        mock_sc.Close.assert_called_once()
+    bridge.close()
+    mock_sc.Close.assert_called_once()
 
 
 def _raw_http_request(server, raw_req: bytes, read_first_sse: bool = False) -> bytes:
@@ -105,7 +107,7 @@ def _raw_http_request(server, raw_req: bytes, read_first_sse: bool = False) -> b
 
 
 def test_g3_http_server_endpoints():
-    bridge = SimConnectG3Bridge(mock=True)
+    bridge = SimConnectG3Bridge(sc=MockSimConnect())
     server = create_g3_server(bridge, host="127.0.0.1", port=0, stream_interval=0.05)
     try:
         # 1. GET / serves panel HTML

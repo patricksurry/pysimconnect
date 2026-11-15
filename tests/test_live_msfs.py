@@ -93,19 +93,16 @@ def test_live_g3_bridge(live_sc):
     from time import sleep
     from simconnect.g3 import SimConnectG3Bridge
 
-    bridge = SimConnectG3Bridge(mock=False)
-    try:
-        for _ in range(15):
-            data = bridge.poll_metrics()
-            if "altitude" in bridge.state and "heading" in bridge.state:
-                break
-            sleep(0.05)
-        assert "altitude" in bridge.state
-        assert "heading" in bridge.state
-        units = bridge.metric_units()
-        assert units["altitude"] == "ft"
-        assert units["airspeed"] == "knot"
-    finally:
-        bridge.close()
+    bridge = SimConnectG3Bridge(sc=live_sc)
+    for _ in range(15):
+        bridge.poll_metrics()
+        if "altitude" in bridge.state and "heading" in bridge.state:
+            break
+        sleep(0.05)
+    assert "altitude" in bridge.state
+    assert "heading" in bridge.state
+    units = bridge.metric_units()
+    assert units["altitude"] == "ft"
+    assert units["airspeed"] == "knot"
 
 

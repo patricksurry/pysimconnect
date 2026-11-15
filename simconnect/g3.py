@@ -4,7 +4,6 @@ from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
 import logging
-import math
 import os
 import threading
 import time
@@ -14,7 +13,6 @@ from urllib.parse import parse_qs, urlparse
 from .changedict import ChangeDict
 from .sc import SimConnect
 from .scdefs import PERIOD_VISUAL_FRAME
-from .scvars import validate_simvar, validate_units
 
 logger = logging.getLogger(__name__)
 
@@ -61,49 +59,27 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
         return json.load(f)
 
 
-def _infer_g3_unit(simvar: str, explicit_unit: Optional[str] = None) -> Optional[str]:
-    sv_meta = validate_simvar(simvar, settable=False)
-    msfs_unit = validate_units(simvar, explicit_unit, sv_meta)
-    if not msfs_unit:
-        return None
-    return MSFS_TO_G3_UNIT.get(msfs_unit.lower(), msfs_unit)
-
-
 class SimConnectG3Bridge:
-    """Polls SimConnect (or synthetic mock telemetry) and serves G3 metrics/actions."""
+    """Polls a SimConnect (or MockSimConnect) instance and serves G3 metrics/actions."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None, mock: bool = False):
+    def __init__(self, sc: Optional[Any] = None, config: Optional[Dict[str, Any]] = None):
+        self.sc = sc if sc is not None else SimConnect(name="g3_bridge")
         self.cfg = config or load_config()
         self.mapping: List[Dict[str, Any]] = [dict(m) for m in self.cfg.get("metrics", [])]
-        self.actions: List[Dict[str, Any]] = self.cfg.get("actions", [])
-        self.mock = mock
+        self.actions: List[Dict[str, Any]] = list(self.cfg.get("actions", []))
         self.state = ChangeDict()
         self._lock = threading.Lock()
-        self.sc: Optional[SimConnect] = None
-        self.dd = None
         self._dd_latest = 0
-        self._t0 = time.time()
-        self._mock_offsets: Dict[str, float] = {
-            "pressureSetting": 1013.25,
-            "heading": 0.0,
-            "radialVOR": 45.0,
-            "headingADF": 0.0,
-        }
 
-        if not self.mock:
-            self.sc = SimConnect(name="g3_bridge")
-            self.dd = self.sc.subscribe_simdata(
-                [dict(name=m["simvar"], units=m.get("unit")) for m in self.mapping],
-                period=PERIOD_VISUAL_FRAME,
-                interval=10,
-            )
-            simvar_units = self.dd.get_units()
-            for m in self.mapping:
-                u = simvar_units.get(m["simvar"]) or m.get("unit")
-                m["unit"] = MSFS_TO_G3_UNIT.get(u.lower(), u) if u else None
-        else:
-            for m in self.mapping:
-                m["unit"] = _infer_g3_unit(m["simvar"], m.get("unit"))
+        self.dd = self.sc.subscribe_simdata(
+            [dict(name=m["simvar"], units=m.get("unit")) for m in self.mapping],
+            period=PERIOD_VISUAL_FRAME,
+            interval=10,
+        )
+        simvar_units = self.dd.get_units()
+        for m in self.mapping:
+            u = simvar_units.get(m["simvar"]) or m.get("unit")
+            m["unit"] = MSFS_TO_G3_UNIT.get(u.lower(), u) if u else None
 
     def metric_units(self) -> Dict[str, Any]:
         return {
@@ -114,22 +90,19 @@ class SimConnectG3Bridge:
 
     def poll_metrics(self, metrics: Optional[List[str]] = None) -> Dict[str, Any]:
         with self._lock:
-            if self.mock:
-                data = self._generate_mock_metrics(metrics)
-            else:
-                while self.sc.receive():
-                    pass
-                recent = self.dd.simdata.changedsince(self._dd_latest)
-                self._dd_latest = self.dd.simdata.latest()
-                data = {}
-                for m in self.mapping:
-                    name, sv = m["metric"], m["simvar"]
-                    if (metrics and name not in metrics) or sv not in recent:
-                        continue
-                    v = recent[sv]
-                    if "fx" in m:
-                        v = eval(m["fx"], {"__builtins__": {}}, {"x": v})
-                    data[name] = v
+            while self.sc.receive():
+                pass
+            recent = self.dd.simdata.changedsince(self._dd_latest)
+            self._dd_latest = self.dd.simdata.latest()
+            data = {}
+            for m in self.mapping:
+                name, sv = m["metric"], m["simvar"]
+                if (metrics and name not in metrics) or sv not in recent:
+                    continue
+                v = recent[sv]
+                if "fx" in m:
+                    v = eval(m["fx"], {"__builtins__": {}}, {"x": v})
+                data[name] = v
 
             latest = self.state.latest()
             self.state.update(data)
@@ -137,34 +110,6 @@ class SimConnectG3Bridge:
             if changed:
                 self.state.update(self.trigger_actions(changed))
             return data
-
-    def _generate_mock_metrics(self, metrics: Optional[List[str]] = None) -> Dict[str, Any]:
-        t = time.time() - self._t0
-        baro = self._mock_offsets["pressureSetting"]
-        raw = {
-            "heading": (120.0 + 15.0 * math.sin(t * 0.15) + self._mock_offsets["heading"]) % 360.0,
-            "altitude": 5500.0 + 250.0 * math.sin(t * 0.2) + (baro - 1013.25) * 27.3,
-            "pressureSetting": baro,
-            "pitch": 4.0 * math.sin(t * 0.4),
-            "roll": 12.0 * math.sin(t * 0.3),
-            "turnrate": 1.5 * math.cos(t * 0.3),
-            "slip": 3.0 * math.sin(t * 0.5),
-            "airspeed": 108.0 + 8.0 * math.cos(t * 0.2),
-            "verticalSpeed": 400.0 * math.cos(t * 0.2),
-            "relativeADF": (280.0 + 10.0 * math.sin(t * 0.1)) % 360.0,
-            "headingADF": self._mock_offsets["headingADF"] % 360.0,
-            "radialVOR": self._mock_offsets["radialVOR"] % 360.0,
-            "radialDeviation": 4.0 * math.sin(t * 0.25),
-            "toFromVOR": 1,
-            "compass": (120.0 + 15.0 * math.sin(t * 0.15)) % 360.0,
-            "suctionPressure": 5.2,
-            "fuelPressure": 5.4,
-            "oilPressure": 78.0,
-            "oilTemperature": 615.0,
-            "manifoldPressure": 24.5,
-            "engineRPM": 2350.0 + 30.0 * math.sin(t * 0.25),
-        }
-        return {k: v for k, v in raw.items() if not metrics or k in metrics}
 
     def handle_inputs(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         with self._lock:
@@ -175,19 +120,14 @@ class SimConnectG3Bridge:
 
     def trigger_actions(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         outputs: Dict[str, Any] = {}
-        mock_deltas = {"ALT-ROT": ("pressureSetting", 0.34), "HDG-ROT": ("heading", 1.0), "VOR-ROT": ("radialVOR", 1.0), "ADF-ROT": ("headingADF", 1.0)}
         for k, raw_v in inputs.items():
-            if self.mock and k in mock_deltas:
-                field, scale = mock_deltas[k]
-                self._mock_offsets[field] += float(raw_v) * scale
-
             for rule in (r for r in self.actions if r.get("input") == k):
                 v = eval(rule["fx"], {"__builtins__": {}}, {"x": raw_v}) if "fx" in rule else raw_v
                 if "output" in rule:
                     outputs[rule["output"]] = v
-                elif "simvar" in rule and self.sc is not None:
+                elif "simvar" in rule:
                     self.sc.set_simdatum(rule["simvar"], v)
-                elif "event" in rule and self.sc is not None:
+                elif "event" in rule:
                     name, method = rule["event"], rule.get("method")
                     if method == "incdec":
                         evt = name[0 if v > 0 else 1]
@@ -200,8 +140,7 @@ class SimConnectG3Bridge:
         return outputs
 
     def close(self) -> None:
-        if self.sc is not None:
-            self.sc.Close()
+        self.sc.Close()
 
 
 class G3HTTPRequestHandler(SimpleHTTPRequestHandler):

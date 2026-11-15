@@ -128,13 +128,14 @@ simconnect serve --mock --port 8000
 
 ---
 
-## 7. G3 Instrument Panel Bridge (`simconnect.g3`)
+## 7. G3 Instrument Panel Bridge (`simconnect.g3`) & Mock Simulator (`simconnect.mock`)
 
-`simconnect.g3` provides a zero-dependency HTTP & Server-Sent Events (SSE) bridge compatible with [G3](https://github.com/patricksurry/g3) (`@patricksurry/g3`) instrument panels:
+`simconnect.g3` provides a zero-dependency HTTP & Server-Sent Events (SSE) bridge compatible with [G3](https://github.com/patricksurry/g3) (`@patricksurry/g3`) instrument panels, and `simconnect.mock` provides a drop-in `MockSimConnect` generator for offline development and testing:
 
-- `SimConnectG3Bridge(config=None, mock=False)` — Subscribes to configured SimVars, translates MSFS units to `convert-units` symbols (`ft`, `deg`, `knot`, `inHg`, `hPa`, etc.), evaluates optional `fx` transforms, and dispatches interactive cockpit input actions (`incdec` / `set` events and writable SimVars).
-- `create_g3_server(bridge, host="0.0.0.0", port=8000, stream_interval=0.1) -> ThreadingHTTPServer`:
-  - `GET /` — Built-in DHC-2 Beaver Nav & Engine live G3 panel UI with interactive cockpit controls.
+- `MockSimConnect(name="MockSimConnect")` — Implements the `SimConnect` interface (`get_simdatum`, `get_simdata`, `subscribe_simdata`, `set_simdatum`, `set_simdata`, `send_event`, `receive`, `Close`) with realistic synthetic flight telemetry, unit conversion, and event reactions (`KOHLSMAN_INC`/`DEC`, `HEADING_BUG_INC`/`DEC`, `VOR1_OBI_INC`/`DEC`, `ADF_CARD_INC`/`DEC`).
+- `SimConnectG3Bridge(sc=None, config=None)` — Accepts any `SimConnect` (or `MockSimConnect`) instance, subscribes to configured SimVars, translates MSFS units to `convert-units` symbols (`ft`, `deg`, `knot`, `inHg`, `hPa`, etc.), evaluates optional `fx` transforms, and dispatches interactive cockpit input actions.
+- `create_g3_server(bridge, host="0.0.0.0", port=8000, stream_interval=0.1, static_dir=None) -> ThreadingHTTPServer`:
+  - `GET /` — Serves static panel files from `static_dir` (defaulting to `examples/g3/`).
   - `GET /stream` — SSE stream (`text/event-stream`) emitting `data: {"metrics": {...}, "units": {...}}\n\n`.
   - `GET /metrics.json` — Polling snapshot (`?metrics=a,b&latest=0&units=true`).
-  - `POST /inputs` — Dispatches JSON input payloads (e.g. `{"ALT-ROT": 1, "HDG-ROT": -5}`) to SimConnect.
+  - `POST /inputs` — Dispatches JSON input payloads (e.g. `{"ALT-ROT": 1, "HDG-ROT": -5}`) to `sc`.
