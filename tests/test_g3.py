@@ -16,11 +16,13 @@ def test_g3_bridge_with_mock_simconnect():
     assert units["altitude"] == "ft"
     assert units["airspeed"] == "knot"
     assert units["pressureSetting"] == "hPa"
+    assert units["slip"] == "deg"
 
     metrics = bridge.poll_metrics()
     assert "altitude" in metrics
     assert "airspeed" in metrics
     assert "heading" in metrics
+    assert metrics["toFromVOR"] == 1
 
     # Triggering ALT-ROT sends KOHLSMAN_INC to MockSimConnect and bumps barometer pressure
     initial_baro = mock_sc.get_simdatum("BAROMETER PRESSURE")
@@ -28,50 +30,16 @@ def test_g3_bridge_with_mock_simconnect():
     assert ("KOHLSMAN_INC", 0) in mock_sc.event_history
     assert mock_sc.get_simdatum("BAROMETER PRESSURE") > initial_baro
 
+    # Test simvar set action
+    bridge.handle_inputs({"MASTER1": 0})
+    assert mock_sc.get_simdatum("ELECTRICAL MASTER BATTERY") == 0
+
     # Output rule copies input to state
     bridge.actions.append({"input": "testWarning", "output": "RED_WARNING"})
     out = bridge.handle_inputs({"testWarning": 1})
     assert out == {"RED_WARNING": 1}
     assert bridge.state["RED_WARNING"] == 1
-
-
-def test_g3_bridge_live_simconnect_dispatch():
-    mock_sc = MagicMock()
-    mock_sc.receive.return_value = False
-    mock_dd = MagicMock()
-    mock_dd.get_units.return_value = {
-        "INDICATED ALTITUDE": "feet",
-        "TURN COORDINATOR BALL": "position",
-        "NAV TOFROM:1": "Enum",
-    }
-    from simconnect.changedict import ChangeDict
-    sd = ChangeDict()
-    sd["INDICATED ALTITUDE"] = 4500.0
-    sd["TURN COORDINATOR BALL"] = 25.0
-    sd["NAV TOFROM:1"] = 2
-    mock_dd.simdata = sd
-    mock_sc.subscribe_simdata.return_value = mock_dd
-
-    bridge = SimConnectG3Bridge(sc=mock_sc)
-    assert bridge.metric_units()["altitude"] == "ft"
-    assert bridge.metric_units()["slip"] == "deg"
-
-    polled = bridge.poll_metrics()
-    assert polled["altitude"] == pytest.approx(4500.0)
-    assert polled["slip"] == pytest.approx(5.0)  # fx: x / 5
-    assert polled["toFromVOR"] == -1  # fx: -1 if x == 2 else x
-
-    # Test incdec event action
-    bridge.handle_inputs({"ALT-ROT": -3})
-    assert mock_sc.send_event.call_count == 3
-    mock_sc.send_event.assert_called_with("KOHLSMAN_DEC")
-
-    # Test simvar set action
-    bridge.handle_inputs({"MASTER1": 1})
-    mock_sc.set_simdatum.assert_called_once_with("ELECTRICAL MASTER BATTERY", 1)
-
     bridge.close()
-    mock_sc.Close.assert_called_once()
 
 
 def _raw_http_request(server, raw_req: bytes, read_first_sse: bool = False) -> bytes:

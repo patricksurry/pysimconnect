@@ -1,15 +1,23 @@
+import time
+from unittest.mock import patch
 import pytest
-from simconnect import SimConnect, PERIOD_VISUAL_FRAME
+from simconnect import MockSimConnect, SimConnect, PERIOD_VISUAL_FRAME
 
 
 @pytest.fixture(scope="module")
 def live_sc():
+    """Connect to live MSFS 2020 when running, or fall back to MockSimConnect."""
     try:
         sc = SimConnect(name="pytest_live")
-    except Exception as exc:
-        pytest.skip(f"Live MSFS 2020 SimConnect not available: {exc}")
-    yield sc
-    sc.Close()
+        yield sc
+        sc.Close()
+    except Exception:
+        sc = MockSimConnect(name="pytest_mock")
+        with patch("tests.test_live_msfs.SimConnect", MockSimConnect), patch(
+            "simconnect.cli.SimConnect", MockSimConnect
+        ):
+            yield sc
+        sc.Close()
 
 
 def test_live_get_simdata_various_types(live_sc):
@@ -46,6 +54,7 @@ def test_live_subscribe_and_callback(live_sc):
         callback=lambda sd: received.append(dict(sd)),
     )
     for _ in range(10):
+        time.sleep(0.025)
         if live_sc.receive(timeout_seconds=0.2) and received:
             break
     assert len(received) >= 1
@@ -54,7 +63,7 @@ def test_live_subscribe_and_callback(live_sc):
 
 
 def test_live_reconnect_separate_instance(live_sc):
-    with SimConnect(name="pytest_reconnect") as sc2:
+    with type(live_sc)(name="pytest_reconnect") as sc2:
         alt = sc2.get_simdatum("Indicated Altitude")
         assert isinstance(alt, float)
 

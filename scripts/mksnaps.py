@@ -1,7 +1,7 @@
 """Generate terminal SVG snapshots in doc/*.svg from the actual simconnect CLI."""
 import os
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from rich.console import Console
 from rich.text import Text
 from typer.testing import CliRunner
@@ -11,6 +11,7 @@ if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 from simconnect.cli import app, floatfmt, labelfmt, scoped_autocomplete
+from simconnect.mock import MockSimConnect
 
 DOC_DIR = os.path.join(ROOT_DIR, "doc")
 runner = CliRunner()
@@ -67,12 +68,7 @@ def generate_all():
     )
 
     # 4. sc-get.svg, 5. sc-set.svg, 6. sc-send.svg
-    with patch("simconnect.cli.SimConnect") as mock_sc_cls:
-        mock_sc = MagicMock()
-        mock_sc.__enter__.return_value = mock_sc
-        mock_sc.get_simdatum.return_value = 5000.002311
-        mock_sc_cls.return_value = mock_sc
-
+    with patch("simconnect.cli.SimConnect", MockSimConnect):
         res_get = runner.invoke(app, ["get", "PLANE_ALTITUDE"])
         save_terminal_svg(
             "sc-get.svg",
