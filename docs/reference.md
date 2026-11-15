@@ -104,10 +104,8 @@ Helper functions:
 ## 6. Command-Line Interface (`simconnect`)
 
 ```bash
-# Search variables, events, and units (or open web explorer with --web)
+# Open the interactive SDK Explorer in your browser
 simconnect search altitude
-simconnect search cyclic --kind event
-simconnect search barometer --web
 
 # Read one or more SimVars
 simconnect get PLANE_ALTITUDE AIRSPEED_INDICATED
@@ -122,4 +120,21 @@ simconnect set PLANE_ALTITUDE 1500 --units meters
 # Trigger an Event ID (with optional integer value)
 simconnect send KOHLSMAN_INC
 simconnect send AXIS_FLAPS_SET 8192
+
+# Serve G3-compatible metrics (/stream, /metrics.json, /inputs) and live DHC-2 panel UI
+simconnect serve --port 8000
+simconnect serve --mock --port 8000
 ```
+
+---
+
+## 7. G3 Instrument Panel Bridge (`simconnect.g3`)
+
+`simconnect.g3` provides a zero-dependency HTTP & Server-Sent Events (SSE) bridge compatible with [G3](https://github.com/patricksurry/g3) (`@patricksurry/g3`) instrument panels:
+
+- `SimConnectG3Bridge(config=None, mock=False)` — Subscribes to configured SimVars, translates MSFS units to `convert-units` symbols (`ft`, `deg`, `knot`, `inHg`, `hPa`, etc.), evaluates optional `fx` transforms, and dispatches interactive cockpit input actions (`incdec` / `set` events and writable SimVars).
+- `create_g3_server(bridge, host="0.0.0.0", port=8000, stream_interval=0.1) -> ThreadingHTTPServer`:
+  - `GET /` — Built-in DHC-2 Beaver Nav & Engine live G3 panel UI with interactive cockpit controls.
+  - `GET /stream` — SSE stream (`text/event-stream`) emitting `data: {"metrics": {...}, "units": {...}}\n\n`.
+  - `GET /metrics.json` — Polling snapshot (`?metrics=a,b&latest=0&units=true`).
+  - `POST /inputs` — Dispatches JSON input payloads (e.g. `{"ALT-ROT": 1, "HDG-ROT": -5}`) to SimConnect.

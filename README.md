@@ -97,6 +97,12 @@ If you send this event a few times, you'll see the indicated altitude adjust in 
 
 This simple event needs no data, but with others you also need to provide a value.
 
+You can also launch a live [G3](https://github.com/patricksurry/g3) steam-gauge instrument panel server directly from the CLI:
+
+    simconnect serve --port 8000
+
+Then open `http://localhost:8000` in any browser (or on a tablet/Raspberry Pi on your LAN) to view live DHC-2 Beaver navigation and engine gauges streamed over Server-Sent Events (`/stream`, `/metrics.json`, `/inputs`). If MSFS 2020 is not running (or on macOS/Linux), `simconnect serve --mock` streams realistic synthetic flight telemetry.
+
 
 Working with python
 ---

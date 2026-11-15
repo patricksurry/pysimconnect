@@ -128,5 +128,40 @@ def search(name: Optional[List[str]] = typer.Argument(None)):
     webbrowser.open(url)
 
 
+@app.command()
+def serve(
+    host: str = "0.0.0.0",
+    port: int = 8000,
+    interval: float = 0.1,
+    mock: bool = False,
+    config: Optional[str] = None,
+    open_browser: bool = False,
+):
+    """Serve G3-compatible instrument metrics (/stream, /metrics.json, /inputs) and live DHC-2 panel UI."""
+    from .g3 import SimConnectG3Bridge, create_g3_server, load_config
+
+    cfg = load_config(config)
+    try:
+        bridge = SimConnectG3Bridge(config=cfg, mock=mock)
+    except Exception as exc:
+        typer.echo(f"SimConnect unavailable ({exc}); starting in --mock telemetry mode.")
+        bridge = SimConnectG3Bridge(config=cfg, mock=True)
+
+    server = create_g3_server(bridge, host=host, port=port, stream_interval=interval)
+    display_host = "localhost" if host in ("0.0.0.0", "127.0.0.1") else host
+    url = f"http://{display_host}:{port}/"
+    mode_label = "mock telemetry" if bridge.mock else "live MSFS 2020 SimConnect"
+    typer.echo(f"Serving G3 Flight Deck ({mode_label}) at {url}")
+    if open_browser:
+        webbrowser.open(url)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+        bridge.close()
+
+
 if __name__ == "__main__":
     app()
