@@ -16,12 +16,12 @@ runner = CliRunner()
 
 
 def test_readme_cli_search():
-    """Mirror README 'simconnect search altitude' example."""
-    res = runner.invoke(app, ["search", "altitude"])
-    assert res.exit_code == 0
-    assert "Showing" in res.stdout
-    assert "ALTITUDE" in res.stdout.upper()
-    assert "🧭" in res.stdout or "⚙️" in res.stdout
+    """Mirror README 'simconnect search altitude' example (opens web SDK explorer)."""
+    with patch("simconnect.cli.webbrowser.open") as mock_open:
+        res = runner.invoke(app, ["search", "altitude"])
+        assert res.exit_code == 0
+        assert "https://patricksurry.github.io/pysimconnect/#search=altitude" in res.stdout
+        mock_open.assert_called_once_with("https://patricksurry.github.io/pysimconnect/#search=altitude")
 
 
 def test_readme_cli_tab_completion():

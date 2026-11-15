@@ -1,16 +1,13 @@
 import typer
 import json
-from typing import List, Optional, Dict, Any
-from textwrap import fill
-from enum import Enum
-from difflib import SequenceMatcher
+from typing import List, Optional
 from simconnect import SimConnect
 import os
-import re
 import webbrowser
 
 
 app = typer.Typer()
+DOCS_URL = "https://patricksurry.github.io/pysimconnect/"
 
 thisdir = os.path.dirname(__file__)
 with open(os.path.join(thisdir, 'scvars.json')) as f:
@@ -19,11 +16,6 @@ for k in ['EVENTS', 'VARIABLES', 'UNITS']:
     for d in scvars[k].values():
         d['name_'] = d['name' if k != 'UNITS' else 'name_std'].replace(' ', '_')
 
-
-class MetadataKind(str, Enum):
-    variable = 'variable'
-    event = 'event'
-    unit = 'unit'
 
 
 def floatfmt(v, width=12, precision=3):
@@ -127,110 +119,13 @@ def send(event: str = eventdef, value: Optional[int] = None):
         sc.send_event(event, value or 0)
 
 
-def _search_scvars(queries: List[str], kind: Optional[MetadataKind] = None) -> List[Dict[str, Any]]:
-    kinds = [f"{kind.name.upper()}S"] if kind else ['VARIABLES', 'EVENTS', 'UNITS']
-    raw_q = ' '.join(queries).strip()
-    if not raw_q:
-        return []
-    tokens = [t.rstrip('*').lower() for t in re.split(r'[\s_]+', raw_q) if t.rstrip('*')]
-    fuzzy = '~' in raw_q
-    if fuzzy:
-        tokens = [t.split('~')[0] for t in tokens if t.split('~')[0]]
-
-    scored = []
-    for k in kinds:
-        for key, d in scvars[k].items():
-            name_low = d['name'].lower().replace('_', ' ')
-            desc_low = d.get('description', '').lower()
-            cat_low = f"{d.get('page', '')} {d.get('section', '')}".lower()
-            haystack = f"{name_low} {desc_low} {cat_low}"
-
-            score = 0.0
-            matched = True
-            for tok in tokens:
-                if tok in name_low:
-                    score += 10.0 if name_low.startswith(tok) else 5.0
-                    if name_low == tok:
-                        score += 10.0
-                elif tok in haystack:
-                    score += 2.0
-                elif fuzzy:
-                    words = name_low.split()
-                    best = max((SequenceMatcher(None, tok, w).ratio() for w in words), default=0.0)
-                    if best >= 0.65:
-                        score += best * 3.0
-                    else:
-                        matched = False
-                        break
-                else:
-                    matched = False
-                    break
-            if matched and score > 0:
-                scored.append((score, -len(d['name']), d['name'], dict(d, kind=k)))
-
-    scored.sort(reverse=True)
-    return [item[3] for item in scored]
-
-
-DOCS_URL = "https://patricksurry.github.io/pysimconnect/"
-
-
 @app.command()
-def search(
-    name: List[str],
-    kind: Optional[MetadataKind] = None,
-    max_results: int = 10,
-    brief: bool = False,
-    web: bool = False,
-):
-    if web:
-        q = '+'.join(name)
-        webbrowser.open(f"{DOCS_URL}#search={q}")
-        return
-
-    styles = dict(
-        # in mac terminal some double-width emoji need a trailing space to display correctly
-        # but this seems fine on windows terminal
-        VARIABLES=dict(color=typer.colors.BLUE, symbol="🧭"),
-        EVENTS=dict(color=typer.colors.GREEN, symbol="⚙️"),  # or maybe? 🔔
-        UNITS=dict(color=typer.colors.RED, symbol="📐"),
-        DIMENSIONS=dict(color=typer.colors.MAGENTA, symbol="📏"),
-    )
-    indent = ' ' * 4
-
-    all_docs = _search_scvars(name, kind=kind)
-    docs = all_docs[:max_results]
-
-    typer.echo(
-        'Showing '
-        + typer.style(f"{len(docs)}/{len(all_docs)}", fg=typer.colors.BLUE)
-        + ' results'
-    )
-    if not docs:
-        typer.echo(fill("""
-Perhaps try a shorter prefix like 'alti' or fuzzy match 'alti~'
-        """.strip()))
-    else:
-        if len(docs) < len(all_docs):
-            typer.echo('Increase --max-results for more')
-        typer.echo('')
-        for d in docs:
-            name = d['name_std'] if ',' in d['name'] else d['name']
-            style = styles[d['kind']]
-            label = typer.style(f"{name}", fg=style['color'], bold=True)
-            typer.echo(style['symbol'] + ' ' + label + f"{' ✏️' if d.get('settable') else ''}")
-            if brief:
-                continue
-            desc = d.get('description')
-            if desc:
-                s = re.sub(r'\s*\n\s*', ' ', desc).strip()
-                typer.echo(fill(s, initial_indent=indent, subsequent_indent=indent))
-            loc = '; '.join(filter(None, [d['page'], d['section'] or None])).lower()
-            typer.echo(f"{indent}Category: {loc}")
-            if d.get('units'):
-                lines = [s for s in d['units'].split('\n') if s.rstrip()]
-                lines[0] = f"{indent}Default units: {lines[0]} [{d['dimensions']}]"
-                typer.echo('\n'.join(lines))
+def search(name: Optional[List[str]] = typer.Argument(None)):
+    """Open the interactive SimConnect SDK Explorer in your web browser."""
+    q = '+'.join(name) if name else ''
+    url = f"{DOCS_URL}#search={q}" if q else DOCS_URL
+    typer.echo(f"Opening {url}")
+    webbrowser.open(url)
 
 
 if __name__ == "__main__":

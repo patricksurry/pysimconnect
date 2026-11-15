@@ -61,14 +61,17 @@ def test_live_reconnect_separate_instance(live_sc):
 
 def test_live_readme_cli_e2e(live_sc):
     """Run the actual README CLI commands (search, get, set, send) against live MSFS 2020."""
+    from unittest.mock import patch
     from typer.testing import CliRunner
     from simconnect.cli import app
 
     runner = CliRunner()
 
-    res_search = runner.invoke(app, ["search", "altitude"])
-    assert res_search.exit_code == 0
-    assert "PLANE ALTITUDE" in res_search.stdout
+    with patch("simconnect.cli.webbrowser.open") as mock_open:
+        res_search = runner.invoke(app, ["search", "altitude"])
+        assert res_search.exit_code == 0
+        assert "https://patricksurry.github.io/pysimconnect/#search=altitude" in res_search.stdout
+        mock_open.assert_called_once()
 
     res_get = runner.invoke(app, ["get", "PLANE_ALTITUDE"])
     assert res_get.exit_code == 0

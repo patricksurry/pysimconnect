@@ -318,47 +318,13 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/minisearch@7.1.1/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
   <script>
-    // Aviation domain synonyms for hybrid semantic expansion
-    const SYNONYMS = {
-      baro: ["kohlsman", "barometer", "altimeter", "pressure"],
-      barometer: ["kohlsman", "altimeter", "pressure"],
-      altimeter: ["kohlsman", "indicated altitude", "barometer"],
-      xpdr: ["transponder", "bco16", "squawk"],
-      squawk: ["transponder", "bco16"],
-      hdg: ["heading"],
-      ias: ["airspeed indicated"],
-      tas: ["airspeed true"],
-      vs: ["vertical speed", "variometer"],
-      vsi: ["vertical speed"],
-      cht: ["cylinder head temperature"],
-      egt: ["exhaust gas temperature"],
-      rpm: ["revolutions", "general eng rpm", "prop"],
-      cyclic: ["helicopter", "rotor", "disk"],
-      collective: ["helicopter", "rotor", "blade pitch"],
-      utc: ["zulu", "absolute time"],
-    };
-
     let allItems = [];
+    let itemById = new Map();
+    let miniSearch = null;
     let currentKind = "ALL";
-
-    function trigrams(s) {
-      const padded = "  " + s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() + "  ";
-      const set = new Set();
-      for (let i = 0; i < padded.length - 2; i++) {
-        set.add(padded.slice(i, i + 3));
-      }
-      return set;
-    }
-
-    function trigramSim(aSet, bSet) {
-      if (!aSet.size || !bSet.size) return 0;
-      let inter = 0;
-      for (const t of aSet) {
-        if (bSet.has(t)) inter++;
-      }
-      return inter / Math.sqrt(aSet.size * bSet.size);
-    }
 
     async function loadCatalog() {
       const urls = [
@@ -381,33 +347,46 @@
       }
 
       const pages = new Set();
+      let idCounter = 1;
       for (const kind of ["VARIABLES", "EVENTS", "UNITS"]) {
         const entries = data[kind] || {};
         for (const [key, d] of Object.entries(entries)) {
+          const id = idCounter++;
           const name = kind === "UNITS" ? (d.name_std || d.name) : d.name;
-          const nameClean = name.toLowerCase().replace(/_/g, " ");
+          const nameClean = name.replace(/_/g, " ");
           const desc = (d.description || "").replace(/\s+/g, " ").trim();
           const page = (d.page || "").trim();
           const section = (d.section || "").trim();
           if (page) pages.add(page);
-          allItems.push({
+          const item = {
+            id,
             kind,
             key,
             name,
             nameClean,
             desc,
-            descLower: desc.toLowerCase(),
             page,
             section,
-            catLower: (page + " " + section).toLowerCase(),
             units: d.units_std || d.units || "",
             dimensions: d.dimensions || "",
             settable: Boolean(d.settable),
             indexed: Boolean(d.indexed),
-            nameTrigrams: trigrams(nameClean),
-          });
+          };
+          allItems.push(item);
+          itemById.set(id, item);
         }
       }
+
+      miniSearch = new MiniSearch({
+        fields: ["nameClean", "desc", "page", "section", "units"],
+        storeFields: ["id"],
+        searchOptions: {
+          boost: { nameClean: 4, desc: 2, page: 1, section: 1, units: 1 },
+          prefix: true,
+          fuzzy: 0.2,
+        },
+      });
+      miniSearch.addAll(allItems);
 
       const catSelect = document.getElementById("category-select");
       Array.from(pages).sort().forEach(p => {
@@ -417,7 +396,6 @@
         catSelect.appendChild(opt);
       });
 
-      // Check URL hash for #search=...
       if (window.location.hash.startsWith("#search=")) {
         const q = decodeURIComponent(window.location.hash.slice("#search=".length).replace(/\+/g, " "));
         document.getElementById("search-input").value = q;
@@ -447,70 +425,28 @@
       setTimeout(() => { btn.textContent = orig; }, 1200);
     }
 
+    function filterItem(item, catFilter, settableOnly) {
+      if (currentKind !== "ALL" && item.kind !== currentKind) return false;
+      if (catFilter && item.page !== catFilter) return false;
+      if (settableOnly && !item.settable) return false;
+      return true;
+    }
+
     function runSearch() {
-      const rawQ = document.getElementById("search-input").value.trim().toLowerCase();
+      const rawQ = document.getElementById("search-input").value.trim().replace(/_/g, " ");
       const catFilter = document.getElementById("category-select").value;
       const settableOnly = document.getElementById("settable-only").checked;
 
-      const tokens = rawQ.split(/[\s_]+/).filter(Boolean).map(t => t.replace(/\*+$/, ""));
-      const qTrigrams = rawQ ? trigrams(rawQ) : null;
-
-      // Expand tokens with domain synonyms
-      const expandedGroups = tokens.map(tok => {
-        const group = [tok];
-        if (SYNONYMS[tok]) group.push(...SYNONYMS[tok]);
-        return group;
-      });
-
-      const matches = [];
-      for (const item of allItems) {
-        if (currentKind !== "ALL" && item.kind !== currentKind) continue;
-        if (catFilter && item.page !== catFilter) continue;
-        if (settableOnly && !item.settable) continue;
-
-        if (!tokens.length) {
-          matches.push({ score: 1, item });
-          continue;
-        }
-
-        let score = 0;
-        let allMatched = true;
-        for (const group of expandedGroups) {
-          let groupScore = 0;
-          for (let idx = 0; idx < group.length; idx++) {
-            const term = group[idx];
-            const weight = idx === 0 ? 1.0 : 0.75; // direct token vs synonym
-            if (item.nameClean === term) {
-              groupScore = Math.max(groupScore, 30 * weight);
-            } else if (item.nameClean.startsWith(term)) {
-              groupScore = Math.max(groupScore, 18 * weight);
-            } else if (item.nameClean.includes(term)) {
-              groupScore = Math.max(groupScore, 12 * weight);
-            } else if (item.descLower.includes(term)) {
-              groupScore = Math.max(groupScore, 5 * weight);
-            } else if (item.catLower.includes(term)) {
-              groupScore = Math.max(groupScore, 3 * weight);
-            }
-          }
-          if (groupScore === 0 && qTrigrams) {
-            const sim = trigramSim(qTrigrams, item.nameTrigrams);
-            if (sim >= 0.35) {
-              groupScore = sim * 10;
-            }
-          }
-          if (groupScore === 0) {
-            allMatched = false;
-            break;
-          }
-          score += groupScore;
-        }
-
-        if (allMatched && score > 0) {
-          matches.push({ score, item });
-        }
+      let matches = [];
+      if (!rawQ) {
+        matches = allItems.filter(item => filterItem(item, catFilter, settableOnly));
+      } else if (miniSearch) {
+        const rawHits = miniSearch.search(rawQ, {
+          filter: (result) => filterItem(itemById.get(result.id), catFilter, settableOnly),
+        });
+        matches = rawHits.map(r => itemById.get(r.id));
       }
 
-      matches.sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name));
       const limit = 100;
       const shown = matches.slice(0, limit);
       document.getElementById("results-count").textContent =
@@ -520,7 +456,7 @@
       container.innerHTML = "";
       const symbols = { VARIABLES: "🧭", EVENTS: "⚙️", UNITS: "📐" };
 
-      for (const { item } of shown) {
+      for (const item of shown) {
         const card = document.createElement("div");
         card.className = "card";
 
@@ -566,66 +502,6 @@
       }
     }
 
-    function renderMarkdown(md) {
-      // Normalize setext headings ("Title\n---" -> "## Title")
-      md = md.replace(/^([^\n]+)\n-{3,}\s*$/gm, "## $1");
-      // Extract fenced code blocks first
-      const codeBlocks = [];
-      md = md.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
-        const esc = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        codeBlocks.push(`<pre><code class="lang-${lang}">${esc}</code></pre>`);
-        return `\x00CODE${codeBlocks.length - 1}\x00`;
-      });
-      // Extract 4-space indented code blocks
-      md = md.replace(/(?:^(?:    |\t).+\n?)+/gm, (block) => {
-        const code = block.replace(/^(?:    |\t)/gm, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        codeBlocks.push(`<pre><code>${code}</code></pre>`);
-        return `\x00CODE${codeBlocks.length - 1}\x00\n`;
-      });
-      // Render tables
-      md = md.replace(/^\|(.+)\|\n\|[-| :]+?\|\n((?:\|.+\|\n?)+)/gm, (_, hdr, rows) => {
-        const ths = hdr.split("|").map(c => `<th>${inlineMd(c.trim())}</th>`).join("");
-        const trs = rows.trim().split("\n").map(r => {
-          const tds = r.replace(/^\||\|$/g, "").split("|").map(c => `<td>${inlineMd(c.trim())}</td>`).join("");
-          return `<tr>${tds}</tr>`;
-        }).join("");
-        return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
-      });
-      // Headings, HR, lists, paragraphs
-      const out = [];
-      for (const block of md.split(/\n{2,}/)) {
-        const b = block.trim();
-        if (!b) continue;
-        if (/^\x00CODE\d+\x00$/.test(b)) { out.push(b); continue; }
-        if (b.startsWith("<table")) { out.push(b); continue; }
-        if (/^---+$/.test(b)) { out.push("<hr style='border-color:var(--border);margin:1.5rem 0;'/>"); continue; }
-        const hm = b.match(/^(#{1,4})\s+(.+)$/);
-        if (hm) {
-          const lvl = hm[1].length;
-          out.push(`<h${lvl}>${inlineMd(hm[2])}</h${lvl}>`);
-          continue;
-        }
-        if (/^[-*]\s+/m.test(b)) {
-          const items = b.split(/\n(?=[-*]\s+)/).map(li => `<li>${inlineMd(li.replace(/^[-*]\s+/, ""))}</li>`).join("");
-          out.push(`<ul>${items}</ul>`);
-          continue;
-        }
-        out.push(`<p>${inlineMd(b)}</p>`);
-      }
-      let html = out.join("\n");
-      html = html.replace(/\x00CODE(\d+)\x00/g, (_, idx) => codeBlocks[Number(idx)]);
-      return html;
-    }
-
-    function inlineMd(s) {
-      return s
-        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2" style="max-width:100%;border-radius:0.5rem;border:1px solid var(--border);margin:0.5rem 0;" />')
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-        .replace(/`([^`]+)`/g, "<code>$1</code>")
-        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    }
-
     async function loadMarkdownDocs() {
       const docs = [
         {
@@ -643,7 +519,7 @@
             const resp = await fetch(url);
             if (resp.ok) {
               const md = await resp.text();
-              document.getElementById(doc.el).innerHTML = renderMarkdown(md);
+              document.getElementById(doc.el).innerHTML = marked.parse(md);
               break;
             }
           } catch (e) {}
