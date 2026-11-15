@@ -10,15 +10,13 @@ import time
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlparse
 
-from .changedict import ChangeDict
-from .sc import SimConnect
-from .scdefs import PERIOD_VISUAL_FRAME
+from ..changedict import ChangeDict
+from ..sc import SimConnect
+from ..scdefs import PERIOD_VISUAL_FRAME
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_EXAMPLE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "examples", "g3")
-)
+DEFAULT_EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Map canonical MSFS unit names to G3 convert-units symbols
 MSFS_TO_G3_UNIT: Dict[str, str] = {

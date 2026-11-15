@@ -205,8 +205,8 @@ Bump version in `setup.cfg` then following https://packaging.python.org/en/lates
     uv build --out-dir dist
     git commit -am ...
     git push origin
-    git tag v0.2.9
+    git tag v0.3.0
     git push origin --tags
-    uvx twine upload dist/*0.2.9*
+    uvx twine upload dist/*0.3.0*
     # login with username: __token__ / password: pypi-...
 
