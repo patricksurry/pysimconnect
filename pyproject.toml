@@ -8,3 +8,23 @@ build-backend = "setuptools.build_meta"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+# Python-SimConnect/ is a local, untracked checkout of another project
+extend-exclude = ["Python-SimConnect"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle
+    "F",       # pyflakes
+    "I",       # import sorting
+    "UP",      # pyupgrade, for python >= 3.9
+    "B",       # bugbear
+]
+
+[tool.mypy]
+python_version = "3.9"
+files = ["simconnect"]
+ignore_missing_imports = true
