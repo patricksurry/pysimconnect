@@ -20,16 +20,19 @@
     {"metric": "suctionPressure", "simvar": "SUCTION PRESSURE"},
     {"metric": "oilPressure", "simvar": "ENG OIL PRESSURE:1", "unit": "psi"},
     {"metric": "oilTemperature", "simvar": "ENG OIL TEMPERATURE:1"},
-    {"metric": "fuelPressure", "simvar": "ENG FUEL PRESSURE:1", "unit": "psi"}
+    {"metric": "fuelPressure", "simvar": "ENG FUEL PRESSURE:1", "unit": "psi"},
+    {"metric": "headingBug", "simvar": "AUTOPILOT HEADING LOCK DIR"},
+    {"metric": "masterAlternator", "simvar": "GENERAL ENG GENERATOR ACTIVE:1"},
+    {"metric": "masterBattery", "simvar": "ELECTRICAL MASTER BATTERY"}
   ],
   "actions": [
-    {"input": "ALT-ROT", "method": "incdec", "event": ["KOHLSMAN_INC", "KOHLSMAN_DEC"]},
-    {"input": "ATT-BTN", "event": "ATTITUDE_CAGE_BUTTON"},
-    {"input": "ATT-ROT", "method": "incdec", "event": ["ATTITUDE_BARS_POSITION_UP", "ATTITUDE_BARS_POSITION_DOWN"]},
-    {"input": "VOR-ROT", "method": "incdec", "event": ["VOR1_OBI_INC", "VOR1_OBI_DEC"]},
-    {"input": "ADF-ROT", "method": "incdec", "event": ["ADF_CARD_INC", "ADF_CARD_DEC"]},
-    {"input": "HDG-ROT", "method": "incdec", "event": ["HEADING_BUG_INC", "HEADING_BUG_DEC"]},
-    {"input": "MASTER0", "simvar": "GENERAL ENG GENERATOR ACTIVE:1"},
-    {"input": "MASTER1", "simvar": "ELECTRICAL MASTER BATTERY"}
+    {"op": "adjust", "metric": "pressureSetting", "simevent": ["KOHLSMAN_INC", "KOHLSMAN_DEC"]},
+    {"op": "adjust", "metric": "headingBug", "simevent": ["HEADING_BUG_INC", "HEADING_BUG_DEC"]},
+    {"op": "adjust", "metric": "radialVOR", "simevent": ["VOR1_OBI_INC", "VOR1_OBI_DEC"]},
+    {"op": "adjust", "metric": "headingADF", "simevent": ["ADF_CARD_INC", "ADF_CARD_DEC"]},
+    {"op": "adjust", "metric": "attitudeBars", "simevent": ["ATTITUDE_BARS_POSITION_UP", "ATTITUDE_BARS_POSITION_DOWN"]},
+    {"op": "trigger", "event": "attitudeCage", "simevent": "ATTITUDE_CAGE_BUTTON"},
+    {"op": "set", "metric": "masterAlternator", "simvar": "GENERAL ENG GENERATOR ACTIVE:1"},
+    {"op": "set", "metric": "masterBattery", "simvar": "ELECTRICAL MASTER BATTERY"}
   ]
 }

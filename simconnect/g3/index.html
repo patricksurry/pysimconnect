@@ -18,25 +18,10 @@
       background: #0b0f19;
       border-bottom: 1px solid #374151;
       padding: 0.65rem 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
       box-sizing: border-box;
     }
     .title { font-weight: 700; font-size: 1rem; color: #38bdf8; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
-    button {
-      background: #1f2937;
-      color: #e5e7eb;
-      border: 1px solid #374151;
-      border-radius: 0.4rem;
-      padding: 0.35rem 0.7rem;
-      font-size: 0.82rem;
-      cursor: pointer;
-    }
-    button:hover { border-color: #38bdf8; color: #fff; }
+    .hint { font-size: 0.8rem; color: #9ca3af; margin-left: 0.75rem; }
     #panel-host {
       margin-top: 0.75rem;
       display: flex;
@@ -49,48 +34,45 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
   </style>
-  <script src="https://unpkg.com/@patricksurry/g3/dist/g3-contrib.min.js"></script>
+  <!-- the hub protocol (keys=, POST {actions}) and interactive controls need g3 >= 0.3.0 -->
+  <script src="https://unpkg.com/@patricksurry/g3@0.3.0/dist/g3-contrib.min.js"></script>
 </head>
 <body>
   <header>
-    <div class="title">✈️ pysimconnect × G3 Flight Panel (Cessna 152 / 172 / Standard GA)</div>
-    <div class="toolbar">
-      <button onclick="sendInput({'ALT-ROT': -1})">Baro −</button>
-      <button onclick="sendInput({'ALT-ROT': 1})">Baro +</button>
-      <button onclick="sendInput({'HDG-ROT': -5})">HDG −</button>
-      <button onclick="sendInput({'HDG-ROT': 5})">HDG +</button>
-      <button onclick="sendInput({'VOR-ROT': -5})">OBS −</button>
-      <button onclick="sendInput({'VOR-ROT': 5})">OBS +</button>
-      <button onclick="sendInput({'ADF-ROT': -5})">ADF −</button>
-      <button onclick="sendInput({'ADF-ROT': 5})">ADF +</button>
-      <button onclick="sendInput({'ATT-BTN': 1})">Cage AI</button>
-    </div>
+    <span class="title">✈️ pysimconnect × G3 Flight Panel (Cessna 152 / 172 / Standard GA)</span>
+    <span class="hint">click either side of a knob, or scroll over it, to turn it</span>
   </header>
   <div id="panel-host"></div>
   <script>
-    async function sendInput(payload) {
-      await fetch('/inputs', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-      });
-    }
+    const { nav, radionav, switches } = g3.contrib;
+    const control = (x, gauge) => g3.put().x(x).y(650).scale(0.6).append(gauge);
+    const compass = {min: 0, max: 360, wrap: true};
 
     g3.panel()
       .width(1024)
-      .height(560)
+      .height(760)
       .interval(0)
-      .url('/stream')
+      .url('/stream')         // metrics stream from the hub
+      .inputUrl('/inputs')    // controls send set/adjust/trigger actions to the hub
       .append(
-        g3.put().x(128).y(150).scale(0.9).append(g3.contrib.nav.airspeed.generic()),
-        g3.put().x(384).y(150).scale(0.9).append(g3.contrib.nav.attitude.generic()),
-        g3.put().x(640).y(150).scale(0.9).append(g3.contrib.nav.altitude.generic()),
-        g3.put().x(896).y(150).scale(0.9).append(g3.contrib.radionav.VOR.generic()),
+        g3.put().x(128).y(150).scale(0.9).append(nav.airspeed.DHC2()),
+        g3.put().x(384).y(150).scale(0.9).append(nav.attitude.generic()),
+        g3.put().x(640).y(150).scale(0.9).append(nav.altitude.generic()),
+        g3.put().x(896).y(150).scale(0.9).append(radionav.VOR.generic()),
 
-        g3.put().x(128).y(410).scale(0.9).append(g3.contrib.nav.turnCoordinator.generic()),
-        g3.put().x(384).y(410).scale(0.9).append(g3.contrib.nav.heading.generic()),
-        g3.put().x(640).y(410).scale(0.9).append(g3.contrib.nav.VSI.generic()),
-        g3.put().x(896).y(410).scale(0.9).append(g3.contrib.radionav.ADF.generic())
+        g3.put().x(128).y(410).scale(0.9).append(nav.turnCoordinator.generic()),
+        g3.put().x(384).y(410).scale(0.9).append(nav.heading.generic()),
+        g3.put().x(640).y(410).scale(0.9).append(nav.VSI.generic()),
+        g3.put().x(896).y(410).scale(0.9).append(radionav.ADF.generic()),
+
+        // controls: each one only sends actions, and shows what the sim reports back
+        control(64, switches.toggle('masterBattery', 'BAT')),
+        control(160, switches.toggle('masterAlternator', 'ALT')),
+        control(270, switches.button(undefined, 'CAGE', {mode: 'trigger', event: 'attitudeCage'})),
+        control(384, switches.rotary('headingBug', 'HDG', {step: 5, ...compass})),
+        control(640, switches.rotary('pressureSetting', 'BARO')),
+        control(830, switches.rotary('radialVOR', 'OBS', {step: 5, ...compass})),
+        control(960, switches.rotary('headingADF', 'ADF', {step: 5, ...compass})),
       )('#panel-host');
   </script>
 </body>

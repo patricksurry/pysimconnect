@@ -1,4 +1,11 @@
-"""Lightweight HTTP + SSE server bridging SimConnect to G3 instrument panels."""
+"""Lightweight HTTP + SSE hub bridging SimConnect to G3 instrument panels.
+
+Implements the G3 hub protocol (https://github.com/patricksurry/g3/blob/master/doc/API.md#hubs):
+panels read metrics by polling /metrics.json or streaming /stream, filtered by `keys`,
+and POST batches of set/adjust/trigger actions to /inputs, which the bridge maps
+to SimConnect simvar writes and events. The effect of an action reaches the panel
+as an ordinary metric change once it's reflected in the simulator.
+"""
 from functools import partial
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -57,8 +64,37 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
         return json.load(f)
 
 
+def matches_keys(metric: str, keys: Optional[List[str]]) -> bool:
+    """A metric matches the requested keys if it equals one of them or is a dot-separated prefix of one."""
+    return not keys or any(k == metric or k.startswith(metric + ".") for k in keys)
+
+
+def _resolve(name: str, known: Dict[str, Any]) -> Optional[str]:
+    """Resolve a G3 metric key to the longest dot-separated prefix of itself in known."""
+    ks = name.split(".")
+    while ks:
+        k = ".".join(ks)
+        if k in known:
+            return k
+        ks.pop()
+    return None
+
+
+def _limit(x: float, action: Dict[str, Any]) -> float:
+    """Apply an adjust action's optional min/max/wrap hints."""
+    lo, hi = action.get("min"), action.get("max")
+    if action.get("wrap") and lo is not None and hi is not None:
+        span = hi - lo
+        return (x - lo) % span + lo
+    if lo is not None:
+        x = max(lo, x)
+    if hi is not None:
+        x = min(hi, x)
+    return x
+
+
 class SimConnectG3Bridge:
-    """Polls a SimConnect (or MockSimConnect) instance and serves G3 metrics/actions."""
+    """Hub state for G3 panels: polls a SimConnect (or MockSimConnect) instance and applies G3 actions to it."""
 
     def __init__(self, sc: Optional[Any] = None, config: Optional[Dict[str, Any]] = None):
         self.sc = sc if sc is not None else SimConnect(name="g3_bridge")
@@ -86,7 +122,8 @@ class SimConnectG3Bridge:
             if (m["fxunit"] if "fxunit" in m else m.get("unit")) is not None
         }
 
-    def poll_metrics(self, metrics: Optional[List[str]] = None) -> Dict[str, Any]:
+    def poll_metrics(self) -> Dict[str, Any]:
+        """Read any simvar changes into the hub state, returning the changed metrics."""
         with self._lock:
             while self.sc.receive():
                 pass
@@ -95,54 +132,77 @@ class SimConnectG3Bridge:
             data = {}
             for m in self.mapping:
                 name, sv = m["metric"], m["simvar"]
-                if (metrics and name not in metrics) or sv not in recent:
+                if sv not in recent:
                     continue
                 v = recent[sv]
                 if "fx" in m:
                     v = eval(m["fx"], {"__builtins__": {}}, {"x": v})
                 data[name] = v
-
-            latest = self.state.latest()
             self.state.update(data)
-            changed = self.state.changedsince(latest)
-            if changed:
-                self.state.update(self.trigger_actions(changed))
             return data
 
-    def handle_inputs(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def apply_actions(self, actions: List[Dict[str, Any]]) -> None:
+        """Apply a batch of G3 actions in order, ignoring (and logging) any that aren't supported."""
         with self._lock:
-            out = self.trigger_actions(inputs)
-            if out:
-                self.state.update(out)
-            return out
+            for action in actions:
+                self._apply(action)
 
-    def trigger_actions(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        outputs: Dict[str, Any] = {}
-        for k, raw_v in inputs.items():
-            for rule in (r for r in self.actions if r.get("input") == k):
-                v = eval(rule["fx"], {"__builtins__": {}}, {"x": raw_v}) if "fx" in rule else raw_v
-                if "output" in rule:
-                    outputs[rule["output"]] = v
-                elif "simvar" in rule:
-                    self.sc.set_simdatum(rule["simvar"], v)
-                elif "event" in rule:
-                    name, method = rule["event"], rule.get("method")
-                    if method == "incdec":
-                        evt = name[0 if v > 0 else 1]
-                        for _ in range(int(abs(v))):
-                            self.sc.send_event(evt)
-                    elif method == "set":
-                        self.sc.send_event(name, int(v))
-                    else:
-                        self.sc.send_event(name)
-        return outputs
+    def _apply(self, action: Dict[str, Any]) -> None:
+        op = action.get("op") if isinstance(action, dict) else None
+        if op not in ("set", "adjust", "trigger"):
+            logger.warning("ignoring unknown action %r", action)
+            return
+        field = "event" if op == "trigger" else "metric"
+        rules = {r[field]: r for r in self.actions if r.get("op") == op and field in r}
+        name = action.get(field)
+        key = _resolve(name, rules) if isinstance(name, str) else None
+        if key is None:
+            logger.warning("ignoring unsupported action %r", action)
+            return
+        rule = rules[key]
+
+        unit = action.get("unit")
+        if unit and op != "trigger":
+            expected = self.metric_units().get(rule["metric"])
+            if expected and unit != expected:
+                logger.warning("ignoring action %r: expected unit %s", action, expected)
+                return
+
+        value = action.get("value")
+        if op == "adjust":
+            by = action.get("by")
+            if not isinstance(by, (int, float)):
+                logger.warning("ignoring adjust action without numeric 'by' %r", action)
+                return
+            if "simevent" in rule:
+                inc, dec = rule["simevent"]
+                for _ in range(int(abs(by))):
+                    self.sc.send_event(inc if by > 0 else dec)
+                return
+            current = self.state.get(rule["metric"])
+            if not isinstance(current, (int, float)):
+                logger.warning("ignoring action %r: no current value for %s", action, rule["metric"])
+                return
+            value = _limit(current + by, action)
+
+        if "fx" in rule and value is not None:
+            value = eval(rule["fx"], {"__builtins__": {"round": round, "int": int}}, {"x": value})
+        if "simvar" in rule:
+            self.sc.set_simdatum(rule["simvar"], value)
+        elif "simevent" in rule:
+            if value is None:
+                self.sc.send_event(rule["simevent"])
+            else:
+                self.sc.send_event(rule["simevent"], int(value))
+        else:
+            logger.warning("ignoring action %r: rule has no simvar or simevent", action)
 
     def close(self) -> None:
         self.sc.Close()
 
 
 class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
-    """Serves static panel files plus /metrics.json, /stream (SSE), and POST /inputs."""
+    """Serves static panel files plus the G3 hub endpoints /metrics.json, /stream (SSE), and POST /inputs."""
 
     protocol_version = "HTTP/1.1"
 
@@ -175,19 +235,23 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
+        qs = parse_qs(parsed.query)
+        keys = [k for k in qs.get("keys", [""])[0].split(",") if k]
+
+        def matching(d: Dict[str, Any]) -> Dict[str, Any]:
+            return {k: v for k, v in d.items() if matches_keys(k, keys)}
+
         if parsed.path == "/metrics.json":
-            qs = parse_qs(parsed.query)
-            ms = [m for m in qs.get("metrics", [""])[0].split(",") if m] or None
             latest = int(qs.get("latest", ["0"])[0] or 0)
             want_units = qs.get("units", ["false"])[0].lower() in ("true", "1", "yes")
 
-            self.bridge.poll_metrics(ms)
+            self.bridge.poll_metrics()
             result: Dict[str, Any] = {
                 "latest": self.bridge.state.latest(),
-                "metrics": {k: v for k, v in self.bridge.state.changedsince(latest).items() if not ms or k in ms},
+                "metrics": matching(self.bridge.state.changedsince(latest)),
             }
             if want_units:
-                result["units"] = {k: v for k, v in self.bridge.metric_units().items() if not ms or k in ms}
+                result["units"] = matching(self.bridge.metric_units())
             return self._send_json(result)
 
         if parsed.path == "/stream":
@@ -197,17 +261,20 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
             self.send_header("Connection", "keep-alive")
             self.end_headers()
 
-            client_latest, sent_units = 0, False
+            client_latest = None
             try:
                 while True:
                     self.bridge.poll_metrics()
-                    deltas = self.bridge.state.changedsince(client_latest)
-                    if deltas or not sent_units:
-                        client_latest = self.bridge.state.latest()
-                        payload: Dict[str, Any] = {"metrics": deltas if sent_units else dict(self.bridge.state)}
-                        if not sent_units:
-                            payload["units"] = self.bridge.metric_units()
-                            sent_units = True
+                    if client_latest is None:
+                        # start each connection with a full snapshot of the matching metrics, with units
+                        payload: Dict[str, Any] = {
+                            "metrics": matching(dict(self.bridge.state)),
+                            "units": matching(self.bridge.metric_units()),
+                        }
+                    else:
+                        payload = {"metrics": matching(self.bridge.state.changedsince(client_latest))}
+                    if client_latest is None or payload["metrics"]:
+                        client_latest = payload["latest"] = self.bridge.state.latest()
                         self.wfile.write(f"data: {json.dumps(payload)}\n\n".encode("utf-8"))
                         self.wfile.flush()
                     time.sleep(self.stream_interval)
@@ -220,8 +287,15 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
         if urlparse(self.path).path != "/inputs":
             return self.send_error(HTTPStatus.NOT_FOUND)
         length = int(self.headers.get("Content-Length", "0") or 0)
-        payload = json.loads(self.rfile.read(length).decode("utf-8") if length else "{}")
-        self._send_json({"status": "ok", "outputs": self.bridge.handle_inputs(payload)})
+        try:
+            payload = json.loads(self.rfile.read(length).decode("utf-8") if length else "{}")
+        except ValueError:
+            payload = None
+        actions = payload.get("actions") if isinstance(payload, dict) else None
+        if not isinstance(actions, list):
+            return self._send_json({"status": "error", "error": "expected {\"actions\": [...]}"}, HTTPStatus.BAD_REQUEST)
+        self.bridge.apply_actions(actions)
+        self._send_json({"status": "ok"})
 
 
 def create_g3_server(

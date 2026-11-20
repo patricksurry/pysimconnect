@@ -198,9 +198,9 @@ class MockSimConnect:
         elif evt == "KOHLSMAN_DEC":
             self._overrides["BAROMETER PRESSURE"] = float(self._overrides.get("BAROMETER PRESSURE", 1013.25)) - 0.34
         elif evt == "HEADING_BUG_INC":
-            self._overrides["HEADING OFFSET"] = float(self._overrides.get("HEADING OFFSET", 0.0)) + 1.0
+            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) + 1.0) % 360
         elif evt == "HEADING_BUG_DEC":
-            self._overrides["HEADING OFFSET"] = float(self._overrides.get("HEADING OFFSET", 0.0)) - 1.0
+            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) - 1.0) % 360
         elif evt == "VOR1_OBI_INC":
             self._overrides["NAV RADIAL:1"] = float(self._overrides.get("NAV RADIAL:1", 45.0)) + 1.0
         elif evt == "VOR1_OBI_DEC":
