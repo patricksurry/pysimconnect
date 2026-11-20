@@ -1,6 +1,6 @@
 # hack to avoid simconnect import error on non-windows platform
 # allows us to run some supporting tools, but not simconnect SDK connection
-from ctypes import CFUNCTYPE as WINFUNCTYPE
+from ctypes import CFUNCTYPE as WINFUNCTYPE  # noqa: F401  re-exported to scdefs.py on non-Windows
 from ctypes import c_char, c_char_p, c_int32, c_uint16, c_uint32, c_void_p
 
 HRESULT = c_int32

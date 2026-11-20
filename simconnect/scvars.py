@@ -3,7 +3,7 @@ import logging
 import os
 import re
 from difflib import get_close_matches
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from .scdefs import DATATYPE_FLOAT64, DATATYPE_INT32, DATATYPE_STRING256
 

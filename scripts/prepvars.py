@@ -1,7 +1,6 @@
 import json
 import logging
 import re
-from typing import Dict
 
 from simconnect.scvars import _eventstd, _namestd, _unitstd
 

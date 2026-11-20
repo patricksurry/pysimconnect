@@ -1,6 +1,6 @@
 import logging
 from ctypes import POINTER, cast
-from typing import Callable, Dict, Type
+from typing import Callable
 
 from . import scdefs
 from .scdefs import RECV, RECV_EXCEPTION, RECV_OPEN

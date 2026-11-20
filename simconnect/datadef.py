@@ -3,7 +3,7 @@ import logging
 from collections.abc import Sequence
 from ctypes import POINTER, byref, c_char, c_double, c_float, c_int32, c_longlong, cast, sizeof
 from hashlib import sha1
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 from .changedict import ChangeDict
 from .scdefs import (

@@ -1,7 +1,7 @@
 import json
 import os
 import webbrowser
-from typing import List, Optional
+from typing import Optional
 
 import typer
 

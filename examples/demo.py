@@ -27,7 +27,7 @@ print("Inferred variable units", datadef.get_units())
 # track the most recent data update
 latest = datadef.simdata.latest()
 
-for i in range(10):
+for _ in range(10):
     # bump altitude, which is a settable simulator variable
     sc.set_simdatum("Indicated Altitude", altitude + 100)
 

@@ -3,7 +3,7 @@ import logging
 import os
 from ctypes import POINTER, byref, c_void_p, cast, sizeof
 from time import sleep, time
-from typing import Any, List, Optional, Type
+from typing import Any, Optional
 
 from .datadef import DataDefinition, SimData, SimDataHandler, SimVarsSpec, _norm_simvars, map_event_id
 from .receiver import Receiver, ReceiverInstance, _default_receivers

@@ -4,7 +4,6 @@
 #   cpp -nostdinc -I. -CC SimConnect.h > SimConnect_cpp.h
 #
 import re
-from typing import List
 
 
 def nopfx(s: str, pfx="SIMCONNECT_") -> str:
@@ -181,7 +180,7 @@ def maybeDecl(line, lines, decls) -> bool:
 indent = " " * 4
 
 lines = open("SimConnect_cpp.h").read().splitlines()
-lines = [re.sub(r"(\s*)//\s*", lambda m: "  # " if m.group(1) else "# ", line, 1) for line in lines]
+lines = [re.sub(r"(\s*)//\s*", lambda m: "  # " if m.group(1) else "# ", line, count=1) for line in lines]
 
 output: list[str] = []
 aka = None

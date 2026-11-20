@@ -3,11 +3,10 @@
 import logging
 import math
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Optional
 
-from .changedict import ChangeDict
 from .datadef import DataDefinition, SimData, SimDataHandler, SimVarsSpec, _norm_simvars
-from .scdefs import DATATYPE_FLOAT64, DATATYPE_INT32, DATATYPE_STRING256
+from .scdefs import DATATYPE_INT32, DATATYPE_STRING256
 from .scvars import validate_event, validate_simvar
 
 logger = logging.getLogger(__name__)
