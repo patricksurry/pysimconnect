@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Callable
 from ctypes import POINTER, cast
-from typing import Any, Callable, Optional
+from typing import Any
 
 from . import scdefs
 from .scdefs import RECV, RECV_EXCEPTION, RECV_OPEN
@@ -23,7 +24,7 @@ class ReceiverInstance:
     # indicated by a corresponding RECV_ID_* constant
     # for example a response with recv.dwID = RECV_ID_OPEN
     # indicates the full response is a RECV_OPEN structure
-    _recv_map: dict[Optional[int], type] = {
+    _recv_map: dict[int | None, type] = {
         getattr(scdefs, kls.__name__.replace("RECV_", "RECV_ID_"), None): kls for kls in all_subclasses(RECV)
     }
 

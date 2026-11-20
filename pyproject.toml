@@ -10,7 +10,7 @@ testpaths = ["tests"]
 
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 120
 extend-exclude = [
     "Python-SimConnect",        # a local, untracked checkout of another project
@@ -22,7 +22,7 @@ select = [
     "E", "W",  # pycodestyle
     "F",       # pyflakes
     "I",       # import sorting
-    "UP",      # pyupgrade, for python >= 3.9
+    "UP",      # pyupgrade, for python >= 3.10
     "B",       # bugbear
 ]
 # some "unused" imports are deliberate re-exports (e.g. winstubs), so never remove them automatically
@@ -37,7 +37,6 @@ unfixable = ["F401"]
 extend-immutable-calls = ["typer.Argument", "typer.Option", "simconnect.changedict.equal_or_close"]
 
 [tool.mypy]
-# mypy only checks as python >= 3.10; the 3.9 floor is enforced by ruff's target-version and the 3.9 test run
 python_version = "3.10"
 files = ["simconnect"]
 ignore_missing_imports = true

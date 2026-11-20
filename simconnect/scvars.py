@@ -3,14 +3,14 @@ import logging
 import os
 import re
 from difflib import get_close_matches
-from typing import Any, Optional
+from typing import Any
 
 from .scdefs import DATATYPE_FLOAT64, DATATYPE_INT32, DATATYPE_STRING256
 
 logger = logging.getLogger(__name__)
 
 
-def validate_simvar(name: str, settable: bool) -> Optional[dict[str, Any]]:
+def validate_simvar(name: str, settable: bool) -> dict[str, Any] | None:
     """Match a simvar name and settable flag to known variables"""
     base = _namestd(name)
     sv = SIMVARS.get(base, {})
@@ -34,7 +34,7 @@ def validate_event(event) -> str:
     return s
 
 
-def validate_units(name: str, units: Optional[str], simvar: Optional[dict[str, Any]]) -> str:
+def validate_units(name: str, units: str | None, simvar: dict[str, Any] | None) -> str:
     # lookup default units if not provided, note units='' is valid
     if units is None:
         if simvar is not None:

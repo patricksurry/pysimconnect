@@ -20,7 +20,7 @@ def prepvars(src: dict) -> dict:
         # don't preprocess all the base unit names
         names = _unitstd(d["name"], False)
         us = _unitstd(d["name"])
-        for name, u in zip(names, us):
+        for name, u in zip(names, us, strict=False):
             all_units[u] = name
             prep["UNITS"][u] = dict(d, name_std=name, dimensions=d.get("section", ""))
     for v in prep["UNITS"].values():

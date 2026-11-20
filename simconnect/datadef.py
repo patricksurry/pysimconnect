@@ -1,9 +1,9 @@
 import json
 import logging
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from ctypes import POINTER, byref, c_char, c_double, c_float, c_int32, c_longlong, cast, sizeof
 from hashlib import sha1
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 from .changedict import ChangeDict
 from .scdefs import (
@@ -54,8 +54,8 @@ epsilon: the precision to detect changes (see SDK), defaulting to 0.0001
 # simdata is a dict that also records when each item last changed
 SimData = ChangeDict
 SimDataHandler = Callable[[SimData], None]
-SimVarSpec = Union[str, dict[str, Any]]
-SimVarsSpec = Union[SimVarSpec, Sequence[SimVarSpec]]
+SimVarSpec = str | dict[str, Any]
+SimVarsSpec = SimVarSpec | Sequence[SimVarSpec]
 
 
 def _norm_simvars(simvars: SimVarsSpec) -> Sequence[dict[str, Any]]:
@@ -93,7 +93,7 @@ class DataDefinition:
     def __init__(self, sc: "SimConnect | MockSimConnect", def_id: int, defs: list[dict[str, Any]]):
         self.id = def_id
         self.simdata: SimData = ChangeDict()
-        self._struct: Optional[type[Struct1]] = None
+        self._struct: type[Struct1] | None = None
         self.defs = defs
         for i, d in enumerate(self.defs):
             sc.AddToDataDefinition(self.id, d["name"], d["units"], d["dtyp"], d["epsilon"], i)
@@ -101,7 +101,7 @@ class DataDefinition:
     def get_units(self) -> dict[str, str]:
         return {d["name"]: d["units"] for d in self.defs}
 
-    def add_receiver(self, sc: "SimConnect", req_id: int, callback: Optional[SimDataHandler] = None):
+    def add_receiver(self, sc: "SimConnect", req_id: int, callback: SimDataHandler | None = None):
         """Create a receiver for this DataDefinition, given req_id and optional callback"""
 
         def _receiver(recv: RECV_SIMOBJECT_DATA) -> bool:

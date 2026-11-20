@@ -97,7 +97,7 @@ class SimConnectSpider(scrapy.Spider):
                 if ncol < 5:
                     # always keep last two cols
                     labels = labels[: ncol - 2] + labels[-2:]
-            return dict(zip(labels, vs))
+            return dict(zip(labels, vs, strict=False))
 
         # look for nested pages
         urls = response.xpath("//div//ul/li/a/@href").getall()

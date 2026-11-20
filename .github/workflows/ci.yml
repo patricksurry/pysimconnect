@@ -19,11 +19,12 @@ jobs:
       - run: mypy
 
   test:
-    runs-on: ubuntu-latest
+    # ubuntu-24.04 still provides python 3.10, which newer runner images drop
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         # oldest and newest supported; live MSFS tests are skipped off Windows
-        python-version: ["3.9", "3.13"]
+        python-version: ["3.10", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

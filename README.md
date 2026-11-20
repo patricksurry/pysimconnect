@@ -192,7 +192,7 @@ or install the [pre-commit](https://pre-commit.com/) hooks once so they run on e
 
     pre-commit install
 
-The same checks and tests run in CI on every pull request, on python 3.9 and 3.13.
+The same checks and tests run in CI on every pull request, on python 3.10 and 3.13.
 
 Live integration tests in `tests/test_live_msfs.py` run automatically when `SimConnect.dll` can connect to a running MSFS 2020 instance, and are skipped otherwise (e.g. on macOS/Linux or when MSFS is not running).
 

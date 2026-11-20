@@ -1,8 +1,9 @@
 import math
 from collections import OrderedDict
+from collections.abc import Callable
 from itertools import takewhile
 from time import time
-from typing import Any, Callable
+from typing import Any
 
 
 def now():

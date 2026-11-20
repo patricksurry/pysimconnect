@@ -3,7 +3,7 @@ import logging
 import os
 from ctypes import POINTER, byref, c_void_p, cast, sizeof
 from time import sleep, time
-from typing import Any, Optional
+from typing import Any
 
 from .datadef import DataDefinition, SimData, SimDataHandler, SimVarsSpec, _norm_simvars, map_event_id
 from .receiver import Receiver, ReceiverInstance, _default_receivers
@@ -169,7 +169,7 @@ class SimConnect:
         interval=1,  # number of periods between updates
         repeat_count=0,  # number of updates before stopping (0 = forever)
         flags=DATA_REQUEST_FLAG_CHANGED | DATA_REQUEST_FLAG_TAGGED,
-        callback: Optional[SimDataHandler] = None,
+        callback: SimDataHandler | None = None,
     ):
         """
         Create and subscribe to a data definition.

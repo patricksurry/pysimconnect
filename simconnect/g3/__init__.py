@@ -15,7 +15,7 @@ import time
 from functools import partial
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from ..changedict import ChangeDict
@@ -56,7 +56,7 @@ MSFS_TO_G3_UNIT: dict[str, str] = {
 }
 
 
-def load_config(config_path: Optional[str] = None) -> dict[str, Any]:
+def load_config(config_path: str | None = None) -> dict[str, Any]:
     path = config_path or os.path.join(DEFAULT_EXAMPLE_DIR, "config.json")
     with open(path) as f:
         if path.endswith((".yml", ".yaml")):
@@ -66,12 +66,12 @@ def load_config(config_path: Optional[str] = None) -> dict[str, Any]:
         return json.load(f)
 
 
-def matches_keys(metric: str, keys: Optional[list[str]]) -> bool:
+def matches_keys(metric: str, keys: list[str] | None) -> bool:
     """A metric matches the requested keys if it equals one of them or is a dot-separated prefix of one."""
     return not keys or any(k == metric or k.startswith(metric + ".") for k in keys)
 
 
-def _resolve(name: str, known: dict[str, Any]) -> Optional[str]:
+def _resolve(name: str, known: dict[str, Any]) -> str | None:
     """Resolve a G3 metric key to the longest dot-separated prefix of itself in known."""
     ks = name.split(".")
     while ks:
@@ -98,7 +98,7 @@ def _limit(x: float, action: dict[str, Any]) -> float:
 class SimConnectG3Bridge:
     """Hub state for G3 panels: polls a SimConnect (or MockSimConnect) instance and applies G3 actions to it."""
 
-    def __init__(self, sc: Optional[Any] = None, config: Optional[dict[str, Any]] = None):
+    def __init__(self, sc: Any | None = None, config: dict[str, Any] | None = None):
         self.sc = sc if sc is not None else SimConnect(name="g3_bridge")
         self.cfg = config or load_config()
         self.mapping: list[dict[str, Any]] = [dict(m) for m in self.cfg.get("metrics", [])]
@@ -213,7 +213,7 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
         *args: Any,
         bridge: SimConnectG3Bridge,
         stream_interval: float = 0.1,
-        directory: Optional[str] = None,
+        directory: str | None = None,
         **kwargs: Any,
     ):
         self.bridge = bridge
@@ -312,7 +312,7 @@ def create_g3_server(
     host: str = "0.0.0.0",
     port: int = 8000,
     stream_interval: float = 0.1,
-    static_dir: Optional[str] = None,
+    static_dir: str | None = None,
 ) -> ThreadingHTTPServer:
     handler_cls = partial(
         G3HTTPRequestHandler,

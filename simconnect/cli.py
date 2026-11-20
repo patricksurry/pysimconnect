@@ -1,7 +1,6 @@
 import json
 import os
 import webbrowser
-from typing import Optional
 
 import typer
 
@@ -29,7 +28,7 @@ def labelfmt(s, width=2 * 12):
     return f"{label:{width}s}"
 
 
-def matchcase(s: str, prefix: str) -> Optional[str]:
+def matchcase(s: str, prefix: str) -> str | None:
     if not prefix:
         return s
     elif not s.upper().startswith(prefix.upper()):
@@ -62,7 +61,7 @@ def canonicalvars(simvars: list[str]) -> list[str]:
 
 
 @app.command()
-def get(simvars: list[str] = simvardef, units: Optional[str] = unitsdef):
+def get(simvars: list[str] = simvardef, units: str | None = unitsdef):
     simvars = canonicalvars(simvars)
     unitdesc = f" ({units})" if units else ""
     with SimConnect(name="cli") as sc:
@@ -72,7 +71,7 @@ def get(simvars: list[str] = simvardef, units: Optional[str] = unitsdef):
 
 
 @app.command()
-def watch(simvars: list[str] = simvardef, units: Optional[str] = unitsdef, interval: Optional[int] = 1):
+def watch(simvars: list[str] = simvardef, units: str | None = unitsdef, interval: int | None = 1):
     simvars = canonicalvars(simvars)
     typer.echo(f"Watching {', '.join(simvars)} every {interval} seconds")
     with SimConnect(name="cli") as sc:
@@ -99,7 +98,7 @@ def watch(simvars: list[str] = simvardef, units: Optional[str] = unitsdef, inter
 
 
 @app.command()
-def set(simvar: str = simvardef, value: float = typer.Argument(...), units: Optional[str] = unitsdef):
+def set(simvar: str = simvardef, value: float = typer.Argument(...), units: str | None = unitsdef):
     simvar = canonicalvars([simvar])[0]
     typer.echo(f"Setting {simvar} = {value}" + (f" ({units})" if units else ""))
     with SimConnect(name="cli") as sc:
@@ -107,7 +106,7 @@ def set(simvar: str = simvardef, value: float = typer.Argument(...), units: Opti
 
 
 @app.command()
-def send(event: str = eventdef, value: Optional[int] = None):
+def send(event: str = eventdef, value: int | None = None):
     event = event.upper()
     typer.echo(f"Sending {event}({value})")
     with SimConnect(name="cli") as sc:
@@ -115,7 +114,7 @@ def send(event: str = eventdef, value: Optional[int] = None):
 
 
 @app.command()
-def search(name: Optional[list[str]] = typer.Argument(None)):
+def search(name: list[str] | None = typer.Argument(None)):
     """Open the interactive SimVar Explorer in your web browser."""
     q = "+".join(name) if name else ""
     url = f"{DOCS_URL}#search={q}" if q else DOCS_URL
@@ -129,8 +128,8 @@ def serve(
     port: int = 8000,
     interval: float = 0.1,
     mock: bool = False,
-    config: Optional[str] = None,
-    static_dir: Optional[str] = None,
+    config: str | None = None,
+    static_dir: str | None = None,
     open_browser: bool = False,
 ):
     """Serve G3-compatible instrument metrics (/stream, /metrics.json, /inputs) and static panel files."""
