@@ -1,18 +1,19 @@
 """Generic MSFS 2020/2024 MockSimConnect for offline development, demos, and testing."""
+
 import logging
 import math
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
-from .changedict import ChangeDict
 from .datadef import DataDefinition, SimData, SimDataHandler, SimVarsSpec, _norm_simvars
-from .scdefs import DATATYPE_FLOAT64, DATATYPE_INT32, DATATYPE_STRING256
+from .scdefs import DATATYPE_INT32, DATATYPE_STRING256
 from .scvars import validate_event, validate_simvar
 
 logger = logging.getLogger(__name__)
 
 # Simple unit scale factors relative to default MSFS SimVar units
-_UNIT_CONVERSIONS: Dict[Tuple[str, str], Callable[[float], float]] = {
+_UNIT_CONVERSIONS: dict[tuple[str, str], Callable[[float], float]] = {
     ("feet", "meters"): lambda ft: ft * 0.3048,
     ("meters", "feet"): lambda m: m / 0.3048,
     ("inhg", "hectopascal"): lambda hg: hg * 33.863886666667,
@@ -25,7 +26,7 @@ _UNIT_CONVERSIONS: Dict[Tuple[str, str], Callable[[float], float]] = {
 }
 
 
-def _convert_unit(val: Any, from_unit: Optional[str], to_unit: Optional[str]) -> Any:
+def _convert_unit(val: Any, from_unit: str | None, to_unit: str | None) -> Any:
     if not isinstance(val, (int, float)) or not from_unit or not to_unit:
         return val
     f_u, t_u = from_unit.lower(), to_unit.lower()
@@ -42,11 +43,11 @@ class MockSimConnect:
         self.name = name
         self.verbose = verbose
         self._closed = False
-        self._datadefs: Dict[str, DataDefinition] = {}
-        self._subscriptions: List[Tuple[DataDefinition, Optional[SimDataHandler]]] = []
+        self._datadefs: dict[str, DataDefinition] = {}
+        self._subscriptions: list[tuple[DataDefinition, SimDataHandler | None]] = []
         self._t0 = time.time()
         self._last_pump_tick = -1
-        self._overrides: Dict[str, Any] = {
+        self._overrides: dict[str, Any] = {
             "BAROMETER PRESSURE": 1013.25,
             "HEADING OFFSET": 0.0,
             "NAV RADIAL:1": 45.0,
@@ -59,7 +60,7 @@ class MockSimConnect:
             "TRANSPONDER CODE:1": 1200,
             "SIM ON GROUND": 0,
         }
-        self.event_history: List[Tuple[str, int]] = []
+        self.event_history: list[tuple[str, int]] = []
 
     def __enter__(self) -> "MockSimConnect":
         return self
@@ -77,7 +78,7 @@ class MockSimConnect:
     def _canonical_key(self, name: str) -> str:
         return name.upper().replace("_", " ")
 
-    def _compute_simvar(self, name: str, target_units: Optional[str], dtyp: int) -> Any:
+    def _compute_simvar(self, name: str, target_units: str | None, dtyp: int) -> Any:
         key = self._canonical_key(name)
         t = time.time() - self._t0
         baro_mb = float(self._overrides.get("BAROMETER PRESSURE", 1013.25))
@@ -92,7 +93,7 @@ class MockSimConnect:
         )
         hdg_deg = (120.0 + 15.0 * math.sin(t * 0.15) + float(self._overrides.get("HEADING OFFSET", 0.0))) % 360.0
 
-        dynamic: Dict[str, Tuple[Any, str]] = {
+        dynamic: dict[str, tuple[Any, str]] = {
             "INDICATED ALTITUDE": (alt_ft, "feet"),
             "PLANE ALTITUDE": (alt_ft, "feet"),
             "PLANE ALT ABOVE GROUND": (max(0.0, alt_ft - 450.0), "feet"),
@@ -152,7 +153,7 @@ class MockSimConnect:
             dd.simdata[d["name"]] = self._compute_simvar(d["name"], d["units"], d["dtyp"])
         return dd.simdata.latest() > latest_before
 
-    def get_simdatum(self, name: str, units: Optional[str] = None, timeout_seconds: float = 1.0) -> Any:
+    def get_simdatum(self, name: str, units: str | None = None, timeout_seconds: float = 1.0) -> Any:
         return list(self.get_simdata([dict(name=name, units=units)], timeout_seconds=timeout_seconds).values())[0]
 
     def get_simdata(self, simvars: SimVarsSpec, timeout_seconds: float = 1.0) -> SimData:
@@ -168,14 +169,14 @@ class MockSimConnect:
         interval: int = 1,
         repeat_count: int = 0,
         flags: int = 0,
-        callback: Optional[SimDataHandler] = None,
+        callback: SimDataHandler | None = None,
     ) -> DataDefinition:
         dd = DataDefinition.create(self, simvars)
         self._populate_datadef(dd)
         self._subscriptions.append((dd, callback))
         return dd
 
-    def set_simdatum(self, name: str, value: Any, units: Optional[str] = None) -> None:
+    def set_simdatum(self, name: str, value: Any, units: str | None = None) -> None:
         self.set_simdata([dict(name=name, value=value, units=units)])
 
     def set_simdata(self, simdata: SimVarsSpec) -> None:
@@ -198,9 +199,13 @@ class MockSimConnect:
         elif evt == "KOHLSMAN_DEC":
             self._overrides["BAROMETER PRESSURE"] = float(self._overrides.get("BAROMETER PRESSURE", 1013.25)) - 0.34
         elif evt == "HEADING_BUG_INC":
-            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) + 1.0) % 360
+            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (
+                float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) + 1.0
+            ) % 360
         elif evt == "HEADING_BUG_DEC":
-            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) - 1.0) % 360
+            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (
+                float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) - 1.0
+            ) % 360
         elif evt == "VOR1_OBI_INC":
             self._overrides["NAV RADIAL:1"] = float(self._overrides.get("NAV RADIAL:1", 45.0)) + 1.0
         elif evt == "VOR1_OBI_DEC":
@@ -210,7 +215,7 @@ class MockSimConnect:
         elif evt == "ADF_CARD_DEC":
             self._overrides["ADF CARD"] = float(self._overrides.get("ADF CARD", 0.0)) - 1.0
 
-    def receive(self, timeout_seconds: Optional[float] = None) -> bool:
+    def receive(self, timeout_seconds: float | None = None) -> bool:
         """Pump mock subscriptions at most once per 20ms slice so `while sc.receive(): pass` terminates."""
         tick = int(time.time() * 50)
         if tick == self._last_pump_tick:

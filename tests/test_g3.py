@@ -84,12 +84,14 @@ def test_actions_resolve_metric_keys_by_prefix():
 def test_unsupported_actions_are_ignored(caplog):
     mock_sc = MockSimConnect()
     bridge = SimConnectG3Bridge(sc=mock_sc)
-    bridge.apply_actions([
-        {"op": "trigger", "event": "noSuchEvent"},
-        {"op": "launch", "metric": "pressureSetting"},
-        {"op": "adjust", "metric": "pressureSetting", "by": 1, "unit": "inHg"},  # wrong unit
-        {"op": "adjust", "metric": "pressureSetting", "by": 1},
-    ])
+    bridge.apply_actions(
+        [
+            {"op": "trigger", "event": "noSuchEvent"},
+            {"op": "launch", "metric": "pressureSetting"},
+            {"op": "adjust", "metric": "pressureSetting", "by": 1, "unit": "inHg"},  # wrong unit
+            {"op": "adjust", "metric": "pressureSetting", "by": 1},
+        ]
+    )
     assert mock_sc.event_history == [("KOHLSMAN_INC", 0)]
     assert len([r for r in caplog.records if "ignoring" in r.getMessage()]) == 3
 
@@ -141,7 +143,7 @@ def _post_json(server, path: str, payload) -> bytes:
     req = (
         f"POST {path} HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\n"
         f"Content-Length: {len(body)}\r\nConnection: close\r\n\r\n"
-    ).encode("utf-8") + body
+    ).encode() + body
     return _raw_http_request(server, req)
 
 
@@ -168,10 +170,16 @@ def test_g3_http_server_endpoints():
         assert data["latest"] > 0
 
         # POST /inputs applies a batch of actions in order
-        resp = _post_json(server, "/inputs", {"actions": [
-            {"op": "adjust", "metric": "pressureSetting", "by": 1},
-            {"op": "trigger", "event": "attitudeCage"},
-        ]})
+        resp = _post_json(
+            server,
+            "/inputs",
+            {
+                "actions": [
+                    {"op": "adjust", "metric": "pressureSetting", "by": 1},
+                    {"op": "trigger", "event": "attitudeCage"},
+                ]
+            },
+        )
         assert b"200 OK" in resp
         assert _json_body(resp) == {"status": "ok"}
         assert mock_sc.event_history == [("KOHLSMAN_INC", 0), ("ATTITUDE_CAGE_BUTTON", 0)]
@@ -189,7 +197,7 @@ def test_g3_http_server_endpoints():
         assert b"text/event-stream" in hdr
         sse_line = body.decode("utf-8").strip().splitlines()[0]
         assert sse_line.startswith("data: ")
-        payload = json.loads(sse_line[len("data: "):])
+        payload = json.loads(sse_line[len("data: ") :])
         assert set(payload["metrics"]) == {"altitude"}
         assert payload["units"] == {"altitude": "ft"}
         assert payload["latest"] > 0

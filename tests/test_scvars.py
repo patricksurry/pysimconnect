@@ -1,41 +1,49 @@
 import logging
+
 import pytest
-from simconnect.scdefs import DATATYPE_INT32, DATATYPE_FLOAT64, DATATYPE_STRING256
+
+from simconnect.scdefs import DATATYPE_FLOAT64, DATATYPE_INT32, DATATYPE_STRING256
 from simconnect.scvars import (
     UNITS,
     type_for_unit,
-    validate_simvar,
     validate_event,
+    validate_simvar,
     validate_units,
 )
 
 
-@pytest.mark.parametrize("unit", [
-    "percent",
-    "PERCENT",
-    "percentage",
-    "percent over 100",
-    "number",
-    "position",
-    "ratio",
-    "scaler",
-    "decibel",
-])
+@pytest.mark.parametrize(
+    "unit",
+    [
+        "percent",
+        "PERCENT",
+        "percentage",
+        "percent over 100",
+        "number",
+        "position",
+        "ratio",
+        "scaler",
+        "decibel",
+    ],
+)
 def test_type_for_unit_misc_float64(unit, caplog):
     with caplog.at_level(logging.WARNING):
         assert type_for_unit(unit) == DATATYPE_FLOAT64
     assert caplog.records == []
 
 
-@pytest.mark.parametrize("unit", [
-    "Bool",
-    "Boolean",
-    "Enum",
-    "Bco16",
-    "BCO16",
-    "mask",
-    "flags",
-])
+@pytest.mark.parametrize(
+    "unit",
+    [
+        "Bool",
+        "Boolean",
+        "Enum",
+        "Bco16",
+        "BCO16",
+        "mask",
+        "flags",
+    ],
+)
 def test_type_for_unit_int32(unit, caplog):
     with caplog.at_level(logging.WARNING):
         assert type_for_unit(unit) == DATATYPE_INT32
@@ -48,14 +56,17 @@ def test_type_for_unit_string(caplog):
     assert caplog.records == []
 
 
-@pytest.mark.parametrize("unit", [
-    "pounds per hour",
-    "feet per second squared",
-    "radians per second",
-    "gallons per hour",
-    "foot-pounds",
-    "Slugs per cubic feet",
-])
+@pytest.mark.parametrize(
+    "unit",
+    [
+        "pounds per hour",
+        "feet per second squared",
+        "radians per second",
+        "gallons per hour",
+        "foot-pounds",
+        "Slugs per cubic feet",
+    ],
+)
 def test_type_for_unit_canonicalized_names(unit, caplog):
     with caplog.at_level(logging.WARNING):
         assert type_for_unit(unit) == DATATYPE_FLOAT64

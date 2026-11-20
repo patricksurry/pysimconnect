@@ -1,7 +1,9 @@
 """Generate terminal SVG snapshots in doc/*.svg from the actual simconnect CLI."""
+
 import os
 import sys
 from unittest.mock import patch
+
 from rich.console import Console
 from rich.text import Text
 from typer.testing import CliRunner
@@ -10,8 +12,8 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-from simconnect.cli import app, floatfmt, labelfmt, scoped_autocomplete
-from simconnect.mock import MockSimConnect
+from simconnect.cli import app, floatfmt, labelfmt, scoped_autocomplete  # noqa: E402  after sys.path setup
+from simconnect.mock import MockSimConnect  # noqa: E402
 
 DOC_DIR = os.path.join(ROOT_DIR, "doc")
 runner = CliRunner()
@@ -39,7 +41,10 @@ def generate_all():
     save_terminal_svg(
         "sc-install-completion.svg",
         "simconnect --install-completion powershell",
-        ["powershell completion installed in ~\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1", "Completion will take effect once you restart the terminal"],
+        [
+            "powershell completion installed in ~\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1",
+            "Completion will take effect once you restart the terminal",
+        ],
         title="simconnect --install-completion",
     )
 
@@ -55,7 +60,6 @@ def generate_all():
 
     # 3. sc-tab-completion.svg
     matches = scoped_autocomplete("VARIABLES")("PLA")
-    row1 = "    ".join(f"{m:26s}" for m in matches[:3])
     row2 = "    ".join(f"{m:26s}" for m in matches[3:6])
     t_row1 = Text()
     t_row1.append(f"{matches[0]:26s}", style="black on bright_cyan")

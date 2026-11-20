@@ -20,10 +20,10 @@ from simconnect import SimConnect
 
 with SimConnect(
     name="my_app",
-    dll_path=...,               # Defaults to bundled SimConnect.dll
-    default_receivers=...,      # Logs RECV_OPEN and RECV_EXCEPTION by default
-    poll_interval_seconds=0.05, # Sleep interval when polling with timeout
-    verbose=True,               # Set False to suppress connection error logs
+    dll_path=...,  # Defaults to bundled SimConnect.dll
+    default_receivers=...,  # Logs RECV_OPEN and RECV_EXCEPTION by default
+    poll_interval_seconds=0.05,  # Sleep interval when polling with timeout
+    verbose=True,  # Set False to suppress connection error logs
 ) as sc:
     ...
 ```
@@ -54,9 +54,9 @@ Functions accepting `simvars: SimVarsSpec` accept a single spec or a list of spe
   ```python
   {
       "name": "Indicated Altitude",
-      "units": "meters",          # Optional: override default SDK unit
-      "type": DATATYPE_FLOAT64,   # Optional: override inferred DATATYPE_*
-      "epsilon": 0.1,             # Optional: change threshold (default 1e-4 for float64, 0 for int/string)
+      "units": "meters",  # Optional: override default SDK unit
+      "type": DATATYPE_FLOAT64,  # Optional: override inferred DATATYPE_*
+      "epsilon": 0.1,  # Optional: change threshold (default 1e-4 for float64, 0 for int/string)
   }
   ```
 

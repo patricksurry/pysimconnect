@@ -1,7 +1,9 @@
 import time
 from unittest.mock import patch
+
 import pytest
-from simconnect import MockSimConnect, SimConnect, PERIOD_VISUAL_FRAME
+
+from simconnect import PERIOD_VISUAL_FRAME, MockSimConnect, SimConnect
 
 
 @pytest.fixture(scope="module")
@@ -13,26 +15,29 @@ def live_sc():
         sc.Close()
     except Exception:
         sc = MockSimConnect(name="pytest_mock")
-        with patch("tests.test_live_msfs.SimConnect", MockSimConnect), patch(
-            "simconnect.cli.SimConnect", MockSimConnect
+        with (
+            patch("tests.test_live_msfs.SimConnect", MockSimConnect),
+            patch("simconnect.cli.SimConnect", MockSimConnect),
         ):
             yield sc
         sc.Close()
 
 
 def test_live_get_simdata_various_types(live_sc):
-    data = live_sc.get_simdata([
-        "TITLE",
-        "ATC ID",
-        "Indicated Altitude",
-        "GENERAL ENG THROTTLE LEVER POSITION:1",
-        "YOKE X POSITION",
-        "SIM ON GROUND",
-        "TRANSPONDER CODE:1",
-        "ZULU TIME",
-        "ABSOLUTE TIME",
-        dict(name="ENG FUEL FLOW PPH:1", units="pounds per hour"),
-    ])
+    data = live_sc.get_simdata(
+        [
+            "TITLE",
+            "ATC ID",
+            "Indicated Altitude",
+            "GENERAL ENG THROTTLE LEVER POSITION:1",
+            "YOKE X POSITION",
+            "SIM ON GROUND",
+            "TRANSPONDER CODE:1",
+            "ZULU TIME",
+            "ABSOLUTE TIME",
+            dict(name="ENG FUEL FLOW PPH:1", units="pounds per hour"),
+        ]
+    )
     assert isinstance(data["TITLE"], str) and len(data["TITLE"]) > 0
     assert isinstance(data["ATC ID"], str)
     assert isinstance(data["Indicated Altitude"], float)
@@ -71,7 +76,9 @@ def test_live_reconnect_separate_instance(live_sc):
 def test_live_readme_cli_e2e(live_sc):
     """Run the actual README CLI commands (search, get, set, send) against live MSFS 2020."""
     from unittest.mock import patch
+
     from typer.testing import CliRunner
+
     from simconnect.cli import app
 
     runner = CliRunner()
@@ -100,6 +107,7 @@ def test_live_readme_cli_e2e(live_sc):
 def test_live_g3_bridge(live_sc):
     """Verify SimConnectG3Bridge polls live MSFS 2020 metrics and units."""
     from time import sleep
+
     from simconnect.g3 import SimConnectG3Bridge
 
     bridge = SimConnectG3Bridge(sc=live_sc)
@@ -113,5 +121,3 @@ def test_live_g3_bridge(live_sc):
     units = bridge.metric_units()
     assert units["altitude"] == "ft"
     assert units["airspeed"] == "knot"
-
-

@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e . "ruff>=0.17" "mypy>=2.4"
+      - run: ruff check
+      - run: ruff format --check
+      - run: mypy
+
+  test:
+    # ubuntu-24.04 still provides python 3.10, which newer runner images drop
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        # oldest and newest supported; live MSFS tests are skipped off Windows
+        python-version: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e . pytest
+      - run: pytest -q

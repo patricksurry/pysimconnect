@@ -1,23 +1,22 @@
-from typing import Callable, Type, Dict
 import logging
-from ctypes import cast, POINTER
-from .scdefs import RECV, RECV_OPEN, RECV_EXCEPTION
+from collections.abc import Callable
+from ctypes import POINTER, cast
+from typing import Any
+
 from . import scdefs
+from .scdefs import RECV, RECV_EXCEPTION, RECV_OPEN
 
 logger = logging.getLogger(__name__)
 
 
-Receiver = Callable[[RECV], bool]
+# called with the RECV subclass (e.g. RECV_OPEN) matching the type it was registered for
+Receiver = Callable[[Any], bool]
 
-_exc_map = dict(
-    (getattr(scdefs, s), s)
-    for s in dir(scdefs)
-    if s.startswith('EXCEPTION_')
-)
+_exc_map = dict((getattr(scdefs, s), s) for s in dir(scdefs) if s.startswith("EXCEPTION_"))
+
 
 def all_subclasses(cls):
-    return set(cls.__subclasses__()).union(
-        [s for c in cls.__subclasses__() for s in all_subclasses(c)])
+    return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in all_subclasses(c)])
 
 
 class ReceiverInstance:
@@ -25,17 +24,16 @@ class ReceiverInstance:
     # indicated by a corresponding RECV_ID_* constant
     # for example a response with recv.dwID = RECV_ID_OPEN
     # indicates the full response is a RECV_OPEN structure
-    _recv_map: Dict[str, type] = {
-        getattr(scdefs, kls.__name__.replace('RECV_', 'RECV_ID_'), None): kls
-        for kls in all_subclasses(RECV)
+    _recv_map: dict[int | None, type] = {
+        getattr(scdefs, kls.__name__.replace("RECV_", "RECV_ID_"), None): kls for kls in all_subclasses(RECV)
     }
 
-    def __init__(self, rtype: Type[RECV], receiver: Receiver):
+    def __init__(self, rtype: type[RECV], receiver: Receiver):
         self._rtype = rtype
         self._receiver = receiver
 
     @staticmethod
-    def cast_recv(pRecv) -> RECV:   #TODO type annotation : pointer[RECV] per https://github.com/python/mypy/issues/7540
+    def cast_recv(pRecv) -> RECV:  # TODO type annotation : pointer[RECV] per https://github.com/python/mypy/issues/7540
         recv_id = pRecv.contents.dwID
         if recv_id in ReceiverInstance._recv_map:
             pRecv = cast(pRecv, POINTER(ReceiverInstance._recv_map[recv_id]))
@@ -50,10 +48,8 @@ class ReceiverInstance:
 
 def receiveException(recv: RECV_EXCEPTION) -> bool:
     excid = recv.dwException
-    excname = _exc_map.get(excid, '<unknown>')
-    logger.warning(
-        f"sc.receiveNext: exception {excname}({excid}), sendID {recv.dwSendID}, index {recv.dwIndex}"
-    )
+    excname = _exc_map.get(excid, "<unknown>")
+    logger.warning(f"sc.receiveNext: exception {excname}({excid}), sendID {recv.dwSendID}, index {recv.dwIndex}")
     return True
 
 
@@ -62,13 +58,11 @@ def receiveOpen(recv: RECV_OPEN) -> bool:
     appBuild = f"build {recv.dwApplicationBuildMajor}.{recv.dwApplicationBuildMinor}"
     scVer = f"v{recv.dwSimConnectVersionMajor}.{recv.dwSimConnectVersionMinor}"
     scBuild = f"build {recv.dwSimConnectBuildMajor}.{recv.dwSimConnectBuildMinor}"
-    logger.info(
-        f"Open: App {recv.szApplicationName} {appVer} {appBuild} SimConnect: {scVer} {scBuild}"
-    )
+    logger.info(f"Open: App {recv.szApplicationName} {appVer} {appBuild} SimConnect: {scVer} {scBuild}")
     return True
 
 
 _default_receivers = [
-    ReceiverInstance(RECV_EXCEPTION, receiveException), 
+    ReceiverInstance(RECV_EXCEPTION, receiveException),
     ReceiverInstance(RECV_OPEN, receiveOpen),
 ]

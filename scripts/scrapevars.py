@@ -4,27 +4,27 @@
 #
 #       scrapy runspider scripts/scrapevars.py --nolog -O simconnect/scvars.json
 #
+import json
+import unicodedata
+
 import scrapy
 import scrapy.exporters
-import unicodedata
-import json
 from prepvars import prepvars
-
 
 base_urls = [
     # main list of links
-    'https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm',
-    'https://docs.flightsimulator.com/html/Programming_Tools/Event_IDs/Event_IDs.htm',
-    'https://docs.flightsimulator.com/html/Programming_Tools/Environment_Variables.htm',
+    "https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm",
+    "https://docs.flightsimulator.com/html/Programming_Tools/Event_IDs/Event_IDs.htm",
+    "https://docs.flightsimulator.com/html/Programming_Tools/Environment_Variables.htm",
 ]
 
 
 def normtext(s):
-    return unicodedata.normalize('NFKC', s) if s else ''
+    return unicodedata.normalize("NFKC", s) if s else ""
 
 
 def jointext(xs):
-    return ''.join(map(normtext, xs.getall())).strip()
+    return "".join(map(normtext, xs.getall())).strip()
 
 
 class PostProcessExporter(scrapy.exporters.BaseItemExporter):
@@ -41,22 +41,20 @@ class PostProcessExporter(scrapy.exporters.BaseItemExporter):
 
     def finish_exporting(self):
         raw = dict()
-        for item in sorted(self.items, key=lambda d: (d['page'], d['index'])):
-            typ = item['type']
-            del item['type']
-            del item['index']
+        for item in sorted(self.items, key=lambda d: (d["page"], d["index"])):
+            typ = item["type"]
+            del item["type"]
+            del item["index"]
             raw.setdefault(typ, []).append(item)
         output = prepvars(raw)
-        s = json.dumps(output, indent=4).encode('utf-8')
+        s = json.dumps(output, indent=4).encode("utf-8")
         self.file.write(s)
 
 
 class SimConnectSpider(scrapy.Spider):
     name = "SimConnectSDK"
 
-    custom_settings = {
-        'FEED_EXPORTERS': {'json': PostProcessExporter}
-    }
+    custom_settings = {"FEED_EXPORTERS": {"json": PostProcessExporter}}
 
     def start_requests(self):
         for url in base_urls:
@@ -65,63 +63,55 @@ class SimConnectSpider(scrapy.Spider):
     def parse(self, response):
         def alltext(elt):
             if elt:
-                return jointext(elt.xpath('.//text()'))
+                return jointext(elt.xpath(".//text()"))
             else:
                 return None
 
         def parse_row(row, headers):
-            tds = row.xpath('td')
+            tds = row.xpath("td")
             ncol = len(tds)
             if ncol < 2:
                 return None
-            simvar = headers and headers[0] == 'simulation variable'
-            envvar = headers == ['variable', 'units', 'description']
+            simvar = headers and headers[0] == "simulation variable"
+            envvar = headers == ["variable", "units", "description"]
             if envvar and ncol == 3:
                 return {
-                    'name': jointext(tds[0].xpath('.//text()')),
-                    'units': alltext(tds[1]),
-                    'description': alltext(tds[2]),
-                    'settable': False,
+                    "name": jointext(tds[0].xpath(".//text()")),
+                    "units": alltext(tds[1]),
+                    "description": alltext(tds[2]),
+                    "settable": False,
                 }
-            if headers and headers[:3] == ['event name', 'parameters', 'description'] and ncol >= 3:
+            if headers and headers[:3] == ["event name", "parameters", "description"] and ncol >= 3:
                 return {
-                    'name': jointext(tds[0].xpath('.//text()')),
-                    'parameters': alltext(tds[1]),
-                    'description': alltext(tds[2]),
+                    "name": jointext(tds[0].xpath(".//text()")),
+                    "parameters": alltext(tds[1]),
+                    "description": alltext(tds[2]),
                 }
             # simvar tables have 4 or 5 cols, with last two being units and settable
             # sometimes omitting multiplayer,
             # other tables have two or three cols
-            labels = ['name', 'description', 'multiplayer', 'units', 'settable']
-            vs = [
-                jointext(tds[0].xpath('.//text()'))
-            ] + [
-                alltext(td) for td in tds[1:(ncol-1 if simvar else ncol)]
-            ]
+            labels = ["name", "description", "multiplayer", "units", "settable"]
+            vs = [jointext(tds[0].xpath(".//text()"))] + [alltext(td) for td in tds[1 : (ncol - 1 if simvar else ncol)]]
             if simvar:
-                vs.append(tds.xpath('span[@class="checkmark"]/span/@class').get() == 'checkmark_circle')
+                vs.append(tds.xpath('span[@class="checkmark"]/span/@class').get() == "checkmark_circle")
                 if ncol < 5:
                     # always keep last two cols
-                    labels = labels[:ncol-2] + labels[-2:]
-            return dict(zip(labels, vs))
+                    labels = labels[: ncol - 2] + labels[-2:]
+            return dict(zip(labels, vs, strict=False))
 
         # look for nested pages
-        urls = response.xpath('//div//ul/li/a/@href').getall()
+        urls = response.xpath("//div//ul/li/a/@href").getall()
         for url in urls:
             yield scrapy.Request(url=response.urljoin(url), callback=self.parse)
 
-        page = normtext(response.xpath('//h2/text()').get()).strip()
-        context = {
-            'url': response.url,
-            'page': page,
-            'type': page.split()[-1].replace('IDs', 'EVENTS')
-        }
+        page = normtext(response.xpath("//h2/text()").get()).strip()
+        context = {"url": response.url, "page": page, "type": page.split()[-1].replace("IDs", "EVENTS")}
         i = 0
-        for tbl in response.xpath('//table'):
-            section = tbl.xpath('preceding-sibling::h4[1]') or tbl.xpath('preceding-sibling::h3[1]')
-            context['section'] = normtext(section.xpath('text()').get())
-            headers = [normtext(h).strip().lower() for h in tbl.xpath('.//tr/th/text()').getall()]
-            for row in tbl.xpath('tbody/tr'):
+        for tbl in response.xpath("//table"):
+            section = tbl.xpath("preceding-sibling::h4[1]") or tbl.xpath("preceding-sibling::h3[1]")
+            context["section"] = normtext(section.xpath("text()").get())
+            headers = [normtext(h).strip().lower() for h in tbl.xpath(".//tr/th/text()").getall()]
+            for row in tbl.xpath("tbody/tr"):
                 d = parse_row(row, headers)
                 if d:
                     d.update(context, index=i)

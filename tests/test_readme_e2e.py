@@ -1,9 +1,10 @@
 import time
 from unittest.mock import patch
+
 import pytest
 from typer.testing import CliRunner
 
-from simconnect import MockSimConnect, PERIOD_VISUAL_FRAME
+from simconnect import PERIOD_VISUAL_FRAME, MockSimConnect
 from simconnect.cli import app, scoped_autocomplete
 
 runner = CliRunner()

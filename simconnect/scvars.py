@@ -1,30 +1,31 @@
-from typing import Optional, List, Dict, Any
-import re
-import os
 import json
 import logging
+import os
+import re
 from difflib import get_close_matches
-from .scdefs import DATATYPE_INT32, DATATYPE_FLOAT64, DATATYPE_STRING256
+from typing import Any
+
+from .scdefs import DATATYPE_FLOAT64, DATATYPE_INT32, DATATYPE_STRING256
 
 logger = logging.getLogger(__name__)
 
 
-def validate_simvar(name: str, settable: bool) -> Optional[Dict[str, Any]]:
+def validate_simvar(name: str, settable: bool) -> dict[str, Any] | None:
     """Match a simvar name and settable flag to known variables"""
     base = _namestd(name)
     sv = SIMVARS.get(base, {})
     if not sv:
         logger.warning(f"SimConnect: unrecognized simvar '{base}', {_closemsg(base, SIMVARS)}")
     else:
-        if sv['indexed'] and ':' not in name:
+        if sv["indexed"] and ":" not in name:
             logger.warning(f"SimConnect: expected indexed simvar, e.g. {name}:3")
-        if settable and not sv.get('settable'):
+        if settable and not sv.get("settable"):
             logger.warning(f"SimConnect: simvar {name} is not settable")
     return sv
 
 
 def validate_event(event) -> str:
-    if '.' in event:
+    if "." in event:
         # Custom addon/WASM event (e.g. "MobiFlight.AS1000_PFD_JOYSTICK_UP"); preserve case
         return event
     s = _eventstd(event)
@@ -33,30 +34,30 @@ def validate_event(event) -> str:
     return s
 
 
-def validate_units(name: str, units: Optional[str], simvar: Optional[Dict[str, Any]]) -> str:
+def validate_units(name: str, units: str | None, simvar: dict[str, Any] | None) -> str:
     # lookup default units if not provided, note units='' is valid
     if units is None:
         if simvar is not None:
             # If not specified, try inferring units from variable
-            ustd = simvar.get('units_std', '')
+            ustd = simvar.get("units_std", "")
         else:
-            ustd = ''
+            ustd = ""
         if not ustd:
             logger.warning(f"SimConnect: no units specified or inferred for {name}")
-    elif units == '':
+    elif units == "":
         # deliberate empty string
         ustd = units
     else:
         # get the canonical unit name
         ustd = _unitstd(units)[0]
         if ustd in UNITS:
-            ustd = UNITS[ustd]['name_std']
+            ustd = UNITS[ustd]["name_std"]
         else:
-            possibilities: List[str] = []
+            possibilities: list[str] = []
             if simvar:
-                possibilities = DIMENSIONS.get(simvar['dimensions'])
+                possibilities = DIMENSIONS.get(simvar["dimensions"])
             if not possibilities:
-                possibilities = [u['name_std'] for u in UNITS.values()]
+                possibilities = [u["name_std"] for u in UNITS.values()]
             msg = _closemsg(ustd, possibilities)
             logger.warning(f"SimConnect: unrecognized units '{units}' for {name}, {msg}")
     return ustd
@@ -66,11 +67,11 @@ def type_for_unit(unit: str) -> int:
     ustd = _unitstd(unit)[0]
     if ustd in UNITS:
         u = UNITS[ustd]
-        if u['dimensions'] == 'Structs And Other Complex Units':
+        if u["dimensions"] == "Structs And Other Complex Units":
             warn = f"SimConnect: complex types not supported for {unit}"
-        elif u['name_std'] in ('Bool', 'Boolean', 'Enum', 'Bco16', 'mask', 'flags'):
+        elif u["name_std"] in ("Bool", "Boolean", "Enum", "Bco16", "mask", "flags"):
             return DATATYPE_INT32
-        elif u['name_std'] == 'string':
+        elif u["name_std"] == "string":
             return DATATYPE_STRING256
         else:
             return DATATYPE_FLOAT64
@@ -87,33 +88,33 @@ def _closemsg(s, ss):
         msg = f"perhaps one of {', '.join(xs)}?"
     else:
         ss_list = list(ss)
-        options = (ss_list[:3] + ['...']) if len(ss_list) > 3 else ss_list
+        options = (ss_list[:3] + ["..."]) if len(ss_list) > 3 else ss_list
         msg = f"found no similar options among: {', '.join(options)}"
     return msg
 
 
 def _namestd(s) -> str:
-    return s.rsplit(':', 1)[0].upper().replace('_', ' ')
+    return s.rsplit(":", 1)[0].upper().replace("_", " ")
 
 
-def _unitstd(ss, canonical=True) -> List[str]:
+def _unitstd(ss, canonical=True) -> list[str]:
     vs = []
-    ss = re.sub(r'^Struct:\n\s*', '', ss)
-    for s in ss.split('\n')[0].split(','):
-        s = s.strip().rstrip(':')
+    ss = re.sub(r"^Struct:\n\s*", "", ss)
+    for s in ss.split("\n")[0].split(","):
+        s = s.strip().rstrip(":")
         if canonical:
-            s = s.upper().replace('-', ' ').replace('_', ' ')
-            s = re.sub(r'\s+PER\s+', '/', s)        # "Feet per second"
-            s = re.sub(r'\s*\([^()]+\)\s*', '', s)  # "Feet (ft) / second"
-            s = re.sub(r'\s*\([^)]+$', '', s)       # "pounds per square inch (psi"
-            s = s.replace('SCALAR', 'SCALER')
-            s = s.replace('POUNDS/SQUARE FOOT', 'PSF')
-            s = s.replace('POUND FORCE/SQUARE FOOT', 'PSF')
-            s = s.replace('POUNDS/SQUARE INCH', 'PSI')
-            s = s.replace('SLUGS/FEET SQUARED', 'SLUGS FEET SQUARED')
-            s = s.replace('KILO PASCAL', 'KILOPASCAL')
-            s = s.replace('FOOT POUNDS/SECOND', 'FT LB/SECOND')
-            s = re.sub(r'^SIMCONNECT DATA\s+(.*?)(\s+STRUCT(URE)?)?$', r'\1', s)
+            s = s.upper().replace("-", " ").replace("_", " ")
+            s = re.sub(r"\s+PER\s+", "/", s)  # "Feet per second"
+            s = re.sub(r"\s*\([^()]+\)\s*", "", s)  # "Feet (ft) / second"
+            s = re.sub(r"\s*\([^)]+$", "", s)  # "pounds per square inch (psi"
+            s = s.replace("SCALAR", "SCALER")
+            s = s.replace("POUNDS/SQUARE FOOT", "PSF")
+            s = s.replace("POUND FORCE/SQUARE FOOT", "PSF")
+            s = s.replace("POUNDS/SQUARE INCH", "PSI")
+            s = s.replace("SLUGS/FEET SQUARED", "SLUGS FEET SQUARED")
+            s = s.replace("KILO PASCAL", "KILOPASCAL")
+            s = s.replace("FOOT POUNDS/SECOND", "FT LB/SECOND")
+            s = re.sub(r"^SIMCONNECT DATA\s+(.*?)(\s+STRUCT(URE)?)?$", r"\1", s)
         vs.append(s.strip())
     return vs
 
@@ -124,13 +125,13 @@ def _eventstd(s):
 
 # Load SDK definitions scraped from documentation, see ../scripts/scrapevars.py
 try:
-    _scvars = json.load(open(os.path.join(os.path.dirname(__file__), 'scvars.json')))
+    _scvars = json.load(open(os.path.join(os.path.dirname(__file__), "scvars.json")))
 except Exception:
-    logger.warning('Failed to load scvars.json')
+    logger.warning("Failed to load scvars.json")
     _scvars = dict(SIMVARS={}, EVENTS={}, UNITS={}, DIMENSIONS={})
 
 # Expose the standardized definitions scraped from docs
-SIMVARS = _scvars['VARIABLES']
-EVENTS = _scvars['EVENTS']
-UNITS = _scvars['UNITS']
-DIMENSIONS = _scvars['DIMENSIONS']
+SIMVARS = _scvars["VARIABLES"]
+EVENTS = _scvars["EVENTS"]
+UNITS = _scvars["UNITS"]
+DIMENSIONS = _scvars["DIMENSIONS"]

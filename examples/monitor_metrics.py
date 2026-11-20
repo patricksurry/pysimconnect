@@ -1,18 +1,25 @@
-from simconnect import (
-    SimConnect, ReceiverInstance, OBJECT_ID_USER,
-    PERIOD_SECOND, DATA_REQUEST_FLAG_CHANGED, DATA_REQUEST_FLAG_TAGGED,
-    DATATYPE_FLOAT64, RECV_SIMOBJECT_DATA, RECV_EXCEPTION, RECV_P
-)
-from ctypes import byref, sizeof, cast, POINTER, c_double
+from ctypes import POINTER, byref, c_double, cast, sizeof
 from ctypes.wintypes import DWORD
 from time import sleep
 
+from simconnect import (
+    DATA_REQUEST_FLAG_CHANGED,
+    DATA_REQUEST_FLAG_TAGGED,
+    DATATYPE_FLOAT64,
+    OBJECT_ID_USER,
+    PERIOD_SECOND,
+    RECV_EXCEPTION,
+    RECV_P,
+    RECV_SIMOBJECT_DATA,
+    ReceiverInstance,
+    SimConnect,
+)
 
 """
 Low level example showing the flow for watching a group of simulation variables.
 Compare subscribe.py for a more pythonic version
 """
-with SimConnect(name='MonitorMetrics') as sc:
+with SimConnect(name="MonitorMetrics") as sc:
     def_id = 0x1234
     simvars = [
         ("Kohlsman setting hg", "inHg"),
@@ -23,7 +30,7 @@ with SimConnect(name='MonitorMetrics') as sc:
     for i, (simvar, unit) in enumerate(simvars):
         sc.AddToDataDefinition(def_id, simvar, unit, DATATYPE_FLOAT64, 0, i)
 
-    req_id = 0xfeed
+    req_id = 0xFEED
     sc.RequestDataOnSimObject(
         req_id,  # request identifier for response packets
         def_id,  # the data definition group
@@ -38,7 +45,7 @@ with SimConnect(name='MonitorMetrics') as sc:
     nSize = DWORD()
     while True:
         try:
-            print('Trying')
+            print("Trying")
             sc.GetNextDispatch(byref(pRecv), byref(nSize))
         except OSError:
             sleep(0.5)
