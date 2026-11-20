@@ -1,4 +1,5 @@
 """Generic MSFS 2020/2024 MockSimConnect for offline development, demos, and testing."""
+
 import logging
 import math
 import time
@@ -12,7 +13,7 @@ from .scvars import validate_event, validate_simvar
 logger = logging.getLogger(__name__)
 
 # Simple unit scale factors relative to default MSFS SimVar units
-_UNIT_CONVERSIONS: Dict[Tuple[str, str], Callable[[float], float]] = {
+_UNIT_CONVERSIONS: dict[tuple[str, str], Callable[[float], float]] = {
     ("feet", "meters"): lambda ft: ft * 0.3048,
     ("meters", "feet"): lambda m: m / 0.3048,
     ("inhg", "hectopascal"): lambda hg: hg * 33.863886666667,
@@ -42,11 +43,11 @@ class MockSimConnect:
         self.name = name
         self.verbose = verbose
         self._closed = False
-        self._datadefs: Dict[str, DataDefinition] = {}
-        self._subscriptions: List[Tuple[DataDefinition, Optional[SimDataHandler]]] = []
+        self._datadefs: dict[str, DataDefinition] = {}
+        self._subscriptions: list[tuple[DataDefinition, Optional[SimDataHandler]]] = []
         self._t0 = time.time()
         self._last_pump_tick = -1
-        self._overrides: Dict[str, Any] = {
+        self._overrides: dict[str, Any] = {
             "BAROMETER PRESSURE": 1013.25,
             "HEADING OFFSET": 0.0,
             "NAV RADIAL:1": 45.0,
@@ -59,7 +60,7 @@ class MockSimConnect:
             "TRANSPONDER CODE:1": 1200,
             "SIM ON GROUND": 0,
         }
-        self.event_history: List[Tuple[str, int]] = []
+        self.event_history: list[tuple[str, int]] = []
 
     def __enter__(self) -> "MockSimConnect":
         return self
@@ -92,7 +93,7 @@ class MockSimConnect:
         )
         hdg_deg = (120.0 + 15.0 * math.sin(t * 0.15) + float(self._overrides.get("HEADING OFFSET", 0.0))) % 360.0
 
-        dynamic: Dict[str, Tuple[Any, str]] = {
+        dynamic: dict[str, tuple[Any, str]] = {
             "INDICATED ALTITUDE": (alt_ft, "feet"),
             "PLANE ALTITUDE": (alt_ft, "feet"),
             "PLANE ALT ABOVE GROUND": (max(0.0, alt_ft - 450.0), "feet"),
@@ -198,9 +199,13 @@ class MockSimConnect:
         elif evt == "KOHLSMAN_DEC":
             self._overrides["BAROMETER PRESSURE"] = float(self._overrides.get("BAROMETER PRESSURE", 1013.25)) - 0.34
         elif evt == "HEADING_BUG_INC":
-            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) + 1.0) % 360
+            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (
+                float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) + 1.0
+            ) % 360
         elif evt == "HEADING_BUG_DEC":
-            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) - 1.0) % 360
+            self._overrides["AUTOPILOT HEADING LOCK DIR"] = (
+                float(self._overrides.get("AUTOPILOT HEADING LOCK DIR", 0.0)) - 1.0
+            ) % 360
         elif evt == "VOR1_OBI_INC":
             self._overrides["NAV RADIAL:1"] = float(self._overrides.get("NAV RADIAL:1", 45.0)) + 1.0
         elif evt == "VOR1_OBI_DEC":

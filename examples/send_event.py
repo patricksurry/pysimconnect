@@ -1,9 +1,8 @@
 from simconnect import SimConnect
 
-
-with SimConnect(name='SendEvent') as sc:
+with SimConnect(name="SendEvent") as sc:
     # click up the altimeter setting a few times
-    event = 'KOHLSMAN_INC'
+    event = "KOHLSMAN_INC"
     for _ in range(10):
         print(f"Sending {event} event")
         # some events require an optional `data` field here, see SDK doc

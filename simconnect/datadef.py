@@ -1,16 +1,24 @@
-from typing import List, Sequence, Union, Dict, Any, Callable, Optional, Type, TYPE_CHECKING
-import logging
 import json
+import logging
+from collections.abc import Sequence
+from ctypes import POINTER, byref, c_char, c_double, c_float, c_int32, c_longlong, cast, sizeof
 from hashlib import sha1
-from ctypes import cast, byref, sizeof, POINTER, c_float, c_double, c_int32, c_longlong, c_char
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Type, Union
 
-from .scvars import validate_simvar, validate_units, validate_event, type_for_unit
-from .scdefs import (
-    Struct1, RECV_SIMOBJECT_DATA, DATA_REQUEST_FLAG_TAGGED,
-    DATATYPE_INT32, DATATYPE_INT64, DATATYPE_FLOAT32, DATATYPE_FLOAT64,
-    DATATYPE_STRING256, DWORD
-)
 from .changedict import ChangeDict
+from .scdefs import (
+    DATA_REQUEST_FLAG_TAGGED,
+    DATATYPE_FLOAT32,
+    DATATYPE_FLOAT64,
+    DATATYPE_INT32,
+    DATATYPE_INT64,
+    DATATYPE_STRING256,
+    DWORD,
+    RECV_SIMOBJECT_DATA,
+    Struct1,
+)
+from .scvars import type_for_unit, validate_event, validate_simvar, validate_units
+
 if TYPE_CHECKING:
     from .sc import SimConnect
 
@@ -42,56 +50,58 @@ type: one of the supported scdefs.py::DATATYPE_* constants enumerated in _dtyps 
 
 epsilon: the precision to detect changes (see SDK), defaulting to 0.0001
 """
-SimData = Dict[str, Any]
+SimData = dict[str, Any]
 SimDataHandler = Callable[[SimData], None]
-SimVarSpec = Union[str, Dict[str, Any]]
+SimVarSpec = Union[str, dict[str, Any]]
 SimVarsSpec = Union[SimVarSpec, Sequence[SimVarSpec]]
 
 
-def _norm_simvars(simvars: SimVarsSpec) -> Sequence[Dict[str, Any]]:
+def _norm_simvars(simvars: SimVarsSpec) -> Sequence[dict[str, Any]]:
     """convert simvars into a seq of dict"""
     ds = simvars if isinstance(simvars, (list, tuple)) else [simvars]
     return [dict(name=d) if isinstance(d, str) else d for d in ds]
 
 
 class DataDefinition:
-    _instances: Dict[str, 'DataDefinition'] = {}
+    _instances: dict[str, "DataDefinition"] = {}
 
     @classmethod
-    def create(kls, sc: 'SimConnect', simvars: SimVarsSpec, settable=False) -> 'DataDefinition':
+    def create(kls, sc: "SimConnect", simvars: SimVarsSpec, settable=False) -> "DataDefinition":
         """create or retrieve a data definition for the specified variables"""
-        defs: List[Dict[str, Any]] = []
+        defs: list[dict[str, Any]] = []
         svs = _norm_simvars(simvars)
         for d in svs:
-            name = d['name']
+            name = d["name"]
             sv = validate_simvar(name, settable)
-            units = validate_units(name, d.get('units'), sv)
-            dtyp = d.get('type') or type_for_unit(units)
+            units = validate_units(name, d.get("units"), sv)
+            dtyp = d.get("type") or type_for_unit(units)
             # see https://forums.flightsimulator.com/t/how-to-read-simvar-of-type-string/502402
-            if dtyp == DATATYPE_STRING256: units = ''
-            epsilon = d.get('epsilon', EPSILON_DEFAULT if dtyp == DATATYPE_FLOAT64 else 0)
+            if dtyp == DATATYPE_STRING256:
+                units = ""
+            epsilon = d.get("epsilon", EPSILON_DEFAULT if dtyp == DATATYPE_FLOAT64 else 0)
             defs.append(dict(name=name, units=units, dtyp=dtyp, epsilon=epsilon))
 
         # if we already have this data definition on this SimConnect instance, re-use it
-        instances = getattr(sc, '_datadefs', kls._instances)
-        key = sha1(json.dumps(defs, sort_keys=True).encode('utf-8')).hexdigest()
+        instances = getattr(sc, "_datadefs", kls._instances)
+        key = sha1(json.dumps(defs, sort_keys=True).encode("utf-8")).hexdigest()
         if key not in instances:
             instances[key] = kls(sc, len(instances), defs)
         return instances[key]
 
-    def __init__(self, sc: 'SimConnect', def_id: int, defs: List[Dict[str, Any]]):
+    def __init__(self, sc: "SimConnect", def_id: int, defs: list[dict[str, Any]]):
         self.id = def_id
         self.simdata: SimData = ChangeDict()
-        self._struct: Optional[Type[Struct1]] = None
+        self._struct: Optional[type[Struct1]] = None
         self.defs = defs
         for i, d in enumerate(self.defs):
-            sc.AddToDataDefinition(self.id, d['name'], d['units'], d['dtyp'], d['epsilon'], i)
+            sc.AddToDataDefinition(self.id, d["name"], d["units"], d["dtyp"], d["epsilon"], i)
 
-    def get_units(self) -> Dict[str, str]:
-        return {d['name']: d['units'] for d in self.defs}
+    def get_units(self) -> dict[str, str]:
+        return {d["name"]: d["units"] for d in self.defs}
 
-    def add_receiver(self, sc: 'SimConnect', req_id: int, callback: Optional[SimDataHandler] = None):
+    def add_receiver(self, sc: "SimConnect", req_id: int, callback: Optional[SimDataHandler] = None):
         """Create a receiver for this DataDefinition, given req_id and optional callback"""
+
         def _receiver(recv: RECV_SIMOBJECT_DATA) -> bool:
             if recv.dwRequestID != req_id:
                 return False
@@ -109,15 +119,15 @@ class DataDefinition:
                 else:
                     idx += 1
                 d = self.defs[idx]
-                ctyp = _dtyps[d['dtyp']]
+                ctyp = _dtyps[d["dtyp"]]
                 ptr = cast(byref(recv, offset), POINTER(ctyp))
                 if ctyp == c_char:  # STRING256
-                    val = ptr[:256].split(b'\x00', 1)[0].decode('utf-8', errors='replace')
+                    val = ptr[:256].split(b"\x00", 1)[0].decode("utf-8", errors="replace")
                     offset += 256
                 else:
                     val = ptr[0]
                     offset += sizeof(ctyp)
-                self.simdata[d['name']] = val
+                self.simdata[d["name"]] = val
 
             if callback:
                 callback(self.simdata)
@@ -126,21 +136,23 @@ class DataDefinition:
         sc.add_receiver(RECV_SIMOBJECT_DATA, _receiver)
         return _receiver
 
-    def _pack_data(self, simdata: Dict[str, Any]) -> Struct1:
+    def _pack_data(self, simdata: dict[str, Any]) -> Struct1:
         if self._struct is None:
+
             class kls(Struct1):
                 _fields_ = [
-                    (d['name'], c_char * 256 if d['dtyp'] == DATATYPE_STRING256 else _dtyps[d['dtyp']])
+                    (d["name"], c_char * 256 if d["dtyp"] == DATATYPE_STRING256 else _dtyps[d["dtyp"]])
                     for d in self.defs
                 ]
+
             self._struct = kls
 
         return self._struct(**simdata)
 
 
-def map_event_id(sc: 'SimConnect', event: str) -> int:
+def map_event_id(sc: "SimConnect", event: str) -> int:
     s = validate_event(event)
-    event_ids = getattr(sc, '_event_ids', _event_ids)
+    event_ids = getattr(sc, "_event_ids", _event_ids)
     client_id = event_ids.get(s)
     if client_id is None:
         client_id = len(event_ids)
@@ -150,14 +162,14 @@ def map_event_id(sc: 'SimConnect', event: str) -> int:
 
 
 # Track client-mapped event ids (fallback if not per-instance)
-_event_ids: Dict[str, int] = {}
+_event_ids: dict[str, int] = {}
 
 
 # Map scdefs type flags to ctypes
 _dtyps = {
-    DATATYPE_INT32: c_int32,   # 32-bit signed integer number
-    DATATYPE_INT64: c_longlong,   # 64-bit integer number
-    DATATYPE_FLOAT32: c_float,   # 32-bit floating-point number (float)
-    DATATYPE_FLOAT64: c_double,   # 64-bit floating-point number (double)
+    DATATYPE_INT32: c_int32,  # 32-bit signed integer number
+    DATATYPE_INT64: c_longlong,  # 64-bit integer number
+    DATATYPE_FLOAT32: c_float,  # 32-bit floating-point number (float)
+    DATATYPE_FLOAT64: c_double,  # 64-bit floating-point number (double)
     DATATYPE_STRING256: c_char,  # 256-byte fixed length string
 }

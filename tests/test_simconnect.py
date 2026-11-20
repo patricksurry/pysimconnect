@@ -1,5 +1,6 @@
 from ctypes import Structure, addressof, byref, c_char, c_double, c_int32, memmove, sizeof
 from unittest.mock import MagicMock, patch
+
 import pytest
 
 from simconnect.sc import SimConnect
@@ -55,11 +56,13 @@ def test_multiple_simconnect_instances_isolated():
 
 def test_datadef_receive_tagged_float_int_string():
     sc, _ = make_mock_sc()
-    dd = sc.subscribe_simdata([
-        "Indicated Altitude",       # FLOAT64
-        "ATC ID",                   # STRING256
-        "TURB ENG IGNITION SWITCH", # Enum -> INT32 (can be negative or positive)
-    ])
+    dd = sc.subscribe_simdata(
+        [
+            "Indicated Altitude",  # FLOAT64
+            "ATC ID",  # STRING256
+            "TURB ENG IGNITION SWITCH",  # Enum -> INT32 (can be negative or positive)
+        ]
+    )
 
     class Payload(Structure):
         _pack_ = 1
@@ -132,7 +135,8 @@ def test_set_simdatum_packs_data():
 def test_receive_dispatches_open(caplog):
     import logging
     from ctypes import pointer
-    from simconnect.scdefs import RECV_OPEN, RECV_ID_OPEN
+
+    from simconnect.scdefs import RECV_ID_OPEN, RECV_OPEN
 
     sc, mock_dll = make_mock_sc()
 
@@ -170,5 +174,3 @@ def test_logging_named_logger_and_verbose_flag(caplog):
             with pytest.raises(OSError):
                 SimConnect(verbose=False)
     assert caplog.records == []
-
-

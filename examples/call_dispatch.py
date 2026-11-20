@@ -1,6 +1,6 @@
-from simconnect import SimConnect, DispatchProc, ReceiverInstance
 from time import sleep
 
+from simconnect import DispatchProc, ReceiverInstance, SimConnect
 
 """
 Illlustrate low-level use of DispatchProc via CallDispatch
@@ -19,8 +19,8 @@ def dispatcher(pRecv, nSize, pContext):
 
 
 # disable the default receivers so we can see the RECV_OPEN response
-with SimConnect(name='CallDispatch', default_receivers=[]) as sc:
+with SimConnect(name="CallDispatch", default_receivers=[]) as sc:
     for _ in range(10):
-        print('CallDispatch')
+        print("CallDispatch")
         sc.CallDispatch(DispatchProc(dispatcher), None)
         sleep(0.1)

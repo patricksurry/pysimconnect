@@ -1,6 +1,6 @@
-from .scdefs import *
-from .sc import SimConnect, RECV_P
+from .datadef import DataDefinition, SimData, SimDataHandler
 from .mock import MockSimConnect
 from .receiver import Receiver, ReceiverInstance
-from .datadef import SimData, SimDataHandler , DataDefinition
-from .scvars import SIMVARS, EVENTS, UNITS, DIMENSIONS
+from .sc import RECV_P, SimConnect
+from .scdefs import *
+from .scvars import DIMENSIONS, EVENTS, SIMVARS, UNITS

@@ -1,7 +1,9 @@
 """Generate terminal SVG snapshots in doc/*.svg from the actual simconnect CLI."""
+
 import os
 import sys
 from unittest.mock import patch
+
 from rich.console import Console
 from rich.text import Text
 from typer.testing import CliRunner
@@ -39,7 +41,10 @@ def generate_all():
     save_terminal_svg(
         "sc-install-completion.svg",
         "simconnect --install-completion powershell",
-        ["powershell completion installed in ~\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1", "Completion will take effect once you restart the terminal"],
+        [
+            "powershell completion installed in ~\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1",
+            "Completion will take effect once you restart the terminal",
+        ],
         title="simconnect --install-completion",
     )
 

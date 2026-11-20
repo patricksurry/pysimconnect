@@ -2,7 +2,7 @@ from simconnect import SimConnect
 
 """Simple example of subscribing to a set of metrics"""
 
-with SimConnect(name='MonitorMetrics') as sc:
+with SimConnect(name="MonitorMetrics") as sc:
     simvars = [
         # We can monitor simvars with string values
         "ATC ID",
@@ -13,8 +13,8 @@ with SimConnect(name='MonitorMetrics') as sc:
         # Provide a dictionary to specify optional attributes:
         # 'units' (per SDK), 'epsilon' (default 1e-4) and 'type' (default DATATYPE_FLOAT64)
         dict(name="Indicated Altitude", units="m", epsilon=0.1),
-        dict(name="Plane Latitude", units='degrees'),
-        dict(name="Plane Longitude", units='degrees'),
+        dict(name="Plane Latitude", units="degrees"),
+        dict(name="Plane Longitude", units="degrees"),
     ]
 
     print(f"One-off snaphsot of {sc.get_simdata(simvars[0])}")
@@ -27,7 +27,7 @@ with SimConnect(name='MonitorMetrics') as sc:
     while True:
         while sc.receive(timeout_seconds=0.1):
             # clear queue of pending results, processed by receiver handlers
-            print('received result')
+            print("received result")
             pass
         n = len(dd.simdata.changedsince(latest))
         if n:

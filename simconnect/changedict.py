@@ -1,8 +1,8 @@
-from collections import OrderedDict
-from time import time
 import math
-from typing import Callable, Any
+from collections import OrderedDict
 from itertools import takewhile
+from time import time
+from typing import Any, Callable
 
 
 def now():
@@ -11,17 +11,20 @@ def now():
 
 def equal_or_close(rel_tol=1e-6, abs_tol=1e-6) -> Callable[[Any, Any], bool]:
     """Return a function that decides if a ~= b"""
+
     def comparator(a, b) -> bool:
         try:
             v = math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
         except Exception:
             v = a == b
         return v
+
     return comparator
 
 
 class ChangeDict(OrderedDict):
     """An ordered dict that records timestamp of changed items"""
+
     def __init__(self, default_comparator=equal_or_close(), comparators=None):
         self.__default_comparator = default_comparator
         self.__comparators = comparators if comparators is not None else {}
@@ -53,25 +56,20 @@ class ChangeDict(OrderedDict):
         return self.__times[k]
 
     def changedsince(self, millis):
-        return dict(
-            takewhile(
-                lambda kv: self.__times[kv[0]] > millis,
-                reversed(self.items())
-            )
-        )
+        return dict(takewhile(lambda kv: self.__times[kv[0]] > millis, reversed(self.items())))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from time import sleep
 
     t = now()
-    d = ChangeDict(comparators=dict(froz=lambda a, b: abs(a-b) < 8))
-    d.update(a=1, b=2, z='zzz', froz=1024)
+    d = ChangeDict(comparators=dict(froz=lambda a, b: abs(a - b) < 8))
+    d.update(a=1, b=2, z="zzz", froz=1024)
     print(d.changedsince(0), d.latest())
     sleep(1)
     d.update(a=1, b=3, c=3, froz=1031)
     print(d.changedsince(t), d.latest())
     sleep(1)
     d.update(a=4, froz=1033)
-    print(d.changedsince(t+1500), d.latest())
+    print(d.changedsince(t + 1500), d.latest())
     print(d)

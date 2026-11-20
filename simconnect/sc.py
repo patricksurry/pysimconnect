@@ -1,19 +1,26 @@
-from typing import List, Optional, Type, Any
-from ctypes import byref, sizeof, cast, POINTER, c_void_p
 import itertools
 import logging
 import os
-from time import time, sleep
-from .scdefs import (
-    _decls, DispatchProc,
-    RECV, DATA_REQUEST_FLAG_CHANGED, DATA_REQUEST_FLAG_TAGGED,
-    OBJECT_ID_USER, PERIOD_SECOND, PERIOD_ONCE,
-    GROUP_PRIORITY_HIGHEST, EVENT_FLAG_GROUPID_IS_PRIORITY,
-    HANDLE, windll,
-)
-from .receiver import Receiver, ReceiverInstance, _default_receivers
-from .datadef import SimVarsSpec, DataDefinition, SimData, SimDataHandler, _norm_simvars, map_event_id
+from ctypes import POINTER, byref, c_void_p, cast, sizeof
+from time import sleep, time
+from typing import Any, List, Optional, Type
 
+from .datadef import DataDefinition, SimData, SimDataHandler, SimVarsSpec, _norm_simvars, map_event_id
+from .receiver import Receiver, ReceiverInstance, _default_receivers
+from .scdefs import (
+    DATA_REQUEST_FLAG_CHANGED,
+    DATA_REQUEST_FLAG_TAGGED,
+    EVENT_FLAG_GROUPID_IS_PRIORITY,
+    GROUP_PRIORITY_HIGHEST,
+    HANDLE,
+    OBJECT_ID_USER,
+    PERIOD_ONCE,
+    PERIOD_SECOND,
+    RECV,
+    DispatchProc,
+    _decls,
+    windll,
+)
 
 RECV_P = POINTER(RECV)
 
@@ -21,17 +28,18 @@ logger = logging.getLogger(__name__)
 # Configure package logger level via LOGLEVEL env var (default INFO) without overriding host root logger handlers
 logging.getLogger("simconnect").setLevel(os.environ.get("LOGLEVEL", "INFO"))
 
-_dll_path = os.path.join(os.path.dirname(__file__), 'SimConnect.dll')
+_dll_path = os.path.join(os.path.dirname(__file__), "SimConnect.dll")
 
 
 class SimConnect:
     def __init__(
-            self,
-            name='pySimConnect',
-            dll_path=_dll_path,
-            default_receivers=_default_receivers,
-            poll_interval_seconds=0.05,
-            verbose: bool = True):
+        self,
+        name="pySimConnect",
+        dll_path=_dll_path,
+        default_receivers=_default_receivers,
+        poll_interval_seconds=0.05,
+        verbose: bool = True,
+    ):
         self.verbose = verbose
         try:
             dll = windll.LoadLibrary(dll_path)
@@ -43,13 +51,13 @@ class SimConnect:
         self.hsc = HANDLE()
         # All methods other than open pass the sc HANDLE as the first arg
         try:
-            self._decls['Open'](byref(self.hsc), name.encode('utf-8'), None, 0, 0, 0)
+            self._decls["Open"](byref(self.hsc), name.encode("utf-8"), None, 0, 0, 0)
         except OSError:
             if self.verbose:
                 logger.error("Failed to open SimConnect, is Flight Simulator running?")
             raise
         self._reqid_iter = itertools.count()
-        self._receivers: List[ReceiverInstance] = default_receivers[:]
+        self._receivers: list[ReceiverInstance] = default_receivers[:]
         self._datadefs = {}
         self._event_ids = {}
         self._closed = False
@@ -58,7 +66,7 @@ class SimConnect:
     def Close(self):
         if not self._closed:
             self._closed = True
-            return self._decls['Close'](self.hsc)
+            return self._decls["Close"](self.hsc)
         return 0
 
     def __enter__(self):
@@ -75,12 +83,14 @@ class SimConnect:
 
     def _dispatch(self, f):
         """Dispatch to a registered method, using our open handle"""
+
         def _callable(*args):
-            args = [arg.encode('utf-8') if isinstance(arg, str) else arg for arg in args]
+            args = [arg.encode("utf-8") if isinstance(arg, str) else arg for arg in args]
             return f(self.hsc, *args)
+
         return _callable
 
-    def add_receiver(self, rtype: Type[RECV], receiver: Receiver):
+    def add_receiver(self, rtype: type[RECV], receiver: Receiver):
         """
         Adds a receiver to handle type recv_type
         Any additional kwargs will be passed to the receiver when it's called
@@ -117,20 +127,13 @@ class SimConnect:
             sleep(self.poll_interval_seconds)
         return self._received > 0
 
-    def get_simdatum(
-            self,
-            name,
-            units=None,
-            timeout_seconds=1) -> Any:
+    def get_simdatum(self, name, units=None, timeout_seconds=1) -> Any:
         """get a one-off value of a single simvar variable, see also subscribe_simdata"""
         spec = dict(name=name, units=units)
         simdata = self.get_simdata([spec], timeout_seconds)
         return list(simdata.values())[0] if simdata else None
 
-    def get_simdata(
-            self,
-            simvars: SimVarsSpec,
-            timeout_seconds=1) -> SimData:
+    def get_simdata(self, simvars: SimVarsSpec, timeout_seconds=1) -> SimData:
         """
         get a snapshot of one or more simvars.
         if you plan to query the same data frequently use subscribe_simdata instead.
@@ -159,14 +162,15 @@ class SimConnect:
         return dd.simdata
 
     def subscribe_simdata(
-            self, simvars: SimVarsSpec,
-            period=PERIOD_SECOND,
-            skip_periods=0,   # number of periods to skip before starting
-            interval=1,       # number of periods between updates
-            repeat_count=0,   # number of updates before stopping (0 = forever)
-            flags=DATA_REQUEST_FLAG_CHANGED | DATA_REQUEST_FLAG_TAGGED,
-            callback: Optional[SimDataHandler] = None
-            ):
+        self,
+        simvars: SimVarsSpec,
+        period=PERIOD_SECOND,
+        skip_periods=0,  # number of periods to skip before starting
+        interval=1,  # number of periods between updates
+        repeat_count=0,  # number of updates before stopping (0 = forever)
+        flags=DATA_REQUEST_FLAG_CHANGED | DATA_REQUEST_FLAG_TAGGED,
+        callback: Optional[SimDataHandler] = None,
+    ):
         """
         Create and subscribe to a data definition.
         The returned data definition provides methods to access the
@@ -178,16 +182,7 @@ class SimConnect:
         req_id = next(self._reqid_iter)
         dd.add_receiver(self, req_id, callback)
         # note the SDK doc for first two args is misleading/wrong
-        self.RequestDataOnSimObject(
-            req_id,
-            dd.id,
-            OBJECT_ID_USER,
-            period,
-            flags,
-            skip_periods,
-            interval,
-            repeat_count
-        )
+        self.RequestDataOnSimObject(req_id, dd.id, OBJECT_ID_USER, period, flags, skip_periods, interval, repeat_count)
         return dd
 
     def set_simdatum(self, name, value, units=None):
@@ -201,11 +196,11 @@ class SimConnect:
         """
         sds = _norm_simvars(simdata)
         dd = DataDefinition.create(self, sds, settable=True)
-        assert all(['value' in d for d in sds]), "set_simdata: must specify value for each item"
-        values = {d['name']: d['value'] for d in sds}
+        assert all(["value" in d for d in sds]), "set_simdata: must specify value for each item"
+        values = {d["name"]: d["value"] for d in sds}
         data = dd._pack_data(values)
         logger.debug(f"setting simdata {sds} with {sizeof(data)} bytes")
-        #TODO: some data types can be also be set as array,
+        # TODO: some data types can be also be set as array,
         # e.g. any number of waypoints can be given to an AI object using a single call to this function,
         # and any number of marker state structures can also be combined into an array
         # in that case number of items would be greater than 1

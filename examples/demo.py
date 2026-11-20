@@ -1,5 +1,6 @@
 from time import sleep
-from simconnect import SimConnect, PERIOD_VISUAL_FRAME
+
+from simconnect import PERIOD_VISUAL_FRAME, SimConnect
 
 # open a connection to the SDK
 # or use as a context via `with SimConnect() as sc: ... `
@@ -16,11 +17,7 @@ print("Got indicated altitude", altitude)
 # which is a dictionary that tracks the last modified time
 # of each variable.  changes can also trigger an optional callback function
 datadef = sc.subscribe_simdata(
-    [
-        "Indicated Altitude",
-        dict(name="Kohlsman setting hg", units="hectopascal"),
-        "ELECTRICAL BATTERY BUS VOLTAGE"
-    ],
+    ["Indicated Altitude", dict(name="Kohlsman setting hg", units="hectopascal"), "ELECTRICAL BATTERY BUS VOLTAGE"],
     # request an update every ten rendered frames
     period=PERIOD_VISUAL_FRAME,
     interval=10,
@@ -51,7 +48,7 @@ for i in range(10):
     latest = datadef.simdata.latest()
 
     # fetch the current altitude
-    altitude = datadef.simdata['Indicated Altitude']
+    altitude = datadef.simdata["Indicated Altitude"]
 
 # explicity close the SDK connection
 sc.Close()

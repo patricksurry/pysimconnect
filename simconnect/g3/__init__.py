@@ -6,14 +6,15 @@ and POST batches of set/adjust/trigger actions to /inputs, which the bridge maps
 to SimConnect simvar writes and events. The effect of an action reaches the panel
 as an ordinary metric change once it's reflected in the simulator.
 """
-from functools import partial
-from http import HTTPStatus
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
 import json
 import logging
 import os
 import threading
 import time
+from functools import partial
+from http import HTTPStatus
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlparse
 
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Map canonical MSFS unit names to G3 convert-units symbols
-MSFS_TO_G3_UNIT: Dict[str, str] = {
+MSFS_TO_G3_UNIT: dict[str, str] = {
     "feet": "ft",
     "foot": "ft",
     "degrees": "deg",
@@ -55,21 +56,22 @@ MSFS_TO_G3_UNIT: Dict[str, str] = {
 }
 
 
-def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
+def load_config(config_path: Optional[str] = None) -> dict[str, Any]:
     path = config_path or os.path.join(DEFAULT_EXAMPLE_DIR, "config.json")
-    with open(path, "r") as f:
+    with open(path) as f:
         if path.endswith((".yml", ".yaml")):
             import yaml  # type: ignore
+
             return yaml.safe_load(f)
         return json.load(f)
 
 
-def matches_keys(metric: str, keys: Optional[List[str]]) -> bool:
+def matches_keys(metric: str, keys: Optional[list[str]]) -> bool:
     """A metric matches the requested keys if it equals one of them or is a dot-separated prefix of one."""
     return not keys or any(k == metric or k.startswith(metric + ".") for k in keys)
 
 
-def _resolve(name: str, known: Dict[str, Any]) -> Optional[str]:
+def _resolve(name: str, known: dict[str, Any]) -> Optional[str]:
     """Resolve a G3 metric key to the longest dot-separated prefix of itself in known."""
     ks = name.split(".")
     while ks:
@@ -80,7 +82,7 @@ def _resolve(name: str, known: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def _limit(x: float, action: Dict[str, Any]) -> float:
+def _limit(x: float, action: dict[str, Any]) -> float:
     """Apply an adjust action's optional min/max/wrap hints."""
     lo, hi = action.get("min"), action.get("max")
     if action.get("wrap") and lo is not None and hi is not None:
@@ -96,11 +98,11 @@ def _limit(x: float, action: Dict[str, Any]) -> float:
 class SimConnectG3Bridge:
     """Hub state for G3 panels: polls a SimConnect (or MockSimConnect) instance and applies G3 actions to it."""
 
-    def __init__(self, sc: Optional[Any] = None, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, sc: Optional[Any] = None, config: Optional[dict[str, Any]] = None):
         self.sc = sc if sc is not None else SimConnect(name="g3_bridge")
         self.cfg = config or load_config()
-        self.mapping: List[Dict[str, Any]] = [dict(m) for m in self.cfg.get("metrics", [])]
-        self.actions: List[Dict[str, Any]] = list(self.cfg.get("actions", []))
+        self.mapping: list[dict[str, Any]] = [dict(m) for m in self.cfg.get("metrics", [])]
+        self.actions: list[dict[str, Any]] = list(self.cfg.get("actions", []))
         self.state = ChangeDict()
         self._lock = threading.Lock()
         self._dd_latest = 0
@@ -115,14 +117,14 @@ class SimConnectG3Bridge:
             u = simvar_units.get(m["simvar"]) or m.get("unit")
             m["unit"] = MSFS_TO_G3_UNIT.get(u.lower(), u) if u else None
 
-    def metric_units(self) -> Dict[str, Any]:
+    def metric_units(self) -> dict[str, Any]:
         return {
             m["metric"]: m["fxunit"] if "fxunit" in m else m.get("unit")
             for m in self.mapping
             if (m["fxunit"] if "fxunit" in m else m.get("unit")) is not None
         }
 
-    def poll_metrics(self) -> Dict[str, Any]:
+    def poll_metrics(self) -> dict[str, Any]:
         """Read any simvar changes into the hub state, returning the changed metrics."""
         with self._lock:
             while self.sc.receive():
@@ -141,13 +143,13 @@ class SimConnectG3Bridge:
             self.state.update(data)
             return data
 
-    def apply_actions(self, actions: List[Dict[str, Any]]) -> None:
+    def apply_actions(self, actions: list[dict[str, Any]]) -> None:
         """Apply a batch of G3 actions in order, ignoring (and logging) any that aren't supported."""
         with self._lock:
             for action in actions:
                 self._apply(action)
 
-    def _apply(self, action: Dict[str, Any]) -> None:
+    def _apply(self, action: dict[str, Any]) -> None:
         op = action.get("op") if isinstance(action, dict) else None
         if op not in ("set", "adjust", "trigger"):
             logger.warning("ignoring unknown action %r", action)
@@ -206,7 +208,14 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
 
     protocol_version = "HTTP/1.1"
 
-    def __init__(self, *args: Any, bridge: SimConnectG3Bridge, stream_interval: float = 0.1, directory: Optional[str] = None, **kwargs: Any):
+    def __init__(
+        self,
+        *args: Any,
+        bridge: SimConnectG3Bridge,
+        stream_interval: float = 0.1,
+        directory: Optional[str] = None,
+        **kwargs: Any,
+    ):
         self.bridge = bridge
         self.stream_interval = stream_interval
         super().__init__(*args, directory=directory or DEFAULT_EXAMPLE_DIR, **kwargs)
@@ -238,7 +247,7 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
         qs = parse_qs(parsed.query)
         keys = [k for k in qs.get("keys", [""])[0].split(",") if k]
 
-        def matching(d: Dict[str, Any]) -> Dict[str, Any]:
+        def matching(d: dict[str, Any]) -> dict[str, Any]:
             return {k: v for k, v in d.items() if matches_keys(k, keys)}
 
         if parsed.path == "/metrics.json":
@@ -246,7 +255,7 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
             want_units = qs.get("units", ["false"])[0].lower() in ("true", "1", "yes")
 
             self.bridge.poll_metrics()
-            result: Dict[str, Any] = {
+            result: dict[str, Any] = {
                 "latest": self.bridge.state.latest(),
                 "metrics": matching(self.bridge.state.changedsince(latest)),
             }
@@ -267,7 +276,7 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
                     self.bridge.poll_metrics()
                     if client_latest is None:
                         # start each connection with a full snapshot of the matching metrics, with units
-                        payload: Dict[str, Any] = {
+                        payload: dict[str, Any] = {
                             "metrics": matching(dict(self.bridge.state)),
                             "units": matching(self.bridge.metric_units()),
                         }
@@ -275,7 +284,7 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
                         payload = {"metrics": matching(self.bridge.state.changedsince(client_latest))}
                     if client_latest is None or payload["metrics"]:
                         client_latest = payload["latest"] = self.bridge.state.latest()
-                        self.wfile.write(f"data: {json.dumps(payload)}\n\n".encode("utf-8"))
+                        self.wfile.write(f"data: {json.dumps(payload)}\n\n".encode())
                         self.wfile.flush()
                     time.sleep(self.stream_interval)
             except (BrokenPipeError, ConnectionResetError, OSError):
@@ -293,7 +302,7 @@ class G3HTTPRequestHandler(SimpleHTTPRequestHandler):
             payload = None
         actions = payload.get("actions") if isinstance(payload, dict) else None
         if not isinstance(actions, list):
-            return self._send_json({"status": "error", "error": "expected {\"actions\": [...]}"}, HTTPStatus.BAD_REQUEST)
+            return self._send_json({"status": "error", "error": 'expected {"actions": [...]}'}, HTTPStatus.BAD_REQUEST)
         self.bridge.apply_actions(actions)
         self._send_json({"status": "ok"})
 

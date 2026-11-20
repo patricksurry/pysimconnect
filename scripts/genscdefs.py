@@ -7,24 +7,24 @@ import re
 from typing import List
 
 
-def nopfx(s: str, pfx='SIMCONNECT_') -> str:
-    return s.replace(pfx, '')
+def nopfx(s: str, pfx="SIMCONNECT_") -> str:
+    return s.replace(pfx, "")
 
 
 def _ctyp(typ):
     ctyp = nopfx(typ).strip()
-    if ctyp.startswith('const'):
+    if ctyp.startswith("const"):
         ctyp = ctyp[5:].strip()
-    if ctyp.startswith('BOOL'):
-        ctyp = 'bool' + ctyp[4:]
-    m = re.match(r'([a-z]+(?:\s+\*)?)(.*)', ctyp)
+    if ctyp.startswith("BOOL"):
+        ctyp = "bool" + ctyp[4:]
+    m = re.match(r"([a-z]+(?:\s+\*)?)(.*)", ctyp)
     if m:
         t, suffix = m.groups()
-        ctyp = 'c_' + re.sub(r'\s+', '_', t.replace('*', 'p')) + suffix
+        ctyp = "c_" + re.sub(r"\s+", "_", t.replace("*", "p")) + suffix
     stars = 0
     while True:
         ctyp = ctyp.strip()
-        if ctyp[-1] != '*':
+        if ctyp[-1] != "*":
             break
         stars += 1
         ctyp = ctyp[:-1]
@@ -37,14 +37,14 @@ def _ctyp(typ):
 def maybeTypedef(line, lines, output) -> bool:
     # special case for DispatchProc
     # typedef void (CALLBACK *DispatchProc)(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext);
-    if line.startswith('typedef void') and 'DispatchProc' in line:
+    if line.startswith("typedef void") and "DispatchProc" in line:
         output += [
-            '# ' + line,
-            'DispatchProc = WINFUNCTYPE(None, POINTER(RECV), DWORD, c_void_p)',
+            "# " + line,
+            "DispatchProc = WINFUNCTYPE(None, POINTER(RECV), DWORD, c_void_p)",
         ]
         return True
 
-    m = re.match(r'typedef\s+(\w+)\s+(\w+)\s*;(.*)', line)
+    m = re.match(r"typedef\s+(\w+)\s+(\w+)\s*;(.*)", line)
     if not m:
         return False
 
@@ -55,15 +55,15 @@ def maybeTypedef(line, lines, output) -> bool:
 
 
 # static const DWORD SIMCONNECT_GROUP_PRIORITY_HIGHEST = 1; // highest priority
-def maybeConst(line, lines, output, indent='') -> bool:
-    m = re.match(r'\s*static\s+const\s+(\w+)\s+(\w+)\s*=\s*(\S+);(.*)', line)
+def maybeConst(line, lines, output, indent="") -> bool:
+    m = re.match(r"\s*static\s+const\s+(\w+)\s+(\w+)\s*=\s*(\S+);(.*)", line)
     if not m:
         return False
 
     typ, var, val, suffix = m.groups()
     var = nopfx(var)
     val = nopfx(val)
-    if typ not in ['float', 'DWORD']:
+    if typ not in ["float", "DWORD"]:
         val = f"{typ}({val})"
     line = f"{var} = {val} {suffix}"
     output.append(indent + line)
@@ -73,7 +73,7 @@ def maybeConst(line, lines, output, indent='') -> bool:
 # enum SIMCONNECT_RECV_ID {
 def maybeEnum(line, lines, output) -> bool:
     """convert enums into python int consts, with a type alias to DWORD"""
-    m = re.match(r'\s*enum\s+(\w+)\s*{(.*)', line)
+    m = re.match(r"\s*enum\s+(\w+)\s*{(.*)", line)
     if not m:
         return False
 
@@ -85,10 +85,10 @@ def maybeEnum(line, lines, output) -> bool:
 
     while True:
         line = lines.pop(0)
-        if line.strip().startswith('};'):
+        if line.strip().startswith("};"):
             break
         #     SIMCONNECT_TEXT_TYPE_PRINT_BLACK=0x0100,
-        m = re.match(r'\s*(\w+)(?:\s*=\s*([0-9x]*))?(?:\s*,)?(.*)', line)
+        m = re.match(r"\s*(\w+)(?:\s*=\s*([0-9x]*))?(?:\s*,)?(.*)", line)
         if m:
             var, val, suffix = m.groups()
             var = nopfx(var)
@@ -98,13 +98,13 @@ def maybeEnum(line, lines, output) -> bool:
                 eidx = eval(val)
             line = f"{var} = 0x{eidx:02X} {suffix}"
         output.append(line)
-    output.append('')
+    output.append("")
     return True
 
 
 # unsigned long Flags; // ...
 def maybeField(line, lines, fields) -> bool:
-    m = re.match(r'\s*(?:(\w+)\s+)+(\w+)(\[\w+\])?\s*;(.*)', line)
+    m = re.match(r"\s*(?:(\w+)\s+)+(\w+)(\[\w+\])?\s*;(.*)", line)
     if not m:
         return False
 
@@ -119,22 +119,22 @@ def maybeField(line, lines, fields) -> bool:
 
 # struct SIMCONNECT_RECV_EXCEPTION : public SIMCONNECT_RECV // when dwID == SIMCONNECT_RECV_ID_EXCEPTION
 def maybeStruct(line, lines, output) -> bool:
-    m = re.match(r'\s*struct\s+(\w+)\s*(?::\s*public\s+(\w+))?(.*)', line)
+    m = re.match(r"\s*struct\s+(\w+)\s*(?::\s*public\s+(\w+))?(.*)", line)
     if not m:
         return False
 
     struct, base, suffix = m.groups()
     struct = nopfx(struct)
-    base = nopfx(base) if base else 'Struct1'
+    base = nopfx(base) if base else "Struct1"
     line = f"class {struct}({base}):"
     output.append(line)
-    fields: List[str] = []
+    fields: list[str] = []
 
     while True:
         line = lines.pop(0)
-        if line.startswith('{'):
+        if line.startswith("{"):
             continue
-        elif line.startswith('};'):
+        elif line.startswith("};"):
             break
         elif maybeConst(line, lines, output, indent):
             continue
@@ -143,11 +143,11 @@ def maybeStruct(line, lines, output) -> bool:
         else:
             output.append(line.strip())
 
-    output.append(indent + '_fields_ = [')
+    output.append(indent + "_fields_ = [")
     for line in fields:
         output.append(2 * indent + line)
-    output.append(indent + ']')
-    output.append('')
+    output.append(indent + "]")
+    output.append("")
     return True
 
 
@@ -158,7 +158,7 @@ def maybeDecl(line, lines, decls) -> bool:
         return False
 
     ret, func, arglist = m.groups()
-    args = arglist.split(',')
+    args = arglist.split(",")
 
     decls += [
         f"f = dll.{func}",
@@ -166,7 +166,7 @@ def maybeDecl(line, lines, decls) -> bool:
         "f.argtypes = [",
     ]
     for arg in args:
-        m = re.match(r'(.*?)\s+(\w+)(?:\s*=\s*(.*))?$', arg.strip())
+        m = re.match(r"(.*?)\s+(\w+)(?:\s*=\s*(.*))?$", arg.strip())
         assert m, f"Unrecognized arg {arg}"
         typ, var, dflt = m.groups()
         dflt = f"= {dflt.strip()}" if dflt else ""
@@ -178,23 +178,16 @@ def maybeDecl(line, lines, decls) -> bool:
     return True
 
 
-indent = ' ' * 4
+indent = " " * 4
 
-lines = open('SimConnect_cpp.h').read().splitlines()
-lines = [
-    re.sub(
-        r'(\s*)//\s*',
-        lambda m: '  # ' if m.group(1) else '# ',
-        line,
-        1)
-    for line in lines
-]
+lines = open("SimConnect_cpp.h").read().splitlines()
+lines = [re.sub(r"(\s*)//\s*", lambda m: "  # " if m.group(1) else "# ", line, 1) for line in lines]
 
-output: List[str] = []
+output: list[str] = []
 aka = None
 eidx = None
 decls = [
-    '_ = dict()',
+    "_ = dict()",
 ]
 while lines:
     line = lines.pop(0)
@@ -213,16 +206,16 @@ while lines:
         output.append(line)
 
 decls += [
-    'return _',
+    "return _",
 ]
 
 output += [
-    '',
-    '',
-    'def _decls(dll):',
+    "",
+    "",
+    "def _decls(dll):",
 ] + [indent + s for s in decls]
 
-with open('simconnect/scdefs.py', 'w') as out:
+with open("simconnect/scdefs.py", "w") as out:
     out.write("""#
 # DO NOT EDIT: Auto generated by genscdefs.py
 #
@@ -258,4 +251,4 @@ class Struct1(Structure):
 
 
 """)
-    out.write('\n'.join([s.rstrip() for s in output]) + '\n')
+    out.write("\n".join([s.rstrip() for s in output]) + "\n")

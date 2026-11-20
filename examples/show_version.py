@@ -1,8 +1,8 @@
-from simconnect import SimConnect, RECV_P, ReceiverInstance
 from ctypes import byref
 from ctypes.wintypes import DWORD
 from time import sleep
 
+from simconnect import RECV_P, ReceiverInstance, SimConnect
 
 """
 Use a SimConnect object as a context manager,
@@ -11,7 +11,7 @@ manually retrieve the response to the implicit SimConnect.Open()
 which is a RECV_OPEN struct containing various version numbers.
 Compare receiver.receiveOpen which normally logs this data automatically
 """
-with SimConnect(name='ShowVersion', default_receivers=[]) as sc:
+with SimConnect(name="ShowVersion", default_receivers=[]) as sc:
     sleep(0.5)  # make sure the response is waiting for us
     pRecv = RECV_P()
     nSize = DWORD()
