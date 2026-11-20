@@ -132,10 +132,19 @@ simconnect serve --mock --port 8000
 
 `simconnect.g3` provides a zero-dependency HTTP & Server-Sent Events (SSE) bridge compatible with [G3](https://github.com/patricksurry/g3) (`@patricksurry/g3`) instrument panels, and `simconnect.mock` provides a drop-in `MockSimConnect` generator for offline development and testing:
 
-- `MockSimConnect(name="MockSimConnect")` — Implements the `SimConnect` interface (`get_simdatum`, `get_simdata`, `subscribe_simdata`, `set_simdatum`, `set_simdata`, `send_event`, `receive`, `Close`) with realistic synthetic flight telemetry, unit conversion, and event reactions (`KOHLSMAN_INC`/`DEC`, `HEADING_BUG_INC`/`DEC`, `VOR1_OBI_INC`/`DEC`, `ADF_CARD_INC`/`DEC`).
-- `SimConnectG3Bridge(sc=None, config=None)` — Accepts any `SimConnect` (or `MockSimConnect`) instance, subscribes to configured SimVars, translates MSFS units to `convert-units` symbols (`ft`, `deg`, `knot`, `inHg`, `hPa`, etc.), evaluates optional `fx` transforms, and dispatches interactive cockpit input actions.
+- `MockSimConnect(name="MockSimConnect")` — Implements the `SimConnect` interface (`get_simdatum`, `get_simdata`, `subscribe_simdata`, `set_simdatum`, `set_simdata`, `send_event`, `receive`, `Close`) with realistic synthetic flight telemetry, unit conversion, and event reactions (`KOHLSMAN_INC`/`DEC`, `HEADING_BUG_INC`/`DEC` on `AUTOPILOT HEADING LOCK DIR`, `VOR1_OBI_INC`/`DEC`, `ADF_CARD_INC`/`DEC`).
+- `SimConnectG3Bridge(sc=None, config=None)` — A [G3 hub](https://github.com/patricksurry/g3/blob/master/doc/API.md#hubs) for any `SimConnect` (or `MockSimConnect`) instance. It subscribes to the configured SimVars, translates MSFS units to `convert-units` symbols (`ft`, `deg`, `knot`, `inHg`, `hPa`, etc.), evaluates optional `fx` transforms, and applies G3 actions with `apply_actions([...])`.
 - `create_g3_server(bridge, host="0.0.0.0", port=8000, stream_interval=0.1, static_dir=None) -> ThreadingHTTPServer`:
-  - `GET /` — Serves static panel files from `static_dir` (defaulting to `examples/g3/`).
-  - `GET /stream` — SSE stream (`text/event-stream`) emitting `data: {"metrics": {...}, "units": {...}}\n\n`.
-  - `GET /metrics.json` — Polling snapshot (`?metrics=a,b&latest=0&units=true`).
-  - `POST /inputs` — Dispatches JSON input payloads (e.g. `{"ALT-ROT": 1, "HDG-ROT": -5}`) to `sc`.
+  - `GET /` — Serves static panel files from `static_dir` (defaulting to the bundled `simconnect/g3/` panel).
+  - `GET /stream?keys=a,b` — SSE stream (`text/event-stream`) emitting `data: {"latest": ..., "metrics": {...}, "units": {...}}\n\n`. It starts with a full snapshot of the matching metrics, then sends only changes.
+  - `GET /metrics.json?keys=a,b&latest=0&units=true` — Polling endpoint returning the matching metrics that changed since `latest`.
+  - `POST /inputs` — Applies a batch of G3 actions in order, e.g. `{"actions": [{"op": "adjust", "metric": "headingBug", "by": 5}]}`, and returns `{"status": "ok"}`. Anything else gets a 400. Action effects come back as ordinary metric changes.
+
+  A metric matches the requested `keys` if it equals a key or is a dot-separated prefix of one, e.g. `fuel` matches `fuel.left`.
+
+  The config file's `metrics` list maps SimVars to G3 metric names, and its `actions` list maps G3 actions to the sim:
+  - `{"op": "set", "metric": "masterBattery", "simvar": "ELECTRICAL MASTER BATTERY"}` writes the value to a SimVar; use `"simevent": "NAME"` instead to send an event with the value.
+  - `{"op": "adjust", "metric": "headingBug", "simevent": ["HEADING_BUG_INC", "HEADING_BUG_DEC"]}` sends the inc or dec event `abs(by)` times. With `"simvar"` instead, it writes the metric's current value plus `by`, applying any `min` / `max` / `wrap` hints.
+  - `{"op": "trigger", "event": "attitudeCage", "simevent": "ATTITUDE_CAGE_BUTTON"}` sends an event.
+
+  Any rule can add an `fx` expression in `x` to transform the value before it's written. Unsupported actions, or actions in an unexpected unit, are logged and ignored.

@@ -101,7 +101,7 @@ You can also launch a live [G3](https://github.com/patricksurry/g3) steam-gauge 
 
     simconnect serve --port 8000
 
-Then open `http://localhost:8000` in any browser (or on a tablet/Raspberry Pi on your LAN) to view live navigation and radio-nav gauges streamed over Server-Sent Events (`/stream`, `/metrics.json`, `/inputs`). If MSFS 2020 is not running (or on macOS/Linux), `simconnect serve --mock` streams realistic synthetic flight telemetry.
+Then open `http://localhost:8000` in any browser (or on a tablet/Raspberry Pi on your LAN) to view live navigation and radio-nav gauges, with knobs and switches that control the sim. The server is a [G3 hub](https://github.com/patricksurry/g3/blob/master/doc/API.md#hubs): panels read metrics from `/stream` (Server-Sent Events) or `/metrics.json`, and send `set` / `adjust` / `trigger` actions to `/inputs`, which are mapped to SimVar writes and events by [`simconnect/g3/config.json`](simconnect/g3/config.json). If MSFS 2020 is not running (or on macOS/Linux), `simconnect serve --mock` streams realistic synthetic flight telemetry.
 
 
 Working with python
