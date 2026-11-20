@@ -37,6 +37,12 @@ unfixable = ["F401"]
 extend-immutable-calls = ["typer.Argument", "typer.Option", "simconnect.changedict.equal_or_close"]
 
 [tool.mypy]
-python_version = "3.9"
+# mypy only checks as python >= 3.10; the 3.9 floor is enforced by ruff's target-version and the 3.9 test run
+python_version = "3.10"
 files = ["simconnect"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# generated, and imports Windows-only ctypes names with a non-Windows fallback
+module = "simconnect.scdefs"
+ignore_errors = true

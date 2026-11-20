@@ -58,8 +58,8 @@ class SimConnect:
             raise
         self._reqid_iter = itertools.count()
         self._receivers: list[ReceiverInstance] = default_receivers[:]
-        self._datadefs = {}
-        self._event_ids = {}
+        self._datadefs: dict[str, DataDefinition] = {}
+        self._event_ids: dict[str, int] = {}
         self._closed = False
         self.poll_interval_seconds = poll_interval_seconds
 

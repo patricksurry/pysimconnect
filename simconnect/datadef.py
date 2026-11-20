@@ -20,6 +20,7 @@ from .scdefs import (
 from .scvars import type_for_unit, validate_event, validate_simvar, validate_units
 
 if TYPE_CHECKING:
+    from .mock import MockSimConnect
     from .sc import SimConnect
 
 logger = logging.getLogger(__name__)
@@ -50,7 +51,8 @@ type: one of the supported scdefs.py::DATATYPE_* constants enumerated in _dtyps 
 
 epsilon: the precision to detect changes (see SDK), defaulting to 0.0001
 """
-SimData = dict[str, Any]
+# simdata is a dict that also records when each item last changed
+SimData = ChangeDict
 SimDataHandler = Callable[[SimData], None]
 SimVarSpec = Union[str, dict[str, Any]]
 SimVarsSpec = Union[SimVarSpec, Sequence[SimVarSpec]]
@@ -58,7 +60,7 @@ SimVarsSpec = Union[SimVarSpec, Sequence[SimVarSpec]]
 
 def _norm_simvars(simvars: SimVarsSpec) -> Sequence[dict[str, Any]]:
     """convert simvars into a seq of dict"""
-    ds = simvars if isinstance(simvars, (list, tuple)) else [simvars]
+    ds: list[SimVarSpec] = [simvars] if isinstance(simvars, (str, dict)) else list(simvars)
     return [dict(name=d) if isinstance(d, str) else d for d in ds]
 
 
@@ -66,7 +68,7 @@ class DataDefinition:
     _instances: dict[str, "DataDefinition"] = {}
 
     @classmethod
-    def create(kls, sc: "SimConnect", simvars: SimVarsSpec, settable=False) -> "DataDefinition":
+    def create(kls, sc: "SimConnect | MockSimConnect", simvars: SimVarsSpec, settable=False) -> "DataDefinition":
         """create or retrieve a data definition for the specified variables"""
         defs: list[dict[str, Any]] = []
         svs = _norm_simvars(simvars)
@@ -88,7 +90,7 @@ class DataDefinition:
             instances[key] = kls(sc, len(instances), defs)
         return instances[key]
 
-    def __init__(self, sc: "SimConnect", def_id: int, defs: list[dict[str, Any]]):
+    def __init__(self, sc: "SimConnect | MockSimConnect", def_id: int, defs: list[dict[str, Any]]):
         self.id = def_id
         self.simdata: SimData = ChangeDict()
         self._struct: Optional[type[Struct1]] = None
@@ -122,7 +124,8 @@ class DataDefinition:
                 ctyp = _dtyps[d["dtyp"]]
                 ptr = cast(byref(recv, offset), POINTER(ctyp))
                 if ctyp == c_char:  # STRING256
-                    val = ptr[:256].split(b"\x00", 1)[0].decode("utf-8", errors="replace")
+                    raw: bytes = ptr[:256]  # type: ignore[assignment]  # slicing a c_char pointer gives bytes
+                    val = raw.split(b"\x00", 1)[0].decode("utf-8", errors="replace")
                     offset += 256
                 else:
                     val = ptr[0]
@@ -166,7 +169,7 @@ _event_ids: dict[str, int] = {}
 
 
 # Map scdefs type flags to ctypes
-_dtyps = {
+_dtyps: dict[int, Any] = {
     DATATYPE_INT32: c_int32,  # 32-bit signed integer number
     DATATYPE_INT64: c_longlong,  # 64-bit integer number
     DATATYPE_FLOAT32: c_float,  # 32-bit floating-point number (float)

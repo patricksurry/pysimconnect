@@ -141,6 +141,7 @@ def serve(
     if static_dir is None and config:
         static_dir = os.path.dirname(os.path.abspath(config))
 
+    sc: SimConnect | MockSimConnect
     if mock:
         sc = MockSimConnect(name="g3_mock")
         mode_label = "mock telemetry"

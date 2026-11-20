@@ -1,6 +1,6 @@
 import logging
 from ctypes import POINTER, cast
-from typing import Callable
+from typing import Any, Callable, Optional
 
 from . import scdefs
 from .scdefs import RECV, RECV_EXCEPTION, RECV_OPEN
@@ -8,7 +8,8 @@ from .scdefs import RECV, RECV_EXCEPTION, RECV_OPEN
 logger = logging.getLogger(__name__)
 
 
-Receiver = Callable[[RECV], bool]
+# called with the RECV subclass (e.g. RECV_OPEN) matching the type it was registered for
+Receiver = Callable[[Any], bool]
 
 _exc_map = dict((getattr(scdefs, s), s) for s in dir(scdefs) if s.startswith("EXCEPTION_"))
 
@@ -22,7 +23,7 @@ class ReceiverInstance:
     # indicated by a corresponding RECV_ID_* constant
     # for example a response with recv.dwID = RECV_ID_OPEN
     # indicates the full response is a RECV_OPEN structure
-    _recv_map: dict[str, type] = {
+    _recv_map: dict[Optional[int], type] = {
         getattr(scdefs, kls.__name__.replace("RECV_", "RECV_ID_"), None): kls for kls in all_subclasses(RECV)
     }
 
