@@ -181,9 +181,18 @@ to Python, as long as header format doesn't change significantly.
 Testing and remote connectivity
 ---
 
-Run unit tests via `pytest`:
+Install the development tools and run the unit tests via `pytest`:
 
+    pip install -e ".[dev]"
     python3 -m pytest -v
+
+Code is linted and formatted with [ruff](https://docs.astral.sh/ruff/) and type checked with [mypy](https://mypy.readthedocs.io/),
+both configured in `pyproject.toml`. Run them directly with `ruff check`, `ruff format` and `mypy`,
+or install the [pre-commit](https://pre-commit.com/) hooks once so they run on every commit:
+
+    pre-commit install
+
+The same checks and tests run in CI on every pull request, on python 3.9 and 3.13.
 
 Live integration tests in `tests/test_live_msfs.py` run automatically when `SimConnect.dll` can connect to a running MSFS 2020 instance, and are skipped otherwise (e.g. on macOS/Linux or when MSFS is not running).
 
